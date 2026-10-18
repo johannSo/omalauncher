@@ -1,5 +1,6 @@
 package dev.omalauncher
 
+import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.role.RoleManager
 import android.content.Intent
@@ -15,7 +16,10 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import dev.omalauncher.ui.Palette
+import dev.omalauncher.theme.Style
+import dev.omalauncher.ui.LauncherStyle
 import dev.omalauncher.ui.applySystemBars
+import dev.omalauncher.ui.showStatusBar
 import dev.omalauncher.ui.LauncherRoot
 import dev.omalauncher.ui.LauncherState
 import dev.omalauncher.ui.PromptRequest
@@ -30,9 +34,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         applySystemBars(this, Palette.isLight)
         runtime.start()
+        state.onSettings = { page, homePage -> runtime.openSettings(page, homePage) }
         setContent {
             LauncherRoot(runtime, state)
             LaunchedEffect(Palette.isLight) { applySystemBars(this@MainActivity, Palette.isLight) }
+            val statusBar = LauncherStyle.style[Style.STATUS_BAR_SHOWN]
+            LaunchedEffect(statusBar) { showStatusBar(this@MainActivity, statusBar) }
         }
         handleDebugExec(intent)
         handleSharedWidget(intent)
@@ -49,7 +56,7 @@ class MainActivity : ComponentActivity() {
     private fun requestHomeRole() {
         val roles = getSystemService(RoleManager::class.java)
         if (!roles.isRoleAvailable(RoleManager.ROLE_HOME) || roles.isRoleHeld(RoleManager.ROLE_HOME)) return
-        val prefs = getSharedPreferences("launcher", MODE_PRIVATE)
+        val prefs = LauncherData.prefs(this)
         if (prefs.getBoolean("home_role_asked", false)) return
         prefs.edit().putBoolean("home_role_asked", true).apply()
         @Suppress("DEPRECATION")
@@ -118,7 +125,9 @@ class MainActivity : ComponentActivity() {
         handleSharedWidget(intent)
     }
 
+    // Lint flags super.dispatchKeyEvent: ComponentActivity marks its override @RestrictTo, but Activity's is public API.
     /** Launcher shortcuts (Super+key), then typing into a terminal tile that has the keyboard. Back stays the launcher's. */
+    @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.isMetaPressed && event.action == KeyEvent.ACTION_DOWN && shortcut(event.keyCode)) return true
         if (event.keyCode != KeyEvent.KEYCODE_BACK && runtime.terminals.active != null && runtime.keyboard.handle(event)) return true

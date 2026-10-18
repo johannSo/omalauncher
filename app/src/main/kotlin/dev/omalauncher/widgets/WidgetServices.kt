@@ -11,16 +11,25 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.app.ActivityManager
-import android.graphics.Bitmap
 import android.hardware.display.DisplayManager
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
+import android.media.MediaDataSource
+import android.media.MediaPlayer
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import android.view.Display
-import androidx.compose.ui.graphics.asAndroidBitmap
+import android.view.HapticFeedbackConstants
+import android.view.View
+import androidx.compose.ui.graphics.ImageBitmap
 import dev.omalauncher.BuildConfig
+import android.os.Process
 import android.os.SystemClock
+import android.os.UserHandle
+import android.os.UserManager
 import android.util.Log
 import android.widget.Toast
 import dev.omalauncher.MainActivity
@@ -30,6 +39,11 @@ import dev.omalauncher.linux.GuestShell
 import dev.omalauncher.linux.Proot
 import dev.omalauncher.linux.ShellPool
 import dev.omalauncher.linux.ShellResult
+import dev.omalauncher.openHttp
+import dev.omalauncher.openUrl
+import dev.omalauncher.readUpTo
+import dev.omalauncher.sha256Hex
+import dev.omalauncher.upgrade.writeAtomically
 import dev.omalauncher.widgets.lang.Builtins
 import dev.omalauncher.widgets.lang.Lst
 import dev.omalauncher.widgets.lang.Null
@@ -39,7 +53,11 @@ import dev.omalauncher.widgets.lang.Str
 import dev.omalauncher.widgets.lang.Value
 import dev.omalauncher.widgets.lang.WidgetError
 import dev.omalauncher.widgets.lang.bool
+import dev.omalauncher.androidAppKey
+import dev.omalauncher.ui.LauncherStyle
+import dev.omalauncher.widgets.runtime.Alarm
 import dev.omalauncher.widgets.runtime.Media
+import dev.omalauncher.widgets.runtime.Modes
 import dev.omalauncher.widgets.runtime.Notifications
 import dev.omalauncher.widgets.runtime.Services
 import dev.omalauncher.widgets.runtime.Streams
@@ -55,14 +73,21 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
-import java.io.InputStream
-import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.ConcurrentHashMap
 
 private const val MAX_HTTP_BYTES = 1 shl 20
+
+/** Web images and sounds: largest download, how long a kept one is used without asking again, how long to wait after a failure, and the cache's size. */
+private const val MAX_FILE_BYTES = 8 shl 20
+private const val FILE_FRESH_MS = 24 * 3600_000L
+private const val FILE_RETRY_MS = 60_000L
+private const val FILE_CACHE_BYTES = 64L shl 20
 private const val NOTIFY_CHANNEL = "widgets"
 
 /**
@@ -84,11 +109,16 @@ class WidgetServices(
 
     /** What's playing on the phone. */
     private val media = Media(context)
-    private val notifications = Notifications(context, media)
+    private val notifications = Notifications(context, media, ::profileKind)
     private val volume = Volume(context)
+    private val alarm = Alarm(context)
+    private val modes = Modes(context)
 
     /** Opens launcher screens ("style" or "themes", "agents", "drawer"); set by the UI. */
     var launcherAction: ((String) -> Unit)? = null
+
+    /** The home screen's view, for haptic(): View haptics follow the user's touch feedback setting and need no permission; set by the UI. */
+    var view: View? = null
 
     private val recent = HashMap<String, Pair<Long, Deferred<ShellResult>>>()
 
@@ -120,6 +150,8 @@ class WidgetServices(
             "media" -> media.value()
             "notifications" -> notifications.value()
             "volume" -> volume.value()
+            "alarm" -> alarm.value()
+            "modes" -> modes.value()
             "apps" -> apps()
             else -> throw WidgetError("unknown android source $name")
         }
@@ -129,6 +161,8 @@ class WidgetServices(
             "media" -> media.updates()
             "notifications" -> notifications.updates()
             "volume" -> volume.updates()
+            "alarm" -> alarm.updates()
+            "modes" -> modes.updates()
             "battery" ->
                 callbackFlow {
                     val receiver =
@@ -148,16 +182,33 @@ class WidgetServices(
             else -> null
         }
 
-    override fun androidImage(src: String): Bitmap? {
-        if (src.startsWith("media:")) return media.art(src)
-        // Keys are AndroidApp.key (short component, plus @serial for another profile).
-        if (src.startsWith("app:")) {
-            val key = src.removePrefix("app:")
-            // Not the private space's, which android.apps leaves out: a guessed key would tell what's in it.
-            if (runtime.androidApps.apps.any { it.key == key && it.private }) return null
-            return runtime.androidApps.icons[key]?.asAndroidBitmap()
-        }
-        return null
+    override fun androidImage(src: String) = media.art(src)
+
+    /** "work" or "clone" for an app in a profile beside the launcher's own, as the drawer marks it; null for its own. */
+    private fun profileKind(user: UserHandle): String? {
+        if (user == Process.myUserHandle()) return null
+        val serial = context.getSystemService(UserManager::class.java).getSerialNumberForUser(user)
+        return if (runtime.androidApps.cloned(serial)) "clone" else "work"
+    }
+
+    /**
+     * An app's icon as the drawer shows it (its silhouette with monochrome icons), badge included. By package, the launcher's
+     * own profile first; `pkg@work` and `pkg@clone` ask for the copy in a work profile or a clone profile, and nothing else.
+     */
+    override fun appIcon(pkg: String): ImageBitmap? {
+        val apps = runtime.androidApps
+        // Not the private space's, which android.apps leaves out: asking by package would tell what's in it.
+        val listed = apps.apps.filter { !it.private }
+        val name = pkg.substringBefore('@')
+        val app =
+            when (pkg.substringAfter('@', "")) {
+                "work" -> listed.firstOrNull { it.component.packageName == name && it.work }
+                "clone" -> listed.firstOrNull { it.component.packageName == name && it.clone }
+                "" -> listed.firstOrNull { it.component.packageName == name && it.profile == null } ?: listed.firstOrNull { it.component.packageName == name }
+                else -> null
+            } ?: return null
+        val key = androidAppKey(app.component, app.profile)
+        return if (LauncherStyle.monochromeIcons) apps.masks[key] else apps.icons[key]
     }
 
     override fun terminal(
@@ -239,31 +290,32 @@ class WidgetServices(
     }
 
     /**
-     * Launchable Android apps for `source a = android.apps`. Each item is
-     * `{key, name, package, component, profile, system, icon}`; `key` is
-     * [dev.omalauncher.AndroidApp.key] (short component, plus `@serial` for another
-     * profile), `profile` is null on the phone's own apps, and `icon` is `app:$key`
-     * for `Image { src: a.icon }`. Open with `androidApp(a.key)`. Polled like
-     * `android.system` (icons fill in after labels). Widgets are shared code, so the
-     * private space's apps stay out, as they do from the count in `android.system`.
+     * Launchable Android apps for `source a = android.apps`, each `{key, name, package, component, profile, system, icon, score, last}`.
+     * `key` is [dev.omalauncher.AndroidApp.key], unique across profiles, for `androidApp(a.key)`; `profile` is `work` or
+     * `clone` as on notifications, else null; `icon` is the `app:` src for that copy. `score` and `last` are what the
+     * search ranks by ([dev.omalauncher.AppUsage]), so a widget can rank apps the same way. Widgets are shared code,
+     * so the private space's apps stay out, as they do from the count in `android.system`.
      */
-    private fun apps(): Value {
-        val items =
+    private fun apps(): Value =
+        Lst(
             runtime.androidApps.apps.filter { !it.private }.take(Builtins.MAX_LIST).map { app ->
+                val kind = profileKind(app.user)
+                val usage = "a:" + app.key
                 Obj(
                     mapOf(
                         "key" to Str(app.key),
                         "name" to Str(app.label),
                         "package" to Str(app.component.packageName),
                         "component" to Str(app.component.flattenToShortString()),
-                        "profile" to (app.profile?.let { Num(it.toDouble()) } ?: Null),
+                        "profile" to (kind?.let(::Str) ?: Null),
                         "system" to bool(app.system),
-                        "icon" to Str("app:${app.key}"),
+                        "icon" to Str("app:${app.component.packageName}${kind?.let { "@$it" } ?: ""}"),
+                        "score" to Num(Math.round(runtime.usage.score(usage) * 10.0) / 10.0),
+                        "last" to (runtime.usage.last(usage)?.let { Num((it / 1000).toDouble()) } ?: Null),
                     ),
                 )
-            }
-        return Lst(items)
-    }
+            },
+        )
 
     /** Android hides the battery from the guest (/sys/class/power_supply), so expose it here. */
     private fun battery(): Value {
@@ -322,15 +374,18 @@ class WidgetServices(
             // Named after the command (btop, dua, ...) unless the widget passes a name.
             "terminal" -> runtime.terminal("$arg; exec bash", args.getOrNull(1)?.toString() ?: arg.substringBefore(' '))
             "app" -> runtime.launch(arg)
-            "url" -> context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(arg)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            // Any scheme an app handles: tel:, geo:, mailto:, ... One nothing handles mustn't crash the launcher.
+            "url" -> if (!context.openUrl(arg)) Toast.makeText(context, "no app opens $arg", Toast.LENGTH_SHORT).show()
             "launcher" -> launcherAction?.invoke(arg)
             "media" -> media.control(arg)
             "volume" -> volume.control(args[0])
             "notification" -> args.getOrNull(1)?.takeIf { it != Null }?.let { notifications.control(arg, it.toString()) }
-            // Prefer AndroidApp.key (opens the right profile); a bare package still works for the personal copy.
             "androidApp" -> openAndroidApp(arg)
             "copy" -> copy(arg)
             "notify" -> notify(arg, args.getOrNull(1)?.takeIf { it != Null }?.toString())
+            "torch" -> modes.torch(args[0])
+            "share" -> share(arg)
+            "haptic" -> view?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
         }
         // Anything the action changed should show up without waiting for the next interval.
         scope.launch {
@@ -351,20 +406,25 @@ class WidgetServices(
         url: String,
         headers: Map<String, String>,
         timeoutSeconds: Int,
+        body: ByteArray?,
     ): ShellResult =
         withContext(Dispatchers.IO) {
             if (!url.startsWith("https://") && !url.startsWith("http://")) return@withContext ShellResult("", "not an http(s) URL: $url", -1)
             try {
-                val connection = URL(url).openConnection() as HttpURLConnection
+                val connection = openHttp(url, timeoutSeconds * 1000, timeoutSeconds * 1000)
                 try {
-                    connection.connectTimeout = timeoutSeconds * 1000
-                    connection.readTimeout = timeoutSeconds * 1000
                     connection.setRequestProperty("User-Agent", "omalauncher-widgets")
                     headers.forEach { (k, v) -> connection.setRequestProperty(k, v) }
+                    if (body != null) {
+                        connection.requestMethod = "POST"
+                        connection.doOutput = true
+                        connection.setFixedLengthStreamingMode(body.size)
+                        connection.outputStream.use { it.write(body) }
+                    }
                     val code = connection.responseCode
                     val stream = if (code >= 400) connection.errorStream else connection.inputStream
                     // Widgets show a few values; a runaway response mustn't fill memory.
-                    val body = stream?.use { String(readAtMost(it, MAX_HTTP_BYTES), Charsets.UTF_8) }.orEmpty()
+                    val body = stream?.use { String(it.readUpTo(MAX_HTTP_BYTES), Charsets.UTF_8) }.orEmpty()
                     if (code in 200..299) ShellResult(body.trimEnd(), "", code) else ShellResult(body.trimEnd(), connection.responseMessage.orEmpty(), code)
                 } finally {
                     connection.disconnect()
@@ -374,29 +434,139 @@ class WidgetServices(
             }
         }
 
+    /** Web images and sounds on disk, by the SHA-256 of their URL. */
+    private val fileCache by lazy { File(context.cacheDir, "owl-files") }
+
+    /** One download per URL at a time: 48 thumbnails from one file ask for each image once. */
+    private val fileLocks = ConcurrentHashMap<String, Mutex>()
+
+    /** When a URL last failed, in elapsed milliseconds, so a widget offline doesn't ask again on every update. */
+    private val fileFailed = ConcurrentHashMap<String, Long>()
+
+    override suspend fun remoteFile(url: String): File? {
+        if (!url.startsWith("https://")) return null
+        return fileLocks.getOrPut(url) { Mutex() }.withLock {
+            withContext(Dispatchers.IO) {
+                val file = File(fileCache, sha256Hex(url.toByteArray()))
+                val kept = file.takeIf { it.isFile }
+                if (kept != null && System.currentTimeMillis() - kept.lastModified() < FILE_FRESH_MS) return@withContext kept
+                val failed = fileFailed[url]
+                if (failed != null && SystemClock.elapsedRealtime() - failed < FILE_RETRY_MS) return@withContext kept
+                val bytes = runCatching { download(url) }.getOrNull()
+                if (bytes == null) {
+                    fileFailed[url] = SystemClock.elapsedRealtime()
+                    // An old copy beats none: it rarely changed, and the phone may be offline.
+                    return@withContext kept
+                }
+                fileFailed.remove(url)
+                runCatching {
+                    writeAtomically(file, bytes)
+                    pruneFiles()
+                    file
+                }.getOrNull()
+            }
+        }
+    }
+
+    /** A file's bytes, or null for anything but a 2xx or a response over [MAX_FILE_BYTES]. */
+    private fun download(url: String): ByteArray? {
+        val connection = openHttp(url, readTimeout = 20_000)
+        try {
+            connection.setRequestProperty("User-Agent", "omalauncher-widgets")
+            if (connection.responseCode !in 200..299) return null
+            return connection.inputStream.use { it.readUpTo(MAX_FILE_BYTES + 1) }.takeIf { it.size <= MAX_FILE_BYTES }
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    /** Deletes the longest-kept files until the cache is under [FILE_CACHE_BYTES]. */
+    private fun pruneFiles() {
+        val files = fileCache.listFiles()?.filter { it.isFile }?.sortedBy { it.lastModified() } ?: return
+        var total = files.sumOf { it.length() }
+        for (f in files) {
+            if (total <= FILE_CACHE_BYTES) break
+            total -= f.length()
+            f.delete()
+        }
+    }
+
+    /** What each widget is playing; main thread only. */
+    private val players = HashMap<Any, MediaPlayer>()
+
+    /** Spoken or played like media: it follows the media volume, and other audio ducks under it. */
+    private val soundAttributes by lazy {
+        AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
+    }
+    private val soundFocus by lazy {
+        AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK).setAudioAttributes(soundAttributes).build()
+    }
+
+    override fun sound(
+        owner: Any,
+        file: File?,
+        bytes: ByteArray?,
+        failed: (String) -> Unit,
+    ) {
+        scope.launch(Dispatchers.Main) {
+            val audio = context.getSystemService(AudioManager::class.java)
+            fun release(p: MediaPlayer) {
+                if (players[owner] === p) players.remove(owner)
+                p.release()
+                if (players.isEmpty()) audio.abandonAudioFocusRequest(soundFocus)
+            }
+            players[owner]?.let(::release)
+            if (file == null && bytes == null) return@launch
+            val p = MediaPlayer()
+            try {
+                p.setAudioAttributes(soundAttributes)
+                if (file != null) p.setDataSource(file.path) else p.setDataSource(BytesSource(bytes!!))
+                p.setOnPreparedListener {
+                    if (players[owner] !== it) return@setOnPreparedListener
+                    audio.requestAudioFocus(soundFocus)
+                    it.start()
+                }
+                p.setOnCompletionListener(::release)
+                p.setOnErrorListener { mp, what, _ ->
+                    failed("not a sound Android can play (error $what)")
+                    release(mp)
+                    true
+                }
+                players[owner] = p
+                p.prepareAsync()
+            } catch (e: Exception) {
+                failed(e.message ?: e.toString())
+                release(p)
+            }
+        }
+    }
+
     /**
-     * Opens an Android app by [AndroidApp.key] (or package, for older widgets).
-     * Goes through the catalog so work-profile apps start in the right user. Not the private space's.
+     * By an `android.apps` key, which opens that copy in its own profile, or by package, the launcher's own profile's copy.
+     * Counts like an open from the drawer, for the search's ranking and the recent apps. Not the private space's.
      */
     private fun openAndroidApp(arg: String) {
-        val apps = runtime.androidApps.apps.filter { !it.private }
-        val app =
-            apps.find { it.key == arg }
-                ?: apps.find { it.component.packageName == arg && it.profile == null }
-                ?: apps.find { it.component.packageName == arg }
+        val apps = runtime.androidApps
+        val listed = apps.apps.filter { !it.private }
+        val app = listed.firstOrNull { it.key == arg } ?: listed.firstOrNull { it.component.packageName == arg && it.profile == null }
         if (app != null) {
-            runtime.androidApps.open(app)
+            runtime.usage.record("a:" + app.key)
+            apps.open(app)
             return
         }
-        context.packageManager.getLaunchIntentForPackage(arg)?.let {
-            context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        }
+        context.packageManager.getLaunchIntentForPackage(arg)?.let { context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION)) }
     }
 
     private fun copy(text: String) {
         context.getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("widget", text))
         // Android 13+ confirms copies itself.
         if (Build.VERSION.SDK_INT < 33) Toast.makeText(context, "copied", Toast.LENGTH_SHORT).show()
+    }
+
+    /** share(text): Android's share sheet, to send the text to any app. */
+    private fun share(text: String) {
+        val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
+        context.startActivity(Intent.createChooser(send, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
     private var notificationId = 1000
@@ -426,16 +596,23 @@ class WidgetServices(
     }
 }
 
-private fun readAtMost(
-    input: InputStream,
-    limit: Int,
-): ByteArray {
-    val out = java.io.ByteArrayOutputStream()
-    val buf = ByteArray(8192)
-    while (out.size() < limit) {
-        val n = input.read(buf, 0, minOf(buf.size, limit - out.size()))
-        if (n < 0) break
-        out.write(buf, 0, n)
+/** An embedded sound, `asset x = base64"..."`, for MediaPlayer. */
+private class BytesSource(
+    private val bytes: ByteArray,
+) : MediaDataSource() {
+    override fun getSize() = bytes.size.toLong()
+
+    override fun readAt(
+        position: Long,
+        buffer: ByteArray,
+        offset: Int,
+        size: Int,
+    ): Int {
+        if (position >= bytes.size) return -1
+        val n = minOf(size, bytes.size - position.toInt())
+        System.arraycopy(bytes, position.toInt(), buffer, offset, n)
+        return n
     }
-    return out.toByteArray()
+
+    override fun close() {}
 }

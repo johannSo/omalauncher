@@ -21,7 +21,6 @@ import androidx.compose.ui.zIndex
 import dev.omalauncher.widgets.Cell
 import dev.omalauncher.widgets.Folder
 import dev.omalauncher.widgets.Shortcut
-import dev.omalauncher.widgets.GRID_COLUMNS
 import dev.omalauncher.widgets.HomeItem
 import dev.omalauncher.widgets.WidgetLayout
 import kotlin.math.roundToInt
@@ -52,10 +51,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toOffset
@@ -71,33 +72,55 @@ import kotlinx.coroutines.launch
  *
  * [per] pages stand side by side, each [width] wide (two on a foldable's inner screen); a page's
  * cells are in its own coordinates, [local] and [screen] convert.
+ *
+ * [gap] is between tiles; [pad] is around them on each side of a page: the gap to the screen's
+ * edge, or the gap between tiles on the side the strip and the bar follow.
  */
 @Immutable
 private class Grid(
     val width: Int,
     height: Int,
     val gap: Int,
+    val pad: GridPad,
+    val cols: Int,
     val turned: Boolean = false,
     portraitRows: Int? = null,
     used: Int = 0,
     val per: Int = 1,
 ) {
-    val cols = GRID_COLUMNS
     val height = height
-    val rows = maxOf(if (turned) portraitRows ?: squareRows(height, width, gap) else squareRows(width, height, gap), used)
 
-    /** A screen cell's width and height. */
-    val cellW = (width - gap) / (if (turned) rows else cols).toFloat()
-    val cellH = (height - gap) / (if (turned) cols else rows).toFloat()
+    /** The room the cells share across and down: a cell is a tile and the gap after it, so the last gap is the pad's. */
+    private val across = width - pad.left - pad.right + gap
+    private val down = height - pad.top - pad.bottom + gap
+
+    val rows = maxOf(if (turned) portraitRows ?: squareRows(down, across, cols) else squareRows(across, down, cols), used)
+
+    /** A screen cell's width and height, the gap after it included. */
+    val cellW = across / (if (turned) rows else cols).toFloat()
+    val cellH = down / (if (turned) cols else rows).toFloat()
 
     // Rounded, not truncated: rows * cellH can come out a hair under the grid's height, which would leave the
     // bottom row a pixel short of the strip below.
     fun rect(c: Cell) =
         if (turned) {
-            IntRect((gap + c.y * cellW).roundToInt(), (gap + c.x * cellH).roundToInt(), (c.bottom * cellW).roundToInt(), (c.right * cellH).roundToInt())
+            rect(c.y, c.x, c.bottom, c.right)
         } else {
-            IntRect((gap + c.x * cellW).roundToInt(), (gap + c.y * cellH).roundToInt(), (c.right * cellW).roundToInt(), (c.bottom * cellH).roundToInt())
+            rect(c.x, c.y, c.right, c.bottom)
         }
+
+    /** Screen cells [x0] to [x1] across and [y0] to [y1] down, less the gap after the last. */
+    private fun rect(
+        x0: Int,
+        y0: Int,
+        x1: Int,
+        y1: Int,
+    ) = IntRect(
+        (pad.left + x0 * cellW).roundToInt(),
+        (pad.top + y0 * cellH).roundToInt(),
+        (pad.left + x1 * cellW - gap).roundToInt(),
+        (pad.top + y1 * cellH - gap).roundToInt(),
+    )
 
     /** A saved cell as shown on this grid; only affects display, the saved cell stays as it is. */
     fun fit(
@@ -110,14 +133,16 @@ private class Grid(
     }
 
     /** Nearest column line to a point on screen. */
-    fun colLine(p: Offset) = (if (turned) line(p.y, cellH) else line(p.x, cellW)).coerceIn(0, cols)
+    fun colLine(p: Offset) = (if (turned) line(p.y, pad.top, cellH) else line(p.x, pad.left, cellW)).coerceIn(0, cols)
 
-    fun rowLine(p: Offset) = (if (turned) line(p.x, cellW) else line(p.y, cellH)).coerceIn(0, rows)
+    fun rowLine(p: Offset) = (if (turned) line(p.x, pad.left, cellW) else line(p.y, pad.top, cellH)).coerceIn(0, rows)
 
+    /** Lines run down the middle of the gaps between cells. */
     private fun line(
         px: Float,
+        start: Int,
         cell: Float,
-    ) = ((px - gap / 2f) / cell).roundToInt()
+    ) = ((px - start + gap / 2f) / cell).roundToInt()
 
     /** The tile edges under the screen edges a press grabbed. */
     fun edges(e: Edges) = if (turned) Edges(left = e.top, top = e.left, right = e.bottom, bottom = e.right) else e
@@ -138,12 +163,28 @@ private class Grid(
     ) = r.translate(side * width, 0)
 }
 
-/** How many rows of square-ish cells fit [long] beside [GRID_COLUMNS] of them across [short]. */
+/**
+ * How many rows of square-ish cells fit [long] beside [cols] of them across [short]. A window narrower than
+ * the gaps around it leaves no room across: one row then, and never more than [MAX_CELL_ASPECT] times [cols],
+ * or a sliver would make millions of them.
+ */
 private fun squareRows(
     short: Int,
     long: Int,
-    gap: Int,
-) = ((long - gap) / ((short - gap) / GRID_COLUMNS.toFloat())).toInt().coerceAtLeast(1)
+    cols: Int,
+) = if (short <= 0) 1 else (long / (short / cols.toFloat())).toInt().coerceIn(1, MAX_CELL_ASPECT * cols)
+
+/** Cells four times as tall as wide: far past any phone's shape (20:9 makes 13 rows of 6 columns). */
+private const val MAX_CELL_ASPECT = 4
+
+/** Room around a page's tiles, in pixels; see [Grid]. */
+@Immutable
+private data class GridPad(
+    val left: Int,
+    val top: Int,
+    val right: Int,
+    val bottom: Int,
+)
 
 internal fun IntRect.has(p: Offset) = p.x >= left && p.x < right && p.y >= top && p.y < bottom
 
@@ -208,6 +249,9 @@ internal class Arrange {
     /** The open folder's key; its panel covers the grid until a tap outside, Back, or an app lifted out of it. */
     var folder by mutableStateOf<String?>(null)
 
+    /** The open folder's name is being typed, in its header. */
+    var naming by mutableStateOf(false)
+
     /** Where the selected tile's action bar is, in page coordinates; taps there go to the bar, not the editor. */
     var bar by mutableStateOf<IntRect?>(null)
 
@@ -229,8 +273,8 @@ internal class Arrange {
  * move it, tap outside or press Back to finish. Hold a carried tile against a
  * side edge to turn the page; the last page is always an empty one. Drop an app
  * on another app to put both in a folder, or on a folder to add it; tap a folder
- * to open it, and long-press an app in it to drag it to another place in it,
- * or back out.
+ * to open it, tap its name to type a new one, and long-press an app in it to drag it
+ * to another place in it, or back out.
  *
  * Gestures live here, around the pager, rather than on each page: a drag that
  * turns the page has to survive leaving the page it started on. [room] at the
@@ -259,9 +303,13 @@ internal fun HomeGrid(
     onGroup: (Shortcut, HomeItem) -> Unit,
     /** Moves an app within its folder to just before another of its apps, or with null to the end. */
     onReorder: (Shortcut, String?) -> Unit,
+    /** Names a folder as its name is typed; blank for none. */
+    onRenameFolder: (Folder, String) -> Unit,
     modifier: Modifier = Modifier,
     room: Dp = 0.dp,
     turned: Boolean = false,
+    /** Where the strip and the bar stand beside the grid; null for below it. */
+    side: HomeSide? = null,
     per: Int = 1,
     /** Tiles on a page that are hidden right now: not drawn or touched, but their cells stay taken. */
     hiddenOn: (Int) -> List<HomeItem> = { emptyList() },
@@ -272,6 +320,15 @@ internal fun HomeGrid(
     BoxWithConstraints(modifier) {
         val density = LocalDensity.current
         val gap = with(density) { HomeGap.roundToPx() }
+        val outer = with(density) { EdgeGap.roundToPx() }
+        // The screen's edge on every side but the one the strip and the bar follow, which gets the gap between tiles.
+        val pad =
+            GridPad(
+                left = if (side == HomeSide.Left) gap else outer,
+                top = outer,
+                right = if (side == HomeSide.Right) gap else outer,
+                bottom = if (side == null) gap else outer,
+            )
         // The grid stops [room] short of the bottom; the pages and their gestures go on below it.
         val height = constraints.maxHeight - with(density) { room.roundToPx() }
         val width = constraints.maxWidth / per
@@ -284,10 +341,11 @@ internal fun HomeGrid(
         val used by remember(pages, itemsOn, hiddenOn, layout) {
             derivedStateOf { pages.flatMap { itemsOn(it) + hiddenOn(it) }.maxOfOrNull { item -> layout.cell(item.key)?.let { if (item.resizable) it.bottom else it.y + 1 } ?: 0 } ?: 0 }
         }
+        val cols = layout.columns
         val grid =
-            remember(width, height, gap, turned, windowSize, used, per) {
+            remember(width, height, gap, pad, cols, turned, windowSize, used, per) {
                 // Not seen in portrait yet: square cells across.
-                Grid(width, height, gap, turned, if (turned) layout.portraitRows(windowSize) else null, used, per)
+                Grid(width, height, gap, pad, cols, turned, if (turned) layout.portraitRows(windowSize) else null, used, per)
             }
         if (!turned) SideEffect { layout.setPortraitRows(windowSize, grid.rows) }
         // Previews draw tiles at the size they have here.
@@ -469,6 +527,19 @@ internal fun HomeGrid(
                         }
                     } == null
 
+                    /** Takes [downId]'s moves until it lifts, giving [onMove] each position while pressed; where it lifted, or null if it went away. */
+                    suspend fun AwaitPointerEventScope.trackUntilUp(
+                        downId: PointerId,
+                        onMove: (Offset) -> Unit = {},
+                    ): Offset? {
+                        while (true) {
+                            val c = awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull { it.id == downId } ?: return null
+                            c.consume()
+                            if (!c.pressed) return c.position
+                            onMove(c.position)
+                        }
+                    }
+
                     awaitEachGesture {
                         val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                         val start = down.position
@@ -480,7 +551,7 @@ internal fun HomeGrid(
                         val placed = placedOn(page, g)
 
                         // An open folder takes every touch: a tap on an app opens it (the tile gets the tap),
-                        // a long-press lifts it to sort it in or drag it out, a tap outside closes the folder. Its panel is centered on
+                        // a long-press lifts it to sort it in or drag it out, a tap on its name types a new one, a tap outside closes the folder. Its panel is centered on
                         // the whole screen, even with two pages showing.
                         val folderPage = shown.getOrNull(sideOf(arrange.folder, shown))
                         val open = folderPage?.let { p -> itemsOn(p).firstOrNull { it.key == arrange.folder } as? Folder }
@@ -491,11 +562,7 @@ internal fun HomeGrid(
                             if (hit == null) {
                                 down.consume()
                                 if (!fg.panel.has(start)) arrange.folder = null
-                                while (true) {
-                                    val c = awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull { it.id == down.id } ?: break
-                                    c.consume()
-                                    if (!c.pressed) break
-                                }
+                                trackUntilUp(down.id)?.let { up -> arrange.naming = fg.header.has(start) && fg.header.has(up) }
                                 return@awaitEachGesture
                             }
                             if (!awaitLongPress(down.id, start)) return@awaitEachGesture
@@ -526,12 +593,10 @@ internal fun HomeGrid(
                                 when {
                                     edges.any -> {
                                         val others = placed.filter { it.first.key != item.key }.map { it.second } + reservedOn(page, g)
-                                        while (true) {
-                                            val c = awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull { it.id == down.id } ?: break
-                                            c.consume()
-                                            if (!c.pressed) break
-                                            val (minW, minH) = item.minSize
-                                            val p = g.local(c.position, selSide)
+                                        trackUntilUp(down.id) { position ->
+                                            val minW = item.minSize.first.coerceAtMost(g.cols)
+                                            val minH = item.minSize.second
+                                            val p = g.local(position, selSide)
                                             val x0 = if (edges.left) g.colLine(p).coerceAtMost(cell.right - minW) else cell.x
                                             val x1 = if (edges.right) g.colLine(p).coerceAtLeast(cell.x + minW) else cell.right
                                             val y0 = if (edges.top) g.rowLine(p).coerceAtMost(cell.bottom - minH) else cell.y
@@ -546,11 +611,7 @@ internal fun HomeGrid(
                                     else -> {
                                         // Tap outside finishes editing; a drag outside does nothing.
                                         onSelect(null)
-                                        while (true) {
-                                            val c = awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull { it.id == down.id } ?: break
-                                            c.consume()
-                                            if (!c.pressed) break
-                                        }
+                                        trackUntilUp(down.id)
                                     }
                                 }
                             } finally {
@@ -594,7 +655,15 @@ internal fun HomeGrid(
             val openFolder = arrange.folder?.let { key -> pagesAt(pager.currentPage, pages, grid).firstNotNullOfOrNull { p -> itemsOn(p).firstOrNull { it.key == key } as? Folder } }
             if (openFolder != null) {
                 val fg = FolderGeometry(width * per, grid.height, grid.cellW, grid.cellH, gap, openFolder.apps.size, density)
-                FolderPanel(openFolder, fg, render, arrange.carry?.item?.key)
+                FolderPanel(
+                    openFolder,
+                    fg,
+                    render,
+                    arrange.carry?.item?.key,
+                    naming = arrange.naming,
+                    onName = { onRenameFolder(openFolder, it) },
+                    onNamed = { arrange.naming = false },
+                )
             }
 
             // The carried tile floats above the pager, so it stays put while pages turn, and above an open folder it's sorting.
@@ -756,22 +825,33 @@ private fun TiledPage(
                     )
                 }
             }
-            // Action bar above the tile, or below it when the tile is at the top.
-            val barAbove = r.top > with(density) { 56.dp.roundToPx() }
             if (!arrange.holding) {
-                val at =
-                    with(density) {
-                        IntOffset(
-                            r.left.coerceAtMost(pageWidth - 220.dp.roundToPx()).coerceAtLeast(0),
-                            if (barAbove) r.top - 48.dp.roundToPx() else r.bottom + 8.dp.roundToPx(),
-                        )
+                // Above the tile, or below it when there's no room for it there: as tall as it turned out, since an
+                // app's shortcuts stack above its bar. Lined up with the tile's left edge, pulled in by however wide
+                // the bar turned out when that would run past the grid's edge, which keeps the gap tiles keep from the
+                // screen: a lone "remove" for an app at the edge stays next to it. A tile with room on neither side (one
+                // filling the page) gets it inside, centred below the top handle, where it covers no handle's grab zone;
+                // below the grid it would sit under the strip and take the bottom handle's touches.
+                val barGap = with(density) { 8.dp.roundToPx() }
+                val inset = with(density) { 28.dp.roundToPx() }
+                fun at(size: IntSize): IntOffset {
+                    val above = r.top - size.height - barGap
+                    val below = r.bottom + barGap
+                    return when {
+                        above >= 0 -> IntOffset(r.left.coerceAtMost(pageWidth - grid.pad.right - size.width).coerceAtLeast(grid.pad.left), above)
+                        below + size.height <= grid.height -> IntOffset(r.left.coerceAtMost(pageWidth - grid.pad.right - size.width).coerceAtLeast(grid.pad.left), below)
+                        else -> IntOffset(r.center.x - size.width / 2, r.top + inset)
                     }
+                }
                 DisposableEffect(Unit) { onDispose { arrange.bar = null } }
                 Box(
                     Modifier
                         .zIndex(3f)
-                        .offset { at }
-                        .onSizeChanged { arrange.bar = IntRect(at, it) },
+                        .layout { measurable, constraints ->
+                            val bar = measurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
+                            layout(bar.width, bar.height) { bar.place(at(IntSize(bar.width, bar.height))) }
+                        }
+                        .onSizeChanged { arrange.bar = IntRect(at(it), it) },
                 ) { actions(sel) }
             }
         }

@@ -3,7 +3,6 @@ package dev.omalauncher.ui
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.ui.platform.LocalWindowInfo
 import android.app.WallpaperManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.snapshotFlow
@@ -15,6 +14,8 @@ import dev.omalauncher.widgets.Shortcut
 import dev.omalauncher.widgets.WidgetItem
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -42,6 +43,8 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +54,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.collectAsState
 import dev.omalauncher.Runtime
+import dev.omalauncher.widgets.render.LocalHomeTiles
 import dev.omalauncher.widgets.editWidgetCommand
 import dev.omalauncher.widgets.fixDependenciesCommand
 
@@ -67,7 +71,7 @@ fun HomeScreen(
     // One empty page always waits after the last one, to drop tiles on or pin apps to. Pages only exist
     // while they hold something, so it becomes a real page once used and a new empty one follows.
     // Unfolded, pages show in pairs: the pager counts pairs, and an odd last page gets an empty partner.
-    val per = if (showsTwoPages(LocalWindowInfo.current.containerSize)) 2 else 1
+    val per = if (showsTwoPages(windowSize())) 2 else 1
     val pageNumbers =
         engine.pages
             .let { if (engine.itemsOn(it.last()).isEmpty()) it else it + (it.last() + 1) }
@@ -83,7 +87,7 @@ fun HomeScreen(
     var menuFor by remember { mutableStateOf<HomeItem?>(null) }
 
     val terminals = runtime.terminals
-    BackHandler(enabled = terminals.active != null) { terminals.deactivate() }
+    BackHandler(enabled = terminals.typing) { terminals.deactivate() }
     BackHandler(enabled = state.homeMenuOpen) { state.homeMenuOpen = false }
     BackHandler(enabled = state.editing != null && !state.homeMenuOpen) { state.editing = null }
     BackHandler(enabled = arrange.folder != null && !state.homeMenuOpen) { arrange.folder = null }
@@ -91,10 +95,10 @@ fun HomeScreen(
         engine.launcherAction = { action ->
             when (action) {
                 // "themes" from before the screen was style; widgets still send it.
-                "style", "themes" -> state.styleOpen = true
-                "agents" -> state.agentsOpen = true
-                "store" -> state.storeOpen = true
-                "linux" -> state.linuxOpen = true
+                "style", "themes" -> state.show(SettingsPage.Style)
+                "agents" -> state.show(SettingsPage.Agents)
+                "store" -> state.show(SettingsPage.Store)
+                "linux" -> state.show(SettingsPage.Linux)
                 "drawer" -> state.open()
             }
         }
@@ -114,6 +118,10 @@ fun HomeScreen(
     }
     // The background slides with the pages, like stock launchers. Our live wallpaper gets it through Android.
     val view = LocalView.current
+    DisposableEffect(engine, view) {
+        engine.view = view
+        onDispose { if (engine.view === view) engine.view = null }
+    }
     LaunchedEffect(pager, view) {
         val wallpapers = WallpaperManager.getInstance(view.context)
         snapshotFlow {
@@ -159,8 +167,7 @@ fun HomeScreen(
     /** Opens the default agent on the widget's file; with no agent installed, the agents screen instead. */
     fun edit(item: WidgetItem) {
         state.editing = null
-        val agent = runtime.agents.default
-        if (agent == null) state.agentsOpen = true else runtime.terminal(editWidgetCommand(agent.bin, item.spec), "Edit ${item.spec.name}", agent)
+        state.withAgent(runtime, "Edit ${item.spec.name}") { editWidgetCommand(it, item.spec) }
     }
 
     // Overlays below are siblings of the pager inside this Box, so they never change the page's size.
@@ -173,21 +180,23 @@ fun HomeScreen(
     // Back with the soft keyboard up only reaches the keyboard app, which closes itself. Closed like that
     // (not by the tile's ⌨ button), the tile lets go too, so the bar and recent apps come back. Only once it's gone:
     // hiding it again mid-way, while a back swipe still drives its animation, left home taking no touches.
+    // A widget's text field the same: its keyboard closed without it losing focus.
     LaunchedEffect(terminals) {
         snapshotFlow { ime.getBottom(density) > 0 }.collect { shown ->
-            if (!shown && terminals.keyboard?.wanted == true) terminals.deactivate()
+            if (!shown && (terminals.keyboard?.wanted == true || terminals.field != null)) terminals.deactivate()
         }
     }
     // The bar and recent apps don't wait for that: back as the keyboard starts closing, like the pages.
     LaunchedEffect(terminals) {
-        snapshotFlow { imeTarget.getBottom(density) == 0 && terminals.keyboard?.wanted == true }.collect { terminals.keyboardLeaving = it }
+        snapshotFlow { imeTarget.getBottom(density) == 0 && (terminals.keyboard?.wanted == true || terminals.field != null) }
+            .collect { terminals.keyboardLeaving = it }
     }
     var origin by remember { mutableStateOf(Offset.Zero) }
     val extraKeys = terminals.active != null && extraKeysWanted()
     val side = homeSide()
     val turned = homeTurned()
     val sideRoom = sideWidth()
-    val barRoom = with(density) { state.barHeight.takeIf { it > 0 }?.toDp() ?: (PromptBarHeight + 12.dp) }
+    val barRoom = with(density) { state.barHeight.takeIf { it > 0 }?.toDp() ?: (PromptBarHeight + HomeGap + EdgeGap) }
     LaunchedEffect(extraKeys) { if (!extraKeys) terminals.extraKeys = null }
     Box(
         modifier
@@ -203,11 +212,16 @@ fun HomeScreen(
             onRelease = { if (terminals.keyboard === it) terminals.keyboard = null },
             modifier = Modifier.size(1.dp),
         )
+    // A widget's text field on a tile lifts it like a terminal does.
+    CompositionLocalProvider(LocalHomeTiles provides terminals) {
     Column(
         Modifier
             .fillMaxSize()
-            // Typing in a terminal tile: lift the pages so the tile stays above the keyboard, but not under the status
-            // bar; a tile too tall for both gives up the rest at its bottom.
+            // Swiping up opens the drawer, like stock launchers, or what gesture settings say; not while editing, in a
+            // folder or typing in a tile. A long-press drag takes its touches first, and the pager only wants sideways ones.
+            .homeSwipe(runtime, state, enabled = !terminals.typing && state.editing == null && arrange.folder == null)
+            // Typing in a tile (its terminal or a widget's text field): lift the pages so the tile stays above the keyboard,
+            // but not under the status bar; a tile too tall for both gives up the rest at its bottom.
             .graphicsLayer {
                 val keys = if (extraKeys) ExtraKeysHeight.toPx() else 0f
                 translationY =
@@ -216,7 +230,7 @@ fun HomeScreen(
                         imeTarget = imeTarget.getBottom(density),
                         windowHeight = view.height,
                         margin = 8.dp.toPx() + keys,
-                        top = statusBar.getTop(density) + 6.dp.toPx(),
+                        top = statusBar.getTop(density) + EdgeGap.toPx(),
                         minHeight = 64.dp.toPx(),
                     )
             }
@@ -224,7 +238,7 @@ fun HomeScreen(
             // nothing lifted under the status bar.
             .drawWithContent {
                 val keyboard = ime.getBottom(density)
-                if (terminals.active == null || keyboard == 0) {
+                if (!terminals.typing || keyboard == 0) {
                     drawContent()
                 } else {
                     val keys = if (extraKeys) ExtraKeysHeight.toPx() else 0f
@@ -236,8 +250,8 @@ fun HomeScreen(
                 }
             }
             // Room for the bar, which DesktopScreen draws over the pages (so the keyboard lifts it without shrinking
-            // the grid). The grid ends with its own gap; below it the strip, a gap, the bar and a gap: the bar as
-            // measured, since a large font makes it taller. In a phone's landscape they stand beside it instead, on
+            // the grid). The grid ends with a gap between tiles; below it the strip, another gap, the bar and the gap
+            // to the edge: the bar as measured, since a large font makes it taller. In a phone's landscape they stand beside it instead, on
             // the side portrait's bottom turned to.
             .padding(
                 start = if (side == HomeSide.Left) sideRoom else 0.dp,
@@ -256,30 +270,46 @@ fun HomeScreen(
             selected = state.editing,
             onSelect = { state.editing = it },
             actions = { item ->
-                EditBar {
-                    if (item is WidgetItem) EditAction("edit") { edit(item) }
-                    // As a QR code or link, or (your own) to the store. An agent's tile is a terminal, not a widget to pass on.
-                    if (item is WidgetItem && !item.spec.file.name.startsWith("agent-")) {
-                        EditAction("share") {
-                            state.editing = null
-                            state.sharing = item.spec
-                        }
+                // A pinned Android app offers its shortcuts above the bar, as its long-press menu in the drawer does.
+                val app = (item as? Shortcut)?.component?.let { runtime.androidApps.pinned(it, item.profile) }
+                val (menu, offered) =
+                    offeredShortcuts(item.key) {
+                        app?.let { shortcutMenu(runtime, it, page = { item.page }, onOpen = { arrange.folder = null }) }
                     }
-                    // An Android widget that lets its settings change later, in its own screen.
-                    if (item is AppWidgetItem && engine.appWidgets.reconfigurable(item.id)) {
-                        EditAction("settings") {
-                            state.editing = null
-                            view.context.startActivity(AppWidgetSetupActivity.reconfigure(view.context, item.id))
+                // Nothing until they're loaded, so the bar doesn't jump down as they arrive.
+                if (offered != null) Column {
+                    if (menu != null && offered.isNotEmpty()) {
+                        MenuItems(emptyList(), { state.editing = null }, minWidth = 160.dp, itemPadding = 12.dp, fontSize = TextSize.Item) {
+                            ShortcutRows(offered, menu, { state.editing = null }, TextSize.Item, rule = false)
                         }
+                        Spacer(Modifier.height(6.dp))
                     }
-                    EditAction("remove", Palette.red) { remove(item) }
+                    EditBar {
+                        if (item is WidgetItem) EditAction("edit") { edit(item) }
+                        // As a QR code or link, or (your own) to the store. An agent's tile is a terminal, not a widget to pass on.
+                        if (item is WidgetItem && !engine.isAgentWidget(item.spec)) {
+                            EditAction("share") {
+                                state.editing = null
+                                state.sharing = item.spec
+                            }
+                        }
+                        // An Android widget that lets its settings change later, in its own screen.
+                        if (item is AppWidgetItem && engine.appWidgets.reconfigurable(item.id)) {
+                            EditAction("settings") {
+                                state.editing = null
+                                view.context.startActivity(AppWidgetSetupActivity.reconfigure(view.context, item.id))
+                            }
+                        }
+                        EditAction("remove", Palette.red) { remove(item) }
+                    }
                 }
             },
             render = { item, tile, highlighted ->
                 when (item) {
                     is WidgetItem -> {
                         // Whose terminal has the keyboard: the tile gives up what the keyboard covers once the lift is spent.
-                        val typing = engine.instance(item.spec)?.owns(terminals.active) == true
+                        val instance = engine.instance(item.spec)
+                        val typing = instance != null && (instance.owns(terminals.active) || terminals.field?.widget === instance)
                         WidgetTile(
                             spec = item.spec,
                             instance = engine.instance(item.spec),
@@ -300,20 +330,14 @@ fun HomeScreen(
                             install = engine.installs[item.spec.file.name],
                             onInstall = { engine.installDependencies(item.spec) },
                             waitsForLinux = if (engine.waitsForLinux(item.spec)) linuxState else null,
-                            onInstallLinux = { state.linuxOpen = true },
-                            onFix = { log ->
-                                val agent = runtime.agents.default
-                                if (agent == null) {
-                                    state.agentsOpen = true
-                                } else {
-                                    runtime.terminal(fixDependenciesCommand(agent.bin, item.spec, log), "Fix ${item.spec.name}", agent)
-                                }
-                            },
+                            onInstallLinux = { state.show(SettingsPage.Linux) },
+                            onFix = { log -> state.withAgent(runtime, "Fix ${item.spec.name}") { fixDependenciesCommand(it, item.spec, log) } },
                         )
                     }
                     is Shortcut ->
                         ShortcutTile(
                             shortcut = item,
+                            label = runtime.shortcutLabel(item),
                             icon = runtime.shortcutIcon(item, LauncherStyle.monochromeIcons),
                             focused = highlighted,
                             modifier = tile,
@@ -330,6 +354,7 @@ fun HomeScreen(
                         FolderTile(
                             folder = item,
                             icons = item.apps.take(4).map { runtime.shortcutIcon(it, LauncherStyle.monochromeIcons) },
+                            labels = item.apps.take(4).map { runtime.shortcutLabel(it) },
                             focused = highlighted,
                             modifier = tile,
                             onTap = { arrange.folder = item.key },
@@ -341,6 +366,7 @@ fun HomeScreen(
             // home's to swipe and long-press there until it does.
             room = if (LauncherStyle.recentApps && side == null) RecentStripHeight else 0.dp,
             turned = turned,
+            side = side,
             per = per,
             onLongPressEmpty = { openMenu(null) },
             onNoRoom = { item -> showPage = engine.moveToFreePage(item) },
@@ -350,7 +376,9 @@ fun HomeScreen(
             },
             onGroup = { app, target -> engine.shortcuts.group(app, target) },
             onReorder = { app, before -> engine.shortcuts.moveBefore(app.key, before) },
+            onRenameFolder = { folder, name -> engine.shortcuts.rename(folder.key, name) },
         )
+    }
     }
 
     if (extraKeys) {

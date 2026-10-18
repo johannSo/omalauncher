@@ -85,9 +85,8 @@ import dev.omalauncher.androidShortcutKey
 import androidx.compose.runtime.collectAsState
 import dev.omalauncher.Runtime
 import dev.omalauncher.linux.LinuxState
-import androidx.compose.ui.graphics.vector.ImageVector
-import dev.omalauncher.linux.FILES_COMMAND
 import dev.omalauncher.linux.LinuxApp
+import dev.omalauncher.widgets.WidgetSpec
 
 /** One app in the bar's results. */
 internal sealed interface AppHit {
@@ -123,6 +122,14 @@ internal sealed interface AppHit {
         override val alias get() = if (app.profile != null) "${app.label} ${if (app.clone) "clone" else if (app.private) "private" else "work"}" else null
 
         override fun paused(runtime: Runtime) = runtime.androidApps.paused(app.profile)
+    }
+
+    /** An owl file that's an app: it opens full screen over home. */
+    data class Owl(
+        val spec: WidgetSpec,
+    ) : AppHit {
+        override val key get() = "o:" + spec.file.name
+        override val label get() = spec.name
     }
 
     /** A shortcut an app put on the home screen, such as a website installed from a browser. */
@@ -219,16 +226,19 @@ internal class BarSearch(
 }
 
 // A locked private space's apps and shortcuts aren't to be found at all, as Android asks of launchers.
-private fun allApps(runtime: Runtime): List<AppHit> =
-    runtime.linuxApps.map { AppHit.Linux(it) } + runtime.androidApps.apps.filterNot { runtime.androidApps.isLocked(it.profile) }.map { AppHit.Android(it) } +
-        runtime.androidApps.shortcuts.filterNot { runtime.androidApps.isLocked(it.profile) }.map { AppHit.Shortcut(it) }
+private fun allApps(runtime: Runtime): List<AppHit> {
+    val apps = runtime.androidApps
+    return runtime.widgets.apps().map { AppHit.Owl(it) } + runtime.linuxApps.apps.map { AppHit.Linux(it) } +
+        apps.apps.filterNot { apps.isLocked(it.profile) }.map { AppHit.Android(it) } + apps.shortcuts.filterNot { apps.isLocked(it.profile) }.map { AppHit.Shortcut(it) }
+}
 
 /** [AppHit.key]s of the apps and shortcuts pinned to home, on their own or in a folder. */
 private fun pinnedKeys(runtime: Runtime): Set<String> =
     runtime.widgets.shortcuts.items.mapNotNullTo(HashSet()) { s ->
-        s.component?.let { "a:" + androidAppKey(it, s.profile) }
+        s.component?.let { "a:" + (runtime.androidApps.pinned(it, s.profile)?.key ?: androidAppKey(it, s.profile)) }
             ?: s.androidShortcut?.let { "s:" + androidShortcutKey(it, s.profile) }
             ?: s.linux?.let { AppHit.Linux(it).key }
+            ?: s.owl?.let { "o:$it" }
     }
 
 internal fun searchApps(
@@ -241,19 +251,37 @@ internal fun searchApps(
     return BarSearch(ranked.map { it.first }, ranked.firstOrNull()?.let { isStrongMatch(it.second, query) } == true)
 }
 
-/** What the app cells do: open, pin to home, the Android app's info and uninstall, and removing a shortcut. */
+/** What the app cells do: open, pin to home, the Android app's info and uninstall, removing a shortcut, and an owl app's edit, share and remove. */
 internal class AppHandlers(
     val launch: (AppHit) -> Unit,
     val pin: (AppHit) -> Unit,
     val info: (AndroidApp) -> Unit,
     val uninstall: (AndroidApp) -> Unit,
     val remove: (AndroidShortcut) -> Unit,
+    /** An Android app's shortcuts, for its long-press menu. */
+    val shortcuts: (AndroidApp) -> ShortcutMenu,
+    /** Opens the default agent on an owl app's file. */
+    val edit: (WidgetSpec) -> Unit,
+    /** Shares an owl app as a link or QR code, as a widget is shared. */
+    val share: (WidgetSpec) -> Unit,
+    /** Removes an owl app's file, and its icon from home. */
+    val removeOwl: (WidgetSpec) -> Unit,
 )
 
-/** The long-press menu of an app cell: pin to home, for Android apps their info and uninstall, and for shortcuts removing them. */
+/** The shortcuts an Android app offers above its menu's actions; null for anything else. */
+private fun AppHit.shortcutMenu(handlers: AppHandlers): ShortcutMenu? = (this as? AppHit.Android)?.let { handlers.shortcuts(it.app) }
+
+/** The long-press menu of an app cell: pin to home, for owl apps editing, sharing and removing, for Android apps their info and uninstall, and for shortcuts removing them. */
 private fun AppHit.actions(handlers: AppHandlers): List<Pair<String, () -> Unit>> =
     when (this) {
         is AppHit.Linux -> listOf("add to home" to { handlers.pin(this) })
+        is AppHit.Owl ->
+            listOf(
+                "add to home" to { handlers.pin(this) },
+                "edit" to { handlers.edit(spec) },
+                "share" to { handlers.share(spec) },
+                "remove" to { handlers.removeOwl(spec) },
+            )
         is AppHit.Android ->
             listOfNotNull(
                 "add to home" to { handlers.pin(this) },
@@ -267,12 +295,13 @@ private fun AppHit.actions(handlers: AppHandlers): List<Pair<String, () -> Unit>
             )
     }
 
-/** The app's icon and its silhouette (each null until loaded or if it has none), and a glyph for built-in apps (Files). */
-private fun AppHit.icons(runtime: Runtime): Triple<ImageBitmap?, ImageBitmap?, ImageVector?> =
+/** The app's icon and its silhouette, each null until loaded or if it has none. */
+internal fun AppHit.icons(runtime: Runtime): Pair<ImageBitmap?, ImageBitmap?> =
     when (this) {
-        is AppHit.Linux -> Triple(runtime.linuxIcons[app.id], runtime.linuxMasks[app.id], if (app.exec == FILES_COMMAND) Icons.Folder else null)
-        is AppHit.Android -> Triple(runtime.androidApps.icons[app.key], runtime.androidApps.masks[app.key], null)
-        is AppHit.Shortcut -> Triple(runtime.androidApps.icons[shortcut.key], runtime.androidApps.masks[shortcut.key], null)
+        is AppHit.Linux -> runtime.linuxApps.icons[app.id] to runtime.linuxApps.masks[app.id]
+        is AppHit.Owl -> runtime.owlIcon(spec, mono = false) to runtime.owlIcon(spec, mono = true)
+        is AppHit.Android -> runtime.androidApps.icons[app.key] to runtime.androidApps.masks[app.key]
+        is AppHit.Shortcut -> runtime.androidApps.icons[shortcut.key] to runtime.androidApps.masks[shortcut.key]
     }
 
 @Composable
@@ -282,8 +311,8 @@ private fun HitCell(
     handlers: AppHandlers,
     selected: Boolean = false,
 ) {
-    val (icon, mask, glyph) = hit.icons(runtime)
-    AppCell(hit.label, icon, mask, onClick = { handlers.launch(hit) }, actions = { hit.actions(handlers) }, glyph = glyph, selected = selected, spoken = hit.spoken, paused = hit.paused(runtime))
+    val (icon, mask) = hit.icons(runtime)
+    AppCell(hit.label, icon, mask, onClick = { handlers.launch(hit) }, actions = { hit.actions(handlers) }, shortcuts = { hit.shortcutMenu(handlers) }, selected = selected, spoken = hit.spoken, paused = hit.paused(runtime))
 }
 
 /** Height of the recent apps strip; home keeps this much room for it above the bar, even while it's empty. */
@@ -313,14 +342,14 @@ internal fun RecentStrip(
     LaunchedEffect(runtime.usage.settled) { listState.scrollToItem(0) }
     Box(
         modifier
-            .then(if (vertical) Modifier.fillMaxHeight().width(RecentStripHeight) else Modifier.padding(horizontal = HomeGap).fillMaxWidth().height(RecentStripHeight))
+            .then(if (vertical) Modifier.fillMaxHeight().width(RecentStripHeight) else Modifier.padding(horizontal = EdgeGap).fillMaxWidth().height(RecentStripHeight))
             .then(if (bare) Modifier else Modifier.tile()),
         contentAlignment = if (vertical) Alignment.TopCenter else Alignment.CenterStart,
     ) {
         val cells: LazyListScope.() -> Unit = {
             items(apps, key = { it.key }) { hit ->
-                val (icon, mask, glyph) = hit.icons(runtime)
-                StripCell(hit.label, icon, mask, onClick = { handlers.launch(hit) }, actions = { hit.actions(handlers) }, glyph = glyph, spoken = hit.spoken, paused = hit.paused(runtime))
+                val (icon, mask) = hit.icons(runtime)
+                StripCell(hit.label, icon, mask, onClick = { handlers.launch(hit) }, actions = { hit.actions(handlers) }, shortcuts = { hit.shortcutMenu(handlers) }, spoken = hit.spoken, paused = hit.paused(runtime))
             }
         }
         if (vertical) {
@@ -340,7 +369,8 @@ private fun StripCell(
     onClick: () -> Unit,
     /** Built when the menu opens: a fresh list of lambdas would keep the cell from skipping recomposition. */
     actions: () -> List<Pair<String, () -> Unit>>,
-    glyph: ImageVector? = null,
+    /** Also built when the menu opens. */
+    shortcuts: () -> ShortcutMenu? = { null },
     /** As in [AppHit.spoken]. */
     spoken: String = label,
     /** As in [AppHit.paused]: drawn dimmed, like stock launchers. */
@@ -367,10 +397,9 @@ private fun StripCell(
     ) {
         val bmp = if (mono) mask else icon
         when {
-            glyph != null -> Image(glyph, label, Modifier.size(size * 0.7f), colorFilter = ColorFilter.tint(Palette.accent))
             // Bare silhouettes and initials sit on a badge, as pinned apps do, so they read on any wallpaper.
             bare && (mono || bmp == null) ->
-                Box(Modifier.size(size).clip(LauncherStyle.shape(size / 2)).background(Palette.surface), contentAlignment = Alignment.Center) {
+                IconBadge(size) {
                     if (bmp != null) {
                         Image(bmp, spoken, Modifier.size(size * 0.75f), colorFilter = ColorFilter.tint(Palette.accent))
                     } else {
@@ -380,9 +409,15 @@ private fun StripCell(
             bmp != null -> Image(bmp, spoken, Modifier.size(size * if (mono) 0.85f else 1f), colorFilter = if (mono) ColorFilter.tint(Palette.accent) else null)
             else -> BasicText(initials(label), style = Mono.copy(color = Palette.accent, fontSize = TextSize.Large))
         }
-        if (menuOpen) AppActions(actions(), onDismiss = { menuOpen = false })
+        if (menuOpen) AppActions(actions(), shortcuts, onDismiss = { menuOpen = false })
     }
 }
+
+/** [limit] apps the user knows, for the Style menu's previews: the recent ones, topped up from the drawer's. */
+internal fun familiarApps(
+    runtime: Runtime,
+    limit: Int,
+): List<AppHit> = (recentApps(runtime, limit) + allApps(runtime)).distinctBy { it.key }.take(limit)
 
 /** The apps opened lately, last opened first; ones not installed (or not loaded yet) are skipped. */
 private fun recentApps(
@@ -419,13 +454,13 @@ internal fun AppPanel(
     val hidden = if (LauncherStyle.homeAppsInDrawer) emptySet() else pinnedKeys(runtime)
 
     val screenHeight = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
-    // Pulling down at the end of the list drags the panel closed, like stock drawers: only a pull that starts there
-    // (decided as the finger lands, as Launcher3 does). Scrolling up to the end just stops there.
+    // Pulling down at the list's top row drags the panel closed, like stock drawers: only a pull that starts there
+    // (decided as the finger lands, as Launcher3 does). Scrolling back to the top just stops there.
     val pullToClose =
         remember(state, screenHeight) {
             object : NestedScrollConnection {
-                /** The list was already at its end when this gesture started. */
-                var fromEnd = false
+                /** The list was already at its top row when this gesture started. */
+                var fromTop = false
 
                 override fun onPreScroll(
                     available: Offset,
@@ -442,7 +477,7 @@ internal fun AppPanel(
                     available: Offset,
                     source: NestedScrollSource,
                 ): Offset {
-                    if (source != NestedScrollSource.UserInput || available.y <= 0f || !fromEnd) return Offset.Zero
+                    if (source != NestedScrollSource.UserInput || available.y <= 0f || !fromTop) return Offset.Zero
                     state.dragBy(-available.y / screenHeight)
                     return Offset(0f, available.y)
                 }
@@ -468,26 +503,7 @@ internal fun AppPanel(
                     ProfileTabs(tabs, tab, onPick = { state.tab = it })
                     Spacer(Modifier.weight(1f))
                 }
-                Box(
-                    Modifier
-                        .size(44.dp)
-                        .clip(LauncherStyle.shape(22.dp))
-                        .background(Palette.surface)
-                        .clickable(onClick = onSettings),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Image(Icons.Gear, "settings", Modifier.size(22.dp), colorFilter = ColorFilter.tint(Palette.accent))
-                    // Updates are waiting: settings › system updates lists them.
-                    if ((runtime.updates.pending?.count ?: 0) > 0) {
-                        Box(
-                            Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(8.dp)
-                                .size(8.dp)
-                                .background(Palette.red, CircleShape),
-                        )
-                    }
-                }
+                SettingsButton(runtime, onSettings)
             }
             // Only as tall as its rows, so taps above a short list reach the scrim behind and close the panel.
             Column(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp), verticalArrangement = Arrangement.Bottom) {
@@ -513,18 +529,19 @@ internal fun AppPanel(
                         val listState = rememberLazyListState()
                         // New results start at the bar, where the best match is.
                         if (shown == null) LaunchedEffect(search) { listState.scrollToItem(0) }
-                        // Rows bottom-up: the first item sits right above the bar.
+                        // Search results bottom-up, so the best match sits right above the bar; the full list reads
+                        // top-down from its start, like stock drawers, so a drag down there closes the panel right away.
                         LazyColumn(
                             state = listState,
-                            reverseLayout = true,
+                            reverseLayout = shown == null,
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
-                                    .pointerInput(listState) {
-                                        // Bottom-up, so forward is up: the end is the top row.
+                                    .pointerInput(listState, shown == null) {
+                                        // A pull down scrolls towards the top row: the end of the bottom-up search, the start of the list.
                                         awaitEachGesture {
                                             awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-                                            pullToClose.fromEnd = !listState.canScrollForward
+                                            pullToClose.fromTop = if (shown == null) !listState.canScrollForward else !listState.canScrollBackward
                                         }
                                     }.nestedScroll(pullToClose),
                             contentPadding = PaddingValues(top = 8.dp, bottom = 4.dp),
@@ -540,22 +557,21 @@ internal fun AppPanel(
                                 }
                             }
 
-                            // Each section reads top-down above the one before it. One with actions shows its title even without apps.
+                            // One with actions shows its title even without apps.
                             fun section(
                                 title: String,
                                 hits: List<AppHit>,
                                 actions: List<Pair<String, () -> Unit>> = emptyList(),
                             ) {
                                 if (hits.isEmpty() && actions.isEmpty()) return
-                                val rows = hits.chunked(columns)
-                                for (r in rows.indices.reversed()) row("$title:$r", rows[r])
                                 item(key = "h:$title") { Section(title, actions) }
+                                hits.chunked(columns).forEachIndexed { r, cells -> row("$title:$r", cells) }
                             }
 
                             when (shown) {
                                 null -> search.hits.chunked(columns).forEachIndexed { r, cells -> row("q:$r", cells, highlighted - r * columns) }
                                 DrawerTab.Work -> {
-                                    // Below the apps, as on the personal tab.
+                                    // Above the apps, as on the personal tab.
                                     section("shortcuts", apps.shortcuts.filter { it.work }.map { AppHit.Shortcut(it) }.filter { it.key !in hidden })
                                     val paused = apps.workProfiles.any { apps.paused(it) }
                                     section(
@@ -567,7 +583,7 @@ internal fun AppPanel(
                                 // Locked, it lists nothing at all, as Android asks of launchers.
                                 DrawerTab.Private -> {
                                     val locked = apps.privateLocked
-                                    // Below the apps, as on the other tabs.
+                                    // Above the apps, as on the other tabs.
                                     section("shortcuts", if (locked) emptyList() else apps.shortcuts.filter { it.private }.map { AppHit.Shortcut(it) }.filter { it.key !in hidden })
                                     section(
                                         if (locked) "private apps locked" else "private apps",
@@ -591,8 +607,9 @@ internal fun AppPanel(
                                 }
                                 // Clones too, as stock drawers list them: second copies of the owner's apps.
                                 DrawerTab.Personal -> {
+                                    section("apps", runtime.widgets.apps().map { AppHit.Owl(it) }.filter { it.key !in hidden })
                                     if (linuxState == LinuxState.Installed) {
-                                        section("linux", runtime.linuxApps.map { AppHit.Linux(it) }.filter { it.key !in hidden })
+                                        section("linux", runtime.linuxApps.apps.map { AppHit.Linux(it) }.filter { it.key !in hidden })
                                     } else {
                                         // Linux apps would be listed here; without Linux, one quiet offer instead.
                                         item(key = "linux-offer") {
@@ -600,12 +617,12 @@ internal fun AppPanel(
                                                 BasicText("linux apps", Modifier.weight(1f), style = Mono.copy(color = Palette.muted))
                                                 BracketAction(if (linuxState is LinuxState.Installing) "installing…" else "install linux", Palette.accent) {
                                                     state.closeNow()
-                                                    state.linuxOpen = true
+                                                    state.show(SettingsPage.Linux)
                                                 }
                                             }
                                         }
                                     }
-                                    // Usually few and just added: right above the Linux apps, not past all the Android ones.
+                                    // Usually few and just added: between the Linux and the Android apps, not past all the Android ones.
                                     section("shortcuts", apps.shortcuts.filter { !it.work && !it.private }.map { AppHit.Shortcut(it) }.filter { it.key !in hidden })
                                     section("android", apps.apps.filter { !it.work && !it.private }.map { AppHit.Android(it) }.filter { it.key !in hidden })
                                 }
@@ -754,8 +771,8 @@ private fun AppCell(
     onClick: () -> Unit,
     /** Built when the menu opens, as in [StripCell]. */
     actions: () -> List<Pair<String, () -> Unit>>,
-    /** Built-in apps (Files) draw a theme-colored glyph instead of a bitmap. */
-    glyph: ImageVector? = null,
+    /** As in [StripCell]. */
+    shortcuts: () -> ShortcutMenu? = { null },
     /** What Enter in the bar would open: outlined in the accent color. */
     selected: Boolean = false,
     /** As in [AppHit.spoken]. */
@@ -781,23 +798,14 @@ private fun AppCell(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val mono = LauncherStyle.monochromeIcons
-        // Badges are circles when rounded, squares with Omarchy's sharp edges.
-        val badge = LauncherStyle.shape(26.dp)
-        if (glyph != null) {
-            Box(
-                Modifier.size(52.dp).clip(badge).background(if (mono) Palette.surface else Palette.accent),
-                contentAlignment = Alignment.Center,
-            ) {
-                Image(glyph, label, Modifier.size(26.dp), colorFilter = ColorFilter.tint(if (mono) Palette.accent else Palette.background))
-            }
-        } else if (mono && mask != null) {
-            Box(Modifier.size(52.dp).clip(badge).background(Palette.surface), contentAlignment = Alignment.Center) {
+        if (mono && mask != null) {
+            IconBadge(52.dp) {
                 Image(mask, spoken, Modifier.size(36.dp), colorFilter = ColorFilter.tint(Palette.accent))
             }
         } else if (!mono && icon != null) {
             Image(icon, spoken, Modifier.size(52.dp))
         } else {
-            Box(Modifier.size(52.dp).clip(badge).background(Palette.surface), contentAlignment = Alignment.Center) {
+            IconBadge(52.dp) {
                 BasicText(initials(label), style = Mono.copy(color = Palette.accent, fontSize = TextSize.Title))
             }
         }
@@ -811,7 +819,7 @@ private fun AppCell(
             overflow = TextOverflow.Ellipsis,
         )
         if (menuOpen) {
-            AppActions(actions(), onDismiss = { menuOpen = false })
+            AppActions(actions(), shortcuts, onDismiss = { menuOpen = false })
         }
     }
 }
@@ -820,11 +828,16 @@ private fun AppCell(
 @Composable
 private fun AppActions(
     actions: List<Pair<String, () -> Unit>>,
+    shortcuts: () -> ShortcutMenu?,
     onDismiss: () -> Unit,
 ) {
+    val (menu, offered) = offeredShortcuts(Unit, shortcuts)
+    if (offered == null) return
     val gap = with(LocalDensity.current) { 8.dp.roundToPx() }
+    // From the screen's sides, as far as home's tiles are.
+    val edge = with(LocalDensity.current) { EdgeGap.roundToPx() }
     val position =
-        remember(gap) {
+        remember(gap, edge) {
             object : PopupPositionProvider {
                 override fun calculatePosition(
                     anchorBounds: IntRect,
@@ -832,7 +845,7 @@ private fun AppActions(
                     layoutDirection: LayoutDirection,
                     popupContentSize: IntSize,
                 ): IntOffset {
-                    val x = (anchorBounds.center.x - popupContentSize.width / 2).coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
+                    val x = (anchorBounds.center.x - popupContentSize.width / 2).coerceIn(edge, (windowSize.width - edge - popupContentSize.width).coerceAtLeast(edge))
                     val above = anchorBounds.top - popupContentSize.height - gap
                     val y = if (above >= 0) above else anchorBounds.bottom + gap
                     return IntOffset(x, y)
@@ -840,6 +853,36 @@ private fun AppActions(
             }
         }
     Popup(popupPositionProvider = position, onDismissRequest = onDismiss, properties = PopupProperties(focusable = true)) {
-        MenuItems(actions, onDismiss, minWidth = 160.dp, itemPadding = 12.dp, fontSize = TextSize.Item)
+        MenuItems(actions, onDismiss, minWidth = 160.dp, itemPadding = 12.dp, fontSize = TextSize.Item) {
+            if (menu != null) ShortcutRows(offered, menu, onDismiss, TextSize.Item)
+        }
+    }
+}
+
+/** The gear that opens settings, in the drawer and the home menu; a dot while system updates wait. */
+@Composable
+internal fun SettingsButton(
+    runtime: Runtime,
+    onClick: () -> Unit,
+) {
+    Box(
+        Modifier
+            .size(44.dp)
+            .clip(LauncherStyle.shape(22.dp))
+            .background(Palette.surface)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(Icons.Gear, "settings", Modifier.size(22.dp), colorFilter = ColorFilter.tint(Palette.accent))
+        // Updates are waiting: settings › system updates lists them.
+        if ((runtime.updates.pending?.count ?: 0) > 0) {
+            Box(
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .size(8.dp)
+                    .background(Palette.red, CircleShape),
+            )
+        }
     }
 }

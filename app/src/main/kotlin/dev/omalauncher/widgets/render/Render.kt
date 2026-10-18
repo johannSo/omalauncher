@@ -49,10 +49,13 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorProducer
+import androidx.compose.ui.graphics.ImageBitmapConfig
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import dev.omalauncher.widgets.runtime.PicturePainter
+import dev.omalauncher.widgets.runtime.WidgetImage
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
@@ -79,7 +82,7 @@ import dev.omalauncher.widgets.lang.Env
 import dev.omalauncher.widgets.lang.Lst
 import dev.omalauncher.widgets.lang.Null
 import dev.omalauncher.widgets.lang.Num
-import dev.omalauncher.widgets.lang.Obj
+import dev.omalauncher.ui.TerminalTiles
 import dev.omalauncher.widgets.lang.Str
 import dev.omalauncher.widgets.lang.Value
 import dev.omalauncher.widgets.lang.WNode
@@ -91,6 +94,12 @@ import kotlin.math.min
 
 /** Whether the home screen is hidden (drawer, full-screen panel); animated widgets stop ticking while it is. */
 val LocalHomeCovered = staticCompositionLocalOf<() -> Boolean> { { false } }
+
+/** Whether an Input's `focus` may take focus: only on a screen the user opened, never on a tile or in a preview. */
+val LocalInputFocus = staticCompositionLocalOf { false }
+
+/** On home's tiles: an Input there that takes the keyboard tells these, so its tile lifts above it like a terminal's. */
+val LocalHomeTiles = staticCompositionLocalOf<TerminalTiles?> { null }
 
 /** The widget's content inside its tile: padding, optional background, and the node tree. */
 @Composable
@@ -135,7 +144,11 @@ fun WidgetScreen(
     }
 }
 
-/** A frame clock for widgets that read `time`, only while they're on screen ([covered] is false). */
+/**
+ * A frame clock for widgets that read `time`, only while they're on screen ([covered] is false)
+ * and something still reads it: a `time` under an `if` that's false, like a backdrop drawn only
+ * while music plays, stops it after a few frames, and the next read starts it again.
+ */
 @Composable
 private fun FrameClock(
     inst: WidgetInstance,
@@ -144,11 +157,19 @@ private fun FrameClock(
     LaunchedEffect(inst, covered) {
         val start = withFrameNanos { it }
         var frame = 0L
+        var unread = 0
         while (true) {
             if (covered()) snapshotFlow { covered() }.first { !it }
+            if (unread >= 3) {
+                inst.awaitTimeRead(start)
+                unread = 0
+            }
             withFrameNanos { now ->
                 // Widgets that draw slowly get half the frame rate instead of stalling the home screen.
-                if (!inst.slow || frame++ % 2 == 0L) inst.time = (now - start) / 1e9
+                if (inst.slow && frame++ % 2 != 0L) return@withFrameNanos
+                unread = if (inst.timeRead) 0 else unread + 1
+                inst.timeRead = false
+                inst.time = (now - start) / 1e9
             }
         }
     }
@@ -179,7 +200,7 @@ private fun Node(
         }
         is WNode.For -> {
             val list by remember(node, env) { derivedStateOf(structuralEqualityPolicy()) { inst.eval(node.list, env, "for") } }
-            val items = items(list)
+            val items = Builtins.iterable(list)
             items.forEachIndexed { i, v ->
                 val k: Any = node.key?.let { inst.eval(it, env.child(v, Num(i.toDouble())), "for key") } ?: i
                 key(k) {
@@ -220,13 +241,6 @@ private fun Node(
         is WNode.Draw -> {} // only inside Canvas, which draws them itself
     }
 }
-
-internal fun items(v: Value): List<Value> =
-    when (v) {
-        is Lst -> v.items
-        is Obj -> v.fields.map { (k, x) -> Obj(mapOf("key" to Str(k), "value" to x)) }
-        else -> emptyList()
-    }.let { if (it.size > Builtins.MAX_LIST) it.subList(0, Builtins.MAX_LIST) else it } // take() would copy every list, every frame
 
 private val SIZING = setOf("width", "height", "size", "fill", "weight")
 
@@ -285,7 +299,7 @@ private fun Element(
         "Text" -> TextNode(p, mod)
         "Button" -> {
             val color = p.color("color") { Palette.accent }
-            val radius = p.float("radius", 8f * LauncherStyle.corners.scale)
+            val radius = p.float("radius", 8f * LauncherStyle.cornerScale)
             Box(
                 mod
                     .drawBehind {
@@ -336,7 +350,7 @@ private fun Element(
             val thickness = p.float("thickness", 2f)
             Spacer(
                 mod.then(if (sized) Modifier else Modifier.fillMaxWidth().height(48.dp)).drawBehind {
-                    val points = items(p.now("values") ?: return@drawBehind).mapNotNull { it.num()?.toFloat() }
+                    val points = Builtins.iterable(p.now("values") ?: return@drawBehind).mapNotNull { it.num()?.toFloat() }
                     if (points.size < 2) return@drawBehind
                     val lo = p.now("min")?.num()?.toFloat() ?: 0f
                     // Auto-scaled lines get headroom so the peak isn't glued to the top edge.
@@ -364,7 +378,7 @@ private fun Element(
         }
         "Image" -> {
             val src = p.observe("src")?.toString().orEmpty()
-            val bitmap =
+            val image =
                 if (src.startsWith("media:")) {
                     // Album art isn't a file to watch: look again whenever a source (the media one) updates,
                     // but recompose only when the art itself changed, not on every tick of every source.
@@ -377,20 +391,24 @@ private fun Element(
                 } else {
                     inst.image(src)
                 }
-            val tint = p.observe("tint")?.let { p.color(it) }
-            if (bitmap != null) {
-                Image(
-                    bitmap,
-                    null,
-                    mod,
-                    contentScale =
-                        when (p.observe("fit")?.toString()) {
-                            "cover" -> ContentScale.Crop
-                            "fill" -> ContentScale.FillBounds
-                            else -> ContentScale.Fit
-                        },
-                    colorFilter = tint?.let { ColorFilter.tint(it) },
-                )
+            val scale =
+                when (p.observe("fit")?.toString()) {
+                    "cover" -> ContentScale.Crop
+                    "fill" -> ContentScale.FillBounds
+                    else -> ContentScale.Fit
+                }
+            when (image) {
+                is WidgetImage.Raster -> {
+                    val bitmap = image.bitmap
+                    // An alpha-only image (an app icon's silhouette, with monochrome icons) needs a color to show.
+                    val tint = p.observe("tint")?.let { p.color(it) } ?: Palette.foreground.takeIf { bitmap.config == ImageBitmapConfig.Alpha8 }
+                    Image(bitmap, null, mod, contentScale = scale, colorFilter = tint?.let { ColorFilter.tint(it) })
+                }
+                is WidgetImage.Vector -> {
+                    val tint = p.observe("tint")?.let { p.color(it) }
+                    Image(remember(image) { PicturePainter(image.picture) }, null, mod, contentScale = scale, colorFilter = tint?.let { ColorFilter.tint(it) })
+                }
+                null -> {}
             }
         }
         "Canvas" -> CanvasNode(p, mod.then(if (sized) Modifier else Modifier.fillMaxSize()))
@@ -528,7 +546,7 @@ private fun common(
         val borderColor = p.color("borderColor") { Palette.border }
         val border = p.float("border", 0f)
         // Bordered elements (buttons, frames) follow the launcher's corner style unless they set a radius.
-        val radius = p.float("radius", if (p.has("border")) 8f * LauncherStyle.corners.scale else 0f)
+        val radius = p.float("radius", if (p.has("border")) 8f * LauncherStyle.cornerScale else 0f)
         m =
             m.drawBehind {
                 val r = CornerRadius(radius().dp.toPx())
@@ -583,7 +601,7 @@ private fun TextNode(
                     "sans" -> FontFamily.SansSerif
                     "serif" -> FontFamily.Serif
                     "icon" -> NerdSymbols
-                    else -> FontFamily.Monospace
+                    else -> LauncherStyle.font
                 },
             fontSize = p.observe("fontSize")?.num()?.sp ?: base.fontSize,
             fontWeight = if (p.observe("bold")?.truthy == true) FontWeight.Bold else null,
