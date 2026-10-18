@@ -222,6 +222,16 @@ class Bootstrap(
             }
         }
 
+    /**
+     * Reports a finished install as [LinuxState.Installed] without starting or updating it, for a Linux that was shut
+     * down; [run] brings it up later. False if setup hasn't finished.
+     */
+    fun showInstalled(): Boolean {
+        if (!journal.setupComplete) return false
+        _state.value = LinuxState.Installed
+        return true
+    }
+
     /** Starts installing Linux with [picked] coding agents; see [run]. */
     suspend fun install(picked: List<Agent>) {
         choose(picked)

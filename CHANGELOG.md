@@ -12,6 +12,9 @@ Dates are when the build was uploaded to Play.
   30 minutes for its next interval.
 - The private space gets its own tab, which locks and unlocks it; locked, its apps show nowhere,
   and it can hide entirely until "priv" typed in the bar offers to unlock it.
+- Linux can be shut down and started again in settings › linux: shutting down ends every
+  Linux app, terminal and agent and its notification, and it stays down across restarts
+  until started from settings or from a widget that needs it.
 
 ## 0.8.1 (versionCode 16) – 2026-10-17
 

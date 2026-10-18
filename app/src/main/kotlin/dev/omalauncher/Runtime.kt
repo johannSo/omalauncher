@@ -63,6 +63,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
 
@@ -130,7 +131,14 @@ class Runtime(
         private set
 
     /** Linux is installed and its services run: guest commands (like the update check) can go. */
-    private var linux = false
+    private var linux by mutableStateOf(false)
+
+    /** Whether Linux runs now; false while it starts, and once shut down. */
+    val linuxRunning get() = linux
+
+    /** Linux was shut down from settings; it stays down, also after the launcher restarts, until it's started again. */
+    var linuxStopped by mutableStateOf(prefs.getBoolean(LINUX_STOPPED, false))
+        private set
 
     /** The Linux install and removal; one at a time. */
     private var linuxJob: Job? = null
@@ -199,7 +207,11 @@ class Runtime(
             widgets.start()
             // On the first-run screen the download is the screen's job, with progress.
             if (launcherReady) scope.launch { themes.ensureRelease() }
-            if (bootstrap.wanted) runLinux { bootstrap.run() } else bootstrap.run()
+            when {
+                bootstrap.wanted && linuxStopped && bootstrap.showInstalled() -> {}
+                bootstrap.wanted -> runLinux { bootstrap.run() }
+                else -> bootstrap.run()
+            }
         }
     }
 
@@ -234,6 +246,44 @@ class Runtime(
     }
 
     /**
+     * Shuts Linux down: ends every guest process (apps, terminals, agents, PulseAudio) and the foreground service.
+     * Linux windows close and widgets that need Linux wait for it; the rootfs stays as it is. [startLinux] boots it again.
+     */
+    fun stopLinux() {
+        if (!linux || linuxJob?.isActive == true) return
+        setStopped(true)
+        linuxJob =
+            scope.launch {
+                linux = false
+                widgets.linuxChanged(false)
+                audio.stop()
+                withContext(Dispatchers.IO) {
+                    proot.killAll()
+                    // A pacman ended mid-update leaves its lock, which would refuse every later one.
+                    File(proot.rootfs, "var/lib/pacman/db.lck").delete()
+                }
+                setService(false)
+            }
+    }
+
+    /** Starts Linux after [stopLinux], as the launcher does at start: with the update steps that wait for it. */
+    fun startLinux() {
+        if (!linuxStopped) return
+        setStopped(false)
+        // A shutdown still ending its processes finishes first.
+        val stopping = linuxJob
+        scope.launch {
+            stopping?.join()
+            runLinux { bootstrap.run() }
+        }
+    }
+
+    private fun setStopped(stopped: Boolean) {
+        linuxStopped = stopped
+        prefs.edit().putBoolean(LINUX_STOPPED, stopped).apply()
+    }
+
+    /**
      * Deletes Linux: its apps, agents, packages and home. Themes, widgets and
      * the home screen stay; widgets that need Linux turn back into placeholders.
      */
@@ -254,6 +304,8 @@ class Runtime(
                 gpu.turnOff()
                 linuxApps.clear()
                 setService(false)
+                // A later install starts its Linux.
+                setStopped(false)
             }
     }
 
@@ -594,5 +646,6 @@ class Runtime(
     companion object {
         private const val TAG = "runtime"
         private const val SETUP_DONE = "setup_done"
+        private const val LINUX_STOPPED = "linux_stopped"
     }
 }

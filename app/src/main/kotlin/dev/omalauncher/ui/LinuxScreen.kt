@@ -44,8 +44,8 @@ import java.nio.file.attribute.BasicFileAttributes
 
 /**
  * Everything about the optional Linux system in one place: what it adds and
- * an install button, the install's progress, or, once installed, its size
- * and a way to remove it. Every feature that needs Linux opens this.
+ * an install button, the install's progress, or, once installed, its size,
+ * a way to shut it down and start it again, and a way to remove it. Every feature that needs Linux opens this.
  */
 @Composable
 fun LinuxScreen(
@@ -110,6 +110,8 @@ private fun Installed(runtime: Runtime) {
     var size by remember { mutableStateOf<Long?>(null) }
     LaunchedEffect(Unit) { size = withContext(Dispatchers.IO) { diskUsage(runtime.proot.rootfs) } }
     var confirm by remember { mutableStateOf(false) }
+    val running = runtime.linuxRunning
+    val stopped = runtime.linuxStopped
     Row(
         Modifier.card(),
         verticalAlignment = Alignment.CenterVertically,
@@ -117,12 +119,28 @@ private fun Installed(runtime: Runtime) {
         Column(Modifier.weight(1f)) {
             BasicText("arch linux", style = Mono.copy(fontSize = TextSize.Item))
             BasicText(
-                "installed · " + (size?.let(::formatSize) ?: "measuring…"),
-                style = Mono.copy(color = Palette.muted, fontSize = TextSize.Small),
+                when {
+                    running -> "running"
+                    stopped -> "shut down"
+                    else -> "starting…"
+                } + " · " + (size?.let(::formatSize) ?: "measuring…"),
+                style = Mono.copy(color = if (running) Palette.green else Palette.muted, fontSize = TextSize.Small),
             )
         }
+        when {
+            running -> BracketAction("shut down", Palette.red, runtime::stopLinux)
+            stopped -> BracketAction("start", Palette.accent, runtime::startLinux)
+        }
     }
-    if (runtime.gpu.supported) {
+    if (stopped) {
+        Spacer(Modifier.height(8.dp))
+        BasicText(
+            "Linux apps, terminals, agents and widgets that run commands wait until it's started again; " +
+                "it stays shut down when the phone restarts.",
+            style = Mono.copy(color = Palette.muted, fontSize = TextSize.Small),
+        )
+    }
+    if (runtime.gpu.supported && running) {
         Spacer(Modifier.height(8.dp))
         GpuRow(runtime)
     }

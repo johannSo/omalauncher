@@ -331,6 +331,8 @@ fun HomeScreen(
                             onInstall = { engine.installDependencies(item.spec) },
                             waitsForLinux = if (engine.waitsForLinux(item.spec)) linuxState else null,
                             onInstallLinux = { state.show(SettingsPage.Linux) },
+                            linuxStopped = runtime.linuxStopped,
+                            onStartLinux = runtime::startLinux,
                             onFix = { log -> state.withAgent(runtime, "Fix ${item.spec.name}") { fixDependenciesCommand(it, item.spec, log) } },
                         )
                     }

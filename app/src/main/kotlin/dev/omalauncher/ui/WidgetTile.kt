@@ -50,6 +50,9 @@ internal fun WidgetTile(
     /** Where Linux stands, if the widget needs it and it isn't running: a placeholder keeps its cells. */
     waitsForLinux: LinuxState? = null,
     onInstallLinux: () -> Unit = {},
+    /** Linux is installed but shut down; the placeholder starts it. */
+    linuxStopped: Boolean = false,
+    onStartLinux: () -> Unit = {},
 ) {
     Box(
         modifier
@@ -58,7 +61,9 @@ internal fun WidgetTile(
     ) {
         if (waitsForLinux != null) {
             // While an installed Linux starts up the tile stays empty; it only offers an install when there's none.
-            if (waitsForLinux != LinuxState.Checking && waitsForLinux != LinuxState.Installed) {
+            if (waitsForLinux == LinuxState.Installed && linuxStopped) {
+                LinuxStoppedPlaceholder(spec.name, onStartLinux)
+            } else if (waitsForLinux != LinuxState.Checking && waitsForLinux != LinuxState.Installed) {
                 LinuxPlaceholder(spec.name, installing = waitsForLinux is LinuxState.Installing, onInstallLinux)
             }
         } else if (instance != null && needs.isNotEmpty()) {
@@ -106,6 +111,19 @@ private fun LinuxPlaceholder(
             overflow = TextOverflow.Ellipsis,
         )
         TileButton(if (installing) "installing…" else "install", Palette.accent, onInstall)
+    }
+}
+
+@Composable
+private fun LinuxStoppedPlaceholder(
+    name: String,
+    onStart: () -> Unit,
+) {
+    Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        BasicText(name, style = Mono.copy(color = Palette.muted), maxLines = 1)
+        Spacer(Modifier.weight(1f))
+        BasicText("Linux is shut down", style = Mono.copy(color = Palette.accent), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        TileButton("start", Palette.accent, onStart)
     }
 }
 
