@@ -24,6 +24,7 @@ import dev.omalauncher.linux.EDIT_COMMAND
 import dev.omalauncher.linux.FILES_COMMAND
 import dev.omalauncher.linux.Gpu
 import dev.omalauncher.linux.LinuxApp
+import dev.omalauncher.linux.LinuxState
 import dev.omalauncher.linux.OpenBridge
 import dev.omalauncher.linux.Pacman
 import dev.omalauncher.linux.Proot
@@ -201,7 +202,8 @@ class Runtime(
             widgets.start()
             // On the first-run screen the download is the screen's job, with progress.
             if (launcherReady) scope.launch { themes.ensureRelease() }
-            if (bootstrap.wanted) runLinux { bootstrap.run() } else bootstrap.run()
+            // Shut down, it stays down: no foreground service, nothing started.
+            if (bootstrap.wanted && !bootstrap.isOff) runLinux { bootstrap.run() } else bootstrap.run()
         }
     }
 
@@ -236,11 +238,50 @@ class Runtime(
     }
 
     /**
+     * Shuts Linux down until [startLinux]: its windows, terminals, agents and PulseAudio end, once any pacman
+     * job is done. Its files stay; widgets that need Linux turn back into placeholders.
+     */
+    fun shutDownLinux() {
+        if (!linux || linuxJob?.isActive == true) return
+        linuxJob =
+            scope.launch {
+                shuttingDown = true
+                linux = false
+                widgets.linuxChanged(false)
+                audio.stop()
+                bootstrap.shutDown(proot::killAll)
+                linuxApps.clear()
+                setService(false)
+                shuttingDown = false
+            }
+    }
+
+    /** Waiting for pacman to finish, then ending Linux's processes; see [shutDownLinux]. */
+    var shuttingDown by mutableStateOf(false)
+        private set
+
+    /** Starts Linux after [shutDownLinux], as the launcher does when it starts. */
+    fun startLinux() {
+        if (bootstrap.state.value != LinuxState.Off || linuxJob?.isActive == true) return
+        starting = true
+        runLinux {
+            bootstrap.turnOn()
+            bootstrap.run()
+            starting = false
+        }
+    }
+
+    /** [startLinux] is preparing proot and the system; Linux is still [LinuxState.Off] meanwhile. */
+    var starting by mutableStateOf(false)
+        private set
+
+    /**
      * Deletes Linux: its apps, agents, packages and home. Themes, widgets and
      * the home screen stay; widgets that need Linux turn back into placeholders.
      */
     fun removeLinux() {
-        if (!bootstrap.isInstalled || linuxJob?.isActive == true) return
+        val state = bootstrap.state.value
+        if ((state != LinuxState.Installed && state != LinuxState.Off) || linuxJob?.isActive == true) return
         linuxJob =
             scope.launch {
                 linux = false
