@@ -69,9 +69,9 @@ internal fun WidgetTile(
             ).pointerInput(spec) { detectTapGestures(onTap = { onTap() }) },
     ) {
         if (waitsForLinux != null) {
-            // While an installed Linux starts up the tile stays empty; it only offers an install when there's none.
+            // While an installed Linux starts up the tile stays empty; it offers an install when there's none, a start when it's shut down.
             if (waitsForLinux != LinuxState.Checking && waitsForLinux != LinuxState.Installed) {
-                LinuxPlaceholder(spec.name, installing = waitsForLinux is LinuxState.Installing, onInstallLinux)
+                LinuxPlaceholder(spec.name, waitsForLinux, onInstallLinux)
             }
         } else if (instance != null && needs.isNotEmpty()) {
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -107,11 +107,11 @@ internal fun WidgetTile(
     }
 }
 
-/** A widget that runs Linux commands, before Linux is installed: its name and an offer to install. */
+/** A widget that runs Linux commands, before Linux is installed or while it's shut down: its name and an offer to install or start it. */
 @Composable
 private fun LinuxPlaceholder(
     name: String,
-    installing: Boolean,
+    linux: LinuxState,
     onInstall: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -124,7 +124,15 @@ private fun LinuxPlaceholder(
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
-        TileButton(if (installing) "installing…" else "install", Palette.accent, onInstall)
+        TileButton(
+            when (linux) {
+                is LinuxState.Installing -> "installing…"
+                LinuxState.Off -> "start"
+                else -> "install"
+            },
+            Palette.accent,
+            onInstall,
+        )
     }
 }
 

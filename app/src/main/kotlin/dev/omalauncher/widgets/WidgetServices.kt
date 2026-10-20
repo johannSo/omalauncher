@@ -456,7 +456,7 @@ class WidgetServices(
      * - `paused` for an app in a paused work profile; `actions` the words its long-press menu offers, for appAction(...);
      * - `hasIcon` whether `icon` draws anything yet; without, the drawer shows `initials` on a badge, as it does a
      *   silhouette when `monochrome`.
-     * `linux` is "installed", "installing" or "missing"; `work` is `{paused}` while there's a work profile, else null;
+     * `linux` is "installed", "installing", "off" (shut down in settings) or "missing"; `work` is `{paused}` while there's a work profile, else null;
      * `private` is `{locked, hidden, settings}` while there's a private space this launcher may see, else null;
      * `updates` counts the system updates waiting.
      */
@@ -784,11 +784,12 @@ class WidgetServices(
         hitOf(key)?.act(word, handlers)
     }
 
-    /** Linux as `android.drawer` says it: "installed", "installing" (the drawer's offer says so) or "missing". */
+    /** Linux as `android.drawer` says it: "installed", "installing" (the drawer's offer says so), "off" (shut down) or "missing". */
     private fun linuxWord(state: LinuxState) =
         when (state) {
             LinuxState.Installed -> "installed"
             is LinuxState.Installing -> "installing"
+            LinuxState.Off -> "off"
             else -> "missing"
         }
 

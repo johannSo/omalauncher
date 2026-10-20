@@ -17,6 +17,7 @@
     <exclude domain="file" path="bwrap-shim" />
     <exclude domain="file" path="rootfs-steps.json" />
     <exclude domain="file" path="setup-agents" />
+    <exclude domain="file" path="linux-off" />
     <exclude domain="file" path="updates.json" />
     <exclude domain="file" path="omarchy" />
     <exclude domain="file" path=".omarchy.download" />

@@ -45,7 +45,7 @@ import java.nio.file.attribute.BasicFileAttributes
 /**
  * Everything about the optional Linux system in one place: what it adds and
  * an install button, the install's progress, or, once installed, its size
- * and a way to remove it. Every feature that needs Linux opens this.
+ * and ways to shut it down, start it again and remove it. Every feature that needs Linux opens this.
  */
 @Composable
 fun LinuxScreen(
@@ -59,7 +59,8 @@ fun LinuxScreen(
                 LinuxState.Checking -> {}
                 LinuxState.NotInstalled -> InstallOffer(runtime)
                 is LinuxState.Installing, is LinuxState.Failed -> LinuxProgress(s, runtime.bootstrap.chosenAgents, runtime::retryLinux)
-                LinuxState.Installed -> Installed(runtime)
+                LinuxState.Installed -> Installed(runtime, running = true)
+                LinuxState.Off -> Installed(runtime, running = false)
                 LinuxState.Removing -> BasicText("removing linux…", style = Mono.copy(color = Palette.accent))
             }
         }
@@ -105,24 +106,21 @@ private fun InstallOffer(runtime: Runtime) {
     AgentPicker(picked) { bin -> picked = if (bin in picked) picked - bin else picked + bin }
 }
 
+/** Installed Linux, [running] or shut down. */
 @Composable
-private fun Installed(runtime: Runtime) {
+private fun Installed(
+    runtime: Runtime,
+    running: Boolean,
+) {
     var size by remember { mutableStateOf<Long?>(null) }
     LaunchedEffect(Unit) { size = withContext(Dispatchers.IO) { diskUsage(runtime.proot.rootfs) } }
     var confirm by remember { mutableStateOf(false) }
-    Row(
-        Modifier.card(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            BasicText("arch linux", style = Mono.copy(fontSize = TextSize.Item))
-            BasicText(
-                "installed · " + (size?.let(::formatSize) ?: "measuring…"),
-                style = Mono.copy(color = Palette.muted, fontSize = TextSize.Small),
-            )
-        }
+    PowerCard(runtime, running, size)
+    if (!running) {
+        Spacer(Modifier.height(16.dp))
+        PrimaryButton(if (runtime.starting) "starting…" else "start linux", runtime::startLinux)
     }
-    if (runtime.gpu.supported) {
+    if (running && runtime.gpu.supported) {
         Spacer(Modifier.height(8.dp))
         GpuRow(runtime)
     }
@@ -142,6 +140,60 @@ private fun Installed(runtime: Runtime) {
             )
             Row {
                 BracketAction("remove", Palette.red, runtime::removeLinux)
+                BracketAction("cancel", Palette.muted) { confirm = false }
+            }
+        }
+    }
+}
+
+/**
+ * What Linux is doing and its size; while it runs, "shut down", which asks first: it closes Linux apps and
+ * terminals, and ends agents working in them.
+ */
+@Composable
+private fun PowerCard(
+    runtime: Runtime,
+    running: Boolean,
+    size: Long?,
+) {
+    var confirm by remember { mutableStateOf(false) }
+    val status =
+        when {
+            runtime.shuttingDown -> "shutting down…"
+            running -> "running"
+            else -> "shut down"
+        }
+    Column(
+        Modifier.card(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                BasicText("arch linux", style = Mono.copy(fontSize = TextSize.Item))
+                BasicText(
+                    status + " · " + (size?.let(::formatSize) ?: "measuring…"),
+                    style = Mono.copy(color = if (running && !runtime.shuttingDown) Palette.green else Palette.muted, fontSize = TextSize.Small),
+                )
+            }
+            if (running && !runtime.shuttingDown && !confirm) BracketAction("shut down", Palette.accent) { confirm = true }
+        }
+        if (!running) {
+            BasicText(
+                "Linux apps, terminal widgets and agents wait until you start it.",
+                style = Mono.copy(color = Palette.muted, fontSize = TextSize.Small),
+            )
+        }
+        if (running && !runtime.shuttingDown && confirm) {
+            BasicText(
+                "Closes Linux apps and terminals and stops agents working in them; files and packages stay. " +
+                    "It stays off, also after a restart, until you start it here.",
+                style = Mono.copy(color = Palette.muted, fontSize = TextSize.Small),
+            )
+            Row {
+                BracketAction("shut down", Palette.red) {
+                    confirm = false
+                    runtime.shutDownLinux()
+                }
                 BracketAction("cancel", Palette.muted) { confirm = false }
             }
         }

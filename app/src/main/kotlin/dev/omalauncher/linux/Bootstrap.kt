@@ -97,6 +97,9 @@ sealed interface LinuxState {
 
     data object Installed : LinuxState
 
+    /** Installed, and shut down in settings › linux: none of it runs, also after a restart, until it's started again. */
+    data object Off : LinuxState
+
     data object Removing : LinuxState
 }
 
@@ -139,6 +142,9 @@ class Bootstrap(
     /** An install was started (and may still need to finish), or one finished. */
     val wanted get() = journal.setupComplete || choiceFile.exists()
 
+    /** Installed and shut down: [run] reports [LinuxState.Off] without starting anything. */
+    val isOff get() = journal.setupComplete && offFile.exists()
+
     /** Update steps running after the home screen is up; Idle when there are none. */
     private val _updates = MutableStateFlow<JobState>(JobState.Idle)
     val updates = _updates.asStateFlow()
@@ -148,6 +154,9 @@ class Bootstrap(
 
     /** The agents picked when installing Linux, one bin per line; its existence means an install was started. */
     private val choiceFile get() = File(proot.filesDir, "setup-agents")
+
+    /** Its existence means Linux was shut down; see [LinuxState.Off]. */
+    private val offFile get() = File(proot.filesDir, "linux-off")
 
     /** The coding agents setup installs, in the order they were listed. */
     val chosenAgents: List<Agent>
@@ -205,6 +214,10 @@ class Bootstrap(
         withContext(Dispatchers.IO) {
             try {
                 when {
+                    isOff -> {
+                        _state.value = LinuxState.Off
+                        return@withContext
+                    }
                     journal.setupComplete -> update()
                     !choiceFile.exists() -> {
                         _state.value = LinuxState.NotInstalled
@@ -229,6 +242,24 @@ class Bootstrap(
     }
 
     /**
+     * Records that Linux is shut down, once no pacman runs (so its database isn't left half written); [stop]
+     * then ends the guest's processes. It stays [LinuxState.Off] until [turnOn].
+     */
+    suspend fun shutDown(stop: () -> Unit) =
+        withContext(Dispatchers.IO) {
+            pacman.lock.withLock {
+                stop()
+                offFile.writeText("")
+            }
+            _state.value = LinuxState.Off
+        }
+
+    /** Lets [run] start Linux again after [shutDown]. */
+    fun turnOn() {
+        offFile.delete()
+    }
+
+    /**
      * Deletes the rootfs and what we recorded about it. Callers stop guest
      * processes first. Launcher data (themes, widgets) lives outside it and stays.
      */
@@ -246,6 +277,7 @@ class Bootstrap(
                 journal.reset()
                 provisioner.forgetAll()
                 choiceFile.delete()
+                offFile.delete()
                 proot.keymap.delete()
                 context.cacheDir.listFiles { f -> f.name.startsWith(TARBALL) }?.forEach { it.delete() }
                 log.clear()
@@ -312,7 +344,14 @@ class Bootstrap(
                 _updates.value = JobState.Working(step.label, emptyList())
                 try {
                     // Package steps run pacman; nothing else may hold its lock meanwhile.
-                    pacman.lock.withLock { step.attempt() }
+                    // Shut down while the step before ran: the rest waits until Linux starts again.
+                    val shutDown =
+                        pacman.lock.withLock {
+                            if (offFile.exists()) return@withLock true
+                            step.attempt()
+                            false
+                        }
+                    if (shutDown) break
                     journal.mark(step.id)
                 } catch (e: Throwable) {
                     Log.w(TAG, "update step ${step.id} failed", e)

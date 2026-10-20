@@ -187,7 +187,7 @@ panel "app drawer" {
               Text { text: "[install]"; visible: row.private == true && !d.private.locked; color: accent; onTap: privateSpace("install") }
               Text { text: "[settings]"; visible: row.private == true && !d.private.locked && d.private.settings; color: accent; onTap: privateSpace("settings") }
               Text { text: d.private.locked ? "[unlock]" : "[lock]"; visible: row.private == true; color: accent; onTap: privateSpace("toggle") }
-              Text { text: d.linux == "installing" ? "[installing…]" : "[install linux]"; visible: row.offer == true; color: accent; onTap: launcher("linux") }
+              Text { text: d.linux == "installing" ? "[installing…]" : d.linux == "off" ? "[start linux]" : "[install linux]"; visible: row.offer == true; color: accent; onTap: launcher("linux") }
             }
             // Before Android 16 has a setting for it, the drawer keeps its own: hiding the tab while the space is locked.
             Row {
