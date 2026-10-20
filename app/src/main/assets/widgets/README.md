@@ -478,7 +478,7 @@ after it in its block (and blocks inside them), and needs a name not used for a 
 | `x = run("cmd")` | the same, and puts the command's output into the state `x` when it finishes |
 | `androidApp("org.pkg")` | opens an Android app by package name, or by an `android.apps` key to open that copy in a work profile or clone |
 | `open(r.key)` | opens an app from `android.recent` or an agent from `android.agents` by its `key` (an `android.apps` key works too), as tapping it in the drawer would, so it counts as opened (owl 10) |
-| `appAction("pin", a.key)` | the drawer's long-press menu for an app from `android.drawer`: `pin` (add to home, on the page showing), `info` (Android's app info), `uninstall` (Android asks first), `remove` (a shortcut, or an owl app, whose file goes to `.removed/`), `edit` (the default agent on an owl app's file) and `share` (an owl app's link or QR code). An entry the app's `actions` don't list does nothing. The store's reviewer sees which entries a widget uses (owl 11) |
+| `appAction("pin", a.key)` | the drawer's long-press menu for an app from `android.drawer`: `pin` (add to home, on the page showing), `info` (Android's app info), `uninstall` (Android asks first), `remove` (a shortcut, or an owl app, whose file goes to `.removed/`), `edit` (the default agent on an owl app's file), `share` (an owl app's link or QR code) and `widgets` (the list of an Android app's widgets, to put one on home). An entry the app's `actions` don't list does nothing. The store's reviewer sees which entries a widget uses (owl 11) |
 | `s = shortcuts(a.key)` | an app's shortcuts, as its long-press menu offers them (New tab, a recent chat), into the state `s` once they've loaded: a list of `{key, name, icon}`, empty for an app with none. `open(s.key)` opens one and `appAction("pin", s.key)` puts it on home (owl 11) |
 | `workApps("toggle")` | pauses the work profile's apps or turns them back on, as the drawer's switch does: `pause`, `resume` or `toggle`. Android may ask for the work PIN, and only lets the default launcher (owl 11) |
 | `ask(text)` | opens a terminal with the default agent answering `text`, as sending it from the prompt bar does; `ask(text, "codex")` asks that installed agent. Without one installed it opens the agents settings. The store's reviewer sees what a widget asks (owl 10) |
@@ -1030,6 +1030,7 @@ tiles = [
   { app = "org.mozilla.firefox", x = 3, y = 0 },
   { folder = "Work", x = 4, y = 0, apps = ["com.slack", "linux:foot"] },
   { widget = "20-fetch.owl" },   # no x and y: the first free spot, at its size:
+  { android = "com.google.android.deskclock/com.android.alarmclock.DigitalAppWidgetProvider", id = 12, x = 0, y = 4, w = 4, h = 2 },
 ]
 ```
 
@@ -1045,6 +1046,11 @@ tiles = [
 - A widget file left out of the file stays where it is, and a new file goes by
   its `page:`, `order:` and `size:`. To take a widget off home, move its file to
   `.removed/`.
+- `android` is a widget from one of the phone's apps (a clock, the weather, a
+  calendar), by the `id` Android bound it to; the provider is there to read. Only
+  the phone adds them (home's long-press menu › android widgets, or an app's
+  long-press menu › widgets), since Android asks the user first: here you can
+  move, resize and reorder them. One left out stays where it is.
 - What couldn't be read is in `errors.txt` next to it, and on the phone's home.
   A file that doesn't parse changes nothing, and isn't saved over until it's fixed.
 
