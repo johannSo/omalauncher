@@ -39,7 +39,7 @@ internal val KINDS: Map<String, Kind> =
         "Terminal" to Kind(setOf("command", "fontSize"), Children.NONE),
         // owl 4: input.
         "Slider" to Kind(setOf("value", "min", "max", "step", "color", "track", "live"), Children.NONE),
-        "Input" to Kind(setOf("text", "placeholder", "color", "fontSize", "clear", "focus", "underline"), Children.NONE),
+        "Input" to Kind(setOf("text", "placeholder", "color", "fontSize", "clear", "focus", "underline", "password"), Children.NONE),
         // owl 10: a menu over everything else, next to the node that holds it.
         "Popup" to Kind(setOf("position", "gap", "align"), Children.UI),
     )
@@ -125,10 +125,15 @@ internal val SINCE =
         listOf(KEYS_FILE, "pressKey", "typeText", "latch", "android.modifiers", "onPress", "onRelease", "repeats").associateWith { 12 } +
         // owl 12: requests other than POST; base64 text.
         listOf(POST_METHOD, "toBase64", "fromBase64").associateWith { 12 } +
+        // owl 12: tokens kept encrypted, which only go into requests, and fields that hide what's typed.
+        listOf(SECRET, "Input.password").associateWith { 12 } +
         // owl 13: the private space's lock, settings and install button, for the drawer's private tab.
         mapOf("privateSpace" to 13) +
         // owl 14: sideways swipes, off home, where they turn pages; the drawer's tabs follow them.
         mapOf("onSwipe" to 14)
+
+/** `state x = null secret`, named like this in [SINCE]. */
+internal const val SECRET = "secret"
 
 /** `method:` on post(...), named like this in [SINCE]. */
 internal const val POST_METHOD = "method:"

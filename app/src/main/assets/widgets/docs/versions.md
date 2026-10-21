@@ -25,6 +25,6 @@ file only this phone runs, `owl: 14` is fine; for the store, a lower level reach
   `reverse`, `panel "…" { }` files with `query`, `enter`, `onSubmit` and `onKey`, `shortcuts`, Image's `label`, Text's
   `minLines` and an app's `statusBar`. A Column in a Row is as wide as its content
 - **12**: `screenTop`, `keybar "…" { }` files, `pressKey`, `typeText`, `latch`, `android.modifiers`, `onPress`,
-  `onRelease`, `repeats`, post's `method:`, `toBase64` and `fromBase64`
+  `onRelease`, `repeats`, post's `method:`, `toBase64`, `fromBase64`, `secret` states and Input's `password`
 - **13**: `privateSpace`, and the private space in `android.drawer` (see Private space in docs/panels.md)
 - **14**: `onSwipe`, sideways swipes in apps, panels, extra keys and screens; the drawer's tabs follow them
