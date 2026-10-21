@@ -2,10 +2,10 @@
 
 Part of the widget docs: README.md, one folder up, comes first, and paths here are from the widgets folder.
 
-`meta { owl: N }` is the language version a file needs; this launcher has 13, and without `meta` it's 1. Declare
+`meta { owl: N }` is the language version a file needs; this launcher has 14, and without `meta` it's 1. Declare
 the highest level of what the file uses: using something from a later level than the file declares is an error,
 and a launcher older than the level says "update the launcher" instead of failing on what it doesn't know. For a
-file only this phone runs, `owl: 13` is fine; for the store, a lower level reaches older launchers too.
+file only this phone runs, `owl: 14` is fine; for the store, a lower level reaches older launchers too.
 
 - **2**: `Terminal`
 - **3**: `sprite`
@@ -27,3 +27,4 @@ file only this phone runs, `owl: 13` is fine; for the store, a lower level reach
 - **12**: `screenTop`, `keybar "…" { }` files, `pressKey`, `typeText`, `latch`, `android.modifiers`, `onPress`,
   `onRelease`, `repeats`, post's `method:`, `toBase64` and `fromBase64`
 - **13**: `privateSpace`, and the private space in `android.drawer` (see Private space in docs/panels.md)
+- **14**: `onSwipe`, sideways swipes in apps, panels, extra keys and screens; the drawer's tabs follow them

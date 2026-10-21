@@ -126,7 +126,9 @@ internal val SINCE =
         // owl 12: requests other than POST; base64 text.
         listOf(POST_METHOD, "toBase64", "fromBase64").associateWith { 12 } +
         // owl 13: the private space's lock, settings and install button, for the drawer's private tab.
-        mapOf("privateSpace" to 13)
+        mapOf("privateSpace" to 13) +
+        // owl 14: sideways swipes, off home, where they turn pages; the drawer's tabs follow them.
+        mapOf("onSwipe" to 14)
 
 /** `method:` on post(...), named like this in [SINCE]. */
 internal const val POST_METHOD = "method:"
@@ -179,6 +181,8 @@ internal val HANDLER_PARAMS =
         "onPress" to listOf("x", "y", "repeat"),
         "onRelease" to emptyList(),
         "onDrag" to listOf("dx", "dy", "x", "y"),
+        // Sideways, as the finger lifts: `left` from right to left, `right` back.
+        "onSwipe" to listOf("value"),
         "onChange" to listOf("value"),
         "onSubmit" to listOf("value"),
         "onDismiss" to emptyList(),

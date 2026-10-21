@@ -894,6 +894,19 @@ class LangTest {
         }
     }
 
+    @Test fun swipesSidewaysOffHome() {
+        val p = Compiler.compile("panel {\n meta { owl: 14 }\n state tab = \"\"\n Column { onSwipe: tab = value; Text { text: tab } } }")
+        val host = TestHost(p)
+        (p.screen!!.single() as WNode.Element).handlers["onSwipe"]!!.run(Env.root(host), listOf(Str("left")))
+        assertTrue(host.slots.contains(Str("left")))
+        for (kind in listOf("app", "keybar")) Compiler.compile("$kind {\n meta { owl: 14 }\n Text { text: 1; onSwipe: haptic() } }")
+        Compiler.compile("widget {\n meta { owl: 14 }\n Text { text: 1 }\n screen { Text { text: 1; onSwipe: haptic() } } }")
+        // On home, sideways swipes turn pages: not on a tile, nor on a face's page.
+        assertTrue(compileError("widget {\n meta { owl: 14 }\n Text { text: 1; onSwipe: haptic() } }").contains("turn its pages"))
+        assertTrue(compileError("face {\n meta { owl: 14 }\n Text { text: 1; onSwipe: haptic() } }").contains("turn its pages"))
+        assertTrue(compileError("panel {\n meta { owl: 13 }\n Text { text: 1; onSwipe: haptic() } }").contains("needs owl 14"))
+    }
+
     @Test fun keyNamesAndCombos() {
         assertEquals(KeyNames.Combo(1, emptyList()), KeyNames.combo("esc"))
         assertEquals(KeyNames.Combo(46, listOf(29)), KeyNames.combo("ctrl+c"))

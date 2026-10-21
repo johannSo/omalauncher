@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -73,6 +74,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import dev.omalauncher.widgets.runtime.PicturePainter
 import dev.omalauncher.widgets.runtime.WidgetImage
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onSizeChanged
@@ -122,6 +124,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -865,6 +868,31 @@ private fun handlers(p: Props): Modifier {
     el.handlers["onDrag"]?.let { a ->
         m = m.pointerInput(el, p.env) { detectDragGestures { change, drag -> change.consume(); fire(a, drag.x, drag.y, change.position.x, change.position.y) } }
     }
+    // Sideways only, so a list inside still scrolls up and down (owl 14): once, as the finger lifts after going far or
+    // fast enough, with "left" for a swipe from right to left, as one turns to the next page.
+    el.handlers["onSwipe"]?.let { a ->
+        m =
+            m.pointerInput(el, p.env) {
+                val tracker = VelocityTracker()
+                var dx = 0f
+                detectHorizontalDragGestures(
+                    onDragStart = {
+                        dx = 0f
+                        tracker.resetTracking()
+                    },
+                    onDragEnd = {
+                        val v = tracker.calculateVelocity().x
+                        val far = abs(dx) > SwipeDistance.toPx()
+                        val fast = abs(v) > SwipeVelocity.toPx() && (v < 0) == (dx < 0)
+                        if (far || fast) a.run(p.env, listOf(Str(if (dx < 0) "left" else "right")))
+                    },
+                ) { change, amount ->
+                    change.consume()
+                    dx += amount
+                    tracker.addPosition(change.uptimeMillis, change.position)
+                }
+            }
+    }
     // As the finger goes down, not up: a key acts at once, and with `repeats` again while held, as a keyboard's
     // keys do (owl 12). Touches aren't consumed, so onTap and onLongPress on the same node still see them.
     val press = el.handlers["onPress"]
@@ -899,6 +927,10 @@ private fun handlers(p: Props): Modifier {
     }
     return m
 }
+
+/** How far an onSwipe has to go, or how fast (per second, at the lift), to count. */
+private val SwipeDistance = 56.dp
+private val SwipeVelocity = 400.dp
 
 /**
  * A gradient behind a node or a face. Its points are fractions of the size, 0 to 1 across and down, and a
