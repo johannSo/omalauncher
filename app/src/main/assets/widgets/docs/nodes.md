@@ -43,7 +43,9 @@ Every node also takes:
   keys repeat: `repeat` is 0 for the press and counts up from there; `Slider` and `Input` also take
   `onChange`, and `Input` `onSubmit`, both with `value`; `Popup` takes `onDismiss`. In pages, apps and a widget's `screen { }`,
   `onLongPress` (with `x`, `y`, owl 10); on a tile, long-press belongs to the home screen, which uses it
-  to move and resize tiles
+  to move and resize tiles; `onSwipe` (with `value`, owl 14) once a sideways swipe lifts, `left` for one from right to
+  left and `right` back, leaving up and down to a list inside. It works in apps, panels, extra keys and a `screen { }`:
+  on home, sideways swipes turn pages
 - `animate prop: spring()` or `tween(300ms, "linear"/"in"/"out"/"ease")`, for `value`,
   `opacity`, `rotation`, `scale`, `color` or `background`. For springs:
   `spring(damping, stiffness)`

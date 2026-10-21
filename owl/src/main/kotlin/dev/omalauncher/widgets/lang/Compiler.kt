@@ -24,7 +24,7 @@ class Compiler private constructor(
          * instead of failing on what they don't know. Bump it with every
          * addition a widget could depend on: nodes, properties, builtins.
          */
-        const val LEVEL = 13
+        const val LEVEL = 14
         private const val MAX_ASSET_BYTES = 2 shl 20
 
         /** Pages as far out as a file can ask for; past Int's range, the pages either side of them would wrap. */
@@ -828,6 +828,9 @@ class Compiler private constructor(
                 HANDLER_KINDS[h.name]?.let { kinds -> if (n.type !in kinds) fail("${h.name} only works on ${kinds.joinToString(" and ")}", h.pos) }
                 if (h.name == "onLongPress" && inScreen == false && !isFace) {
                     fail("long-press on a tile belongs to the home screen, which lifts it to move and resize it; onLongPress works in faces, apps and a screen { }", h.pos)
+                }
+                if (h.name == "onSwipe" && inScreen == false) {
+                    fail("sideways swipes on home turn its pages; onSwipe works in apps, panels, extra keys and a widget's screen { }", h.pos)
                 }
                 since(h.name, h.pos)
                 h.name to handler(h, scope)

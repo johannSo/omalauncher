@@ -55,6 +55,8 @@ highlight (drawer.owl keeps a `pick`). Up and Down come only while what's typed 
 between its lines. Without `onKey`, the keys stay with the bar and do what they do in any text field. `open(...)` and `appAction(...)` leave the
 panel as opening an app from the drawer does, and `close()` slides it away. Besides `enter`, a panel has no
 properties, title or icon; like an app's, its nodes are the screen's. Give a long list `lazy: true`.
+A node's `onSwipe` (owl 14) takes swipes sideways, so the drawer turns its tabs with them: right to left from
+personal to work to private, left to right back.
 
 ## Private space
 
