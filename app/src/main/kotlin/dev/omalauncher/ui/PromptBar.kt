@@ -205,8 +205,8 @@ internal fun PromptBar(
     }
     // The panel and the bar open and close together: opening it (Super+Space, a widget) focuses the bar, closing it lets go.
     LaunchedEffect(panelShown) {
-        // Opened to dictate, the keyboard stays down.
-        if (panelShown && !speech.listening) {
+        // Opened to dictate, or swiped open with gestures.swipe-up-keyboard off, the keyboard stays down.
+        if (panelShown && !speech.listening && !(state.swipedOpen && !LauncherStyle.swipeUpKeyboard)) {
             focus.requestFocus()
             keyboard?.show()
         } else if (!panelShown && focused) {
