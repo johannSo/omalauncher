@@ -284,15 +284,15 @@ class WidgetEngine(
      * The extra keys over the soft keyboard: keybar.owl, else the stock ones, so keys that are gone or broken never leave a
      * terminal without esc or the arrows. Null until one runs.
      */
-    fun keysInstance(): WidgetInstance? =
+    fun keybarInstance(): WidgetInstance? =
         // Through specs, which are snapshot state, so the keys on screen follow a reload.
-        listOf(KEYS, STOCK_KEYS).firstNotNullOfOrNull { name -> specs.firstOrNull { it.file.name == name && it.kind == OwlKind.Keys }?.let(::instance) }
+        listOf(KEYBAR, STOCK_KEYBAR).firstNotNullOfOrNull { name -> specs.firstOrNull { it.file.name == name && it.kind == OwlKind.Keybar }?.let(::instance) }
 
     /** How many places show the extra keys now (home, a Linux window); they're live only then. */
-    private var keysShown by mutableIntStateOf(0)
+    private var keybarShown by mutableIntStateOf(0)
 
-    fun keysShown(shown: Boolean) {
-        keysShown += if (shown) 1 else -1
+    fun keybarShown(shown: Boolean) {
+        keybarShown += if (shown) 1 else -1
     }
 
     /** On a home page: a widget's tile, or a face; not an app, a panel or the extra keys. */
@@ -472,8 +472,12 @@ class WidgetEngine(
     }
 
     /** Widgets, pinned apps, folders and Android widgets on [page]. Wrappers compare by spec, so unchanged pages skip recomposition. */
-    fun itemsOn(page: Int): List<HomeItem> =
-        specs.filter { it.page == page && onHome(it) }.map(::WidgetItem) + shortcuts.onGrid().filter { it.page == page } + androidWidgets.items.filter { it.page == page }
+    fun itemsOn(page: Int): List<HomeItem> = itemsByPage[page].orEmpty()
+
+    /** Built once per change rather than per call: home asks for every page on each recomposition, and drags ask often. */
+    private val itemsByPage by derivedStateOf {
+        (specs.filter(::onHome).map(::WidgetItem) + shortcuts.onGrid() + androidWidgets.items).groupBy { it.page }
+    }
 
     private val pageList by derivedStateOf {
         (specs.filter(::onHome).map { it.page } + shortcuts.onGrid().map { it.page } + androidWidgets.items.map { it.page }).distinct().sorted().ifEmpty { listOf(1) }
@@ -566,7 +570,7 @@ class WidgetEngine(
         }
     }
 
-    private fun widgetFiles() = dir.listFiles { f -> (!f.name.startsWith(".") || f.name == STOCK_DRAWER || f.name == STOCK_KEYS) && f.extension == "owl" }.orEmpty().sortedBy { it.name }
+    private fun widgetFiles() = dir.listFiles { f -> (!f.name.startsWith(".") || f.name == STOCK_DRAWER || f.name == STOCK_KEYBAR) && f.extension == "owl" }.orEmpty().sortedBy { it.name }
 
     private suspend fun reload(files: List<File>) {
         val old = specs.associateBy { it.file.name }
@@ -696,7 +700,7 @@ class WidgetEngine(
             }
         if (skip != null) return writeCheck(spec.file, hash, "ok", "preview-skipped $hash $skip")
         val inst = instance(spec)!!
-        if (program.kind == OwlKind.App || program.kind == OwlKind.Panel || program.kind == OwlKind.Keys) return previewView(spec, inst, hash)
+        if (program.kind == OwlKind.App || program.kind == OwlKind.Panel || program.kind == OwlKind.Keybar) return previewView(spec, inst, hash)
         val cells = tileCells(spec)
         val (w, h) = if (spec.isFace) layout.pagePx(context.resources.displayMetrics) else layout.tilePx(cells, context.resources.displayMetrics)
         previewing += name
@@ -754,7 +758,7 @@ class WidgetEngine(
             "preview-skipped $hash " +
                 when (spec.kind) {
                     OwlKind.Panel -> "a panel has no tile"
-                    OwlKind.Keys -> "extra keys have no tile"
+                    OwlKind.Keybar -> "the terminal key bar has no tile"
                     else -> "an app has no tile"
                 }
         writeCheck(spec.file, hash, "ok", if (ok) "$tile\nscreen $hash ${dm.widthPixels}x${dm.heightPixels}" else "$tile; rendering its screen failed")
@@ -805,7 +809,7 @@ class WidgetEngine(
                 for (theme in themes) {
                     Palette.apply(theme.colors)
                     val out = File(dir, "${theme.name}/$name${if (n > 0) ".${n + 1}" else ""}.png")
-                    if (spec.kind == OwlKind.App || spec.kind == OwlKind.Panel || spec.kind == OwlKind.Keys) {
+                    if (spec.kind == OwlKind.App || spec.kind == OwlKind.Panel || spec.kind == OwlKind.Keybar) {
                         previews.renderScreen(spec, inst, dm.widthPixels, dm.heightPixels, out, ready)
                     } else {
                         previews.render(spec, inst, shownCells(cells), w, h, out, ready)
@@ -829,7 +833,7 @@ class WidgetEngine(
         // An app in its own task: live while that's showing, whatever home does.
         if ((shownApps[spec.file.name] ?: 0) > 0) return true
         // Over a Linux window too, while home is hidden.
-        if (spec.kind == OwlKind.Keys) return keysShown > 0
+        if (spec.kind == OwlKind.Keybar) return keybarShown > 0
         if (!visible) return false
         // Its screen is open: it's on screen wherever the pages are.
         if (spec.file.name == openScreen) return true
@@ -998,7 +1002,7 @@ class WidgetEngine(
             for (name in assets.list("widgets").orEmpty().filter { it.endsWith(".owl") }) add(asset("widgets/$name", File(dir, name), Policy.Seeded))
             // Always as this launcher ships them, whatever became of drawer.owl and keybar.owl.
             add(asset("widgets/$DRAWER", File(dir, STOCK_DRAWER), Policy.Owned))
-            add(asset("widgets/$KEYS", File(dir, STOCK_KEYS), Policy.Owned))
+            add(asset("widgets/$KEYBAR", File(dir, STOCK_KEYBAR), Policy.Owned))
         }
     }
 
@@ -1029,10 +1033,10 @@ class WidgetEngine(
         const val STOCK_DRAWER = ".stock-drawer.owl"
 
         /** The extra keys over the soft keyboard while typing in a terminal: the user's to change, like the drawer. */
-        const val KEYS = "keybar.owl"
+        const val KEYBAR = "keybar.owl"
 
         /** The extra keys as this launcher ships them, kept that way: the fallback, and what an edited keybar.owl compares with. */
-        const val STOCK_KEYS = ".stock-keybar.owl"
+        const val STOCK_KEYBAR = ".stock-keybar.owl"
         private const val TERMINAL_PREFIX = "terminal-"
         private const val AGENT_PREFIX = "agent-"
 
@@ -1045,8 +1049,8 @@ class WidgetEngine(
                 "app drawer (`app \"name\" { }`) and panels that swiping up or down on home opens (`panel \"name\" { }`, picked with " +
                 "gestures.swipe-up and gestures.swipe-down in ~/${StyleStore.GUEST_DIR}/style.toml). The app drawer is the panel " +
                 "drawer.owl there: to change the drawer, edit it; .stock-drawer.owl is the drawer as this launcher ships it. " +
-                "Likewise keybar.owl (`keybar \"name\" { }`) is the extra keys over the soft keyboard while typing in a terminal, " +
-                "and .stock-keybar.owl the keys as shipped. " +
+                "Likewise keybar.owl (`keybar \"name\" { }`) is the terminal key bar over the soft keyboard while typing in a terminal, " +
+                "and .stock-keybar.owl the bar as shipped. " +
                 "Saved files show up on the phone within seconds. After saving, run `owl-check <file>`: it prints the errors " +
                 "and the path of a PNG of the tile or view, drawn with live data; look at it to check the layout. " +
                 "examples/ holds more widgets to learn from or move up to use. Scripts, cron jobs and hooks can set a running " +

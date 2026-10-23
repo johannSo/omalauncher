@@ -63,6 +63,8 @@ panel "app drawer" {
   // Typing starts the pick over, at the best match.
   on typed { pick = null }
 
+  // How much the drawer covers home: near-opaque, as home's widgets showing through make the icons hard to read.
+  opacity: 0.97
   enter: searching ? (chosen >= 0 ? "▸ open" : "⏎ ask") : ""
   // An empty bar's Enter does nothing, as on home.
   onSubmit: {

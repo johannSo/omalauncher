@@ -4,7 +4,7 @@ Each `*.owl` file in this folder is a widget on the Android home screen,
 written in OWL, a small declarative language in the spirit of QML. Its first
 word says what it is: `widget "name" { }` is a home-screen tile, `face "name" { }` a face, a whole home page
 left of your first one (docs/faces.md), and `app "name" { }` an app in the app drawer that opens full screen
-(docs/apps.md). `panel "name" { }` is a view a swipe on home opens (docs/panels.md), and `keybar "name" { }` the extra keys
+(docs/apps.md). `panel "name" { }` is a view a swipe on home opens (docs/panels.md), and `keybar "name" { }` the terminal key bar
 over the keyboard while typing in a terminal (docs/keybar.md). Everything here and in docs/ is about widgets unless it says otherwise; the others are written
 the same way. Save a file and it appears within a second. Then run `owl-check <file>`:
 
@@ -71,17 +71,18 @@ A file holds declarations, then the nodes it shows:
   `Slider`, `Input`, `Canvas`, `Shader`, `Terminal` and `Spacer` show things. Every node takes `width`, `height`,
   `weight`, `fill`, `padding`, `background`, `radius`, `visible` and more.
 - Handlers, like `onTap: count = count + 1`, set state and run actions: `terminal("btop")`, `run("cmd")`,
-  `url("https://...")`, `notify("title", "text")`, `post(url, body)`.
+  `url("https://...")`, `notify("title", "text")`, `post(url, body)`. An API key or a token is a
+  `state key = null secret`, typed in on the phone.
 - Text interpolates (`"${round(pct)}%"`). What's missing is `null`, never an error, and shows as `…`; `a ?? b` is b
   while a is null. Lists have `map`, `filter`, `sortBy` and the rest. Colors are the theme's names (`accent`,
   `foreground`, `muted`, `red`, ...), so widgets follow theme changes.
-- `meta { owl: 13 }` says which version of the language the file needs. Declare the highest it uses; without it,
+- `meta { owl: 12 }` says which version of the language the file needs. Declare the highest it uses; without it,
   it's 1. This launcher has 14.
 
 ## The docs
 
 The rest is in `docs/`. Read the ones for what you're making before you write: a widget usually needs
-declarations.md and nodes.md, a face, an app, a panel or extra keys their own file too.
+declarations.md, nodes.md, expressions.md and handlers.md; a face, an app, a panel or a key bar their own file too.
 
 | read | for |
 |---|---|
@@ -95,7 +96,7 @@ declarations.md and nodes.md, a face, an app, a panel or extra keys their own fi
 | docs/faces.md | faces: a whole home page |
 | docs/apps.md | apps in the app drawer, and their icons |
 | docs/panels.md | panels a swipe opens, the app drawer among them, and the private space |
-| docs/keybar.md | the extra keys over the keyboard |
+| docs/keybar.md | the terminal key bar over the keyboard |
 | docs/home.md | home's layout.toml, and reaching a running widget from scripts with `owl-send` |
 | docs/sharing.md | the widget store, and sharing a file as a link or QR code |
 | docs/versions.md | what each owl version added |
@@ -110,15 +111,17 @@ OWL looks like QML and JavaScript but isn't either; these are what code written 
 - An arrow function can't be kept in a `let` and called: `let f = x => x * 2` then `f(3)` is "unknown function 'f'". Write the expression out where it's used, or make a component for repeated nodes.
 - Words like `start` and `title` stand alone, as in `align: start`; in an expression they're names, so `align: mine ? start : end` is "'start' isn't a value here". Quote them there: `align: mine ? "start" : "end"`, `style: big ? "title" : "body"`. Colors are values, so `color: hot ? red : foreground` works as it is.
 - Handlers and `animate` go inside a component, not where it's used: `Chip { label: "a"; onTap: n = 1 }` is an error. Wrap the use instead, `Box { onTap: n = 1; Chip { label: "a" } }`.
+- `animate offset` follows the finger only during the same node's `onDrag`: `Box { onDrag: x = x + dx; Row { offset: [x, 0]; animate offset: spring() } }` lags behind the finger. Put `offset`, `animate offset`, `onDrag` and `onDragEnd` on one node (owl 13).
 - `on x { }` doesn't run for x's first value, so to save what a source fetched the first time, write `on x first { }` (owl 9).
 - `Progress`, `Ring`, `Slider` and other nodes with a default size lose it once they have `width`, `height`, `size`, `fill` or `weight`: `Progress { fill: width }` is zero high. A Progress is full width already; leave `fill` off, or give it a `height`.
 - In a handler each statement sees the writes before it: read what a later statement needs before changing it.
+- Never write an API key, a token or a password into the file: keep it in `state key = null secret`, asked for with `Input { password: true }`, and write it out in each request's headers, `{Authorization: "Bearer ${key}"}`, or as `enc(key)` in its URL; a `let` can't hold it (owl 12, see Tokens and passwords in docs/handlers.md).
 - `random()` and `shuffle(list)` only work in handlers and a state's first value; for values that look random but stay put, use `hash` (see Chance in docs/expressions.md).
 
 ## Examples
 
-Read the one closest to what you're making before you start. Files at the top of this folder are on
-home already; the rest are in `examples/`, off home until you move one up into this folder. Examples without `meta { owl: … }` are written for owl 1,
+Read the one closest to what you're making before you start. Files at the top of this folder are in use
+already (on home, or as the drawer and the terminal key bar); the rest are in `examples/`, off home until you move one up into this folder. Examples without `meta { owl: … }` are written for owl 1,
 so they don't use what came later, like `if` in handlers or a Row's Texts as wide as their text; the
 docs say what's current.
 
@@ -133,15 +136,15 @@ docs say what's current.
 | drawing | `examples/90-analog-clock` (Canvas), `50-koi` (pixel art, taps), `60-owl` (sprites, a pet that keeps its state), `examples/92-aurora` and `examples/89-lava` (Shader) |
 | faces, a whole page | `examples/00-start` (frost, Grid, spans), `examples/01-minimal`, `examples/02-pixel`, `examples/03-matrix` |
 | panels and the prompt bar | `drawer.owl` (lazy lists, search with rank, Popup), `examples/65-ai-bar` (android.agents, ask, open) |
-| extra keys | `keybar.owl`, `examples/keybar-layers` (latch, layers), `examples/keybar-vim`, `examples/keybar-gamepad`, `examples/keybar-commands` (typeText) |
+| the terminal key bar | `keybar.owl`, `examples/keybar-layers` (latch, layers), `examples/keybar-vim`, `examples/keybar-gamepad`, `examples/keybar-commands` (typeText) |
 | a live terminal | `45-terminal` |
-| an app that sends | `examples/ntfy` (two views with `back`, a source whose URL takes a state, `post` with a JSON body, and what it answers shown at once) |
+| an app that sends | `examples/ntfy` (two views with `back`, a source whose URL takes a state, `post` with a JSON body, and what it answers shown at once), `examples/github-inbox` (a token kept as a `secret`, `post` with `method: "PATCH"`) |
 
 ## Limits
 
 A widget has at most 500 nodes (a page 1000), 2000 drawing calls per frame, lists of 1000
-items, 32 images and 128 SVGs on show at once (a view with more keeps loading them
-again and shows none for long), and a step budget per update. A widget that draws slowly animates at
+items, 32 images and 128 SVGs on show at once (a view with more draws only those, and says so
+in `.errors/`), and a step budget per update. A widget that draws slowly animates at
 half rate. Errors never take the home screen down: the failing value shows `…`
 and the message goes to `.errors/`.
 
@@ -155,4 +158,4 @@ and the message goes to `.errors/`.
 - A `Text` without `width`, `weight` or `fill` takes the full width, except in a `Row` or `Flow` since owl 10,
   where it's as wide as its text, or in an unsized Column in one since owl 11. Before owl 10, give the Texts next to a `weight: 1` one a `width`, or the
   weighted one is squeezed to nothing.
-- Look at the examples for patterns: Examples, near the top, says which one shows what.
+- Look at the examples for patterns: Examples, above, says which one shows what.

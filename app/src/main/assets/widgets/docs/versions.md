@@ -24,7 +24,11 @@ file only this phone runs, `owl: 14` is fine; for the store, a lower level reach
 - **11**: `android.drawer`, `appAction`, `workApps`, `rank`, `strongMatch`, `chunk`, Column's and Grid's `lazy` and
   `reverse`, `panel "…" { }` files with `query`, `enter`, `onSubmit` and `onKey`, `shortcuts`, Image's `label`, Text's
   `minLines` and an app's `statusBar`. A Column in a Row is as wide as its content
-- **12**: `screenTop`, `keybar "…" { }` files, `pressKey`, `typeText`, `latch`, `android.modifiers`, `onPress`,
+- **12**: `screenTop`, `gapsIn`, `gapsOut`, `borderWidth`, `keybar "…" { }` files, `pressKey`, `typeText`, `latch`, `android.modifiers`, `onPress`,
   `onRelease`, `repeats`, post's `method:`, `toBase64`, `fromBase64`, `secret` states and Input's `password`
-- **13**: `privateSpace`, and the private space in `android.drawer` (see Private space in docs/panels.md)
+- **13**: `settings`, `notification("clear")`, `"action"` and `"reply"`, `volume`'s stream, `drag`, `onDragEnd`, `android.network`, `android.volume`'s
+  `output`, a panel's `opacity`, `android.sim`, `dnd`, `torch(level)`,
+  `notification("snooze")`, `"snoozeAll"`, `"unsnooze"` and `"unsnoozeAll"`, `animate offset`, `tileOpacity`, `tileFrost`, and in `android.modes` the radios, location, rotation, dark theme, brightness, `dndAllows` and `torchLevel`; `privateSpace`, and the private space in `android.drawer` (see Private space in docs/panels.md).
+  Only a brightness written out, `torch(40)`, asks for owl 13; `torch(value)` from a Slider can't be told from on and off when the file is
+  checked, so a file that dims the torch should say `owl: 13` itself, as older launchers do nothing with a number
 - **14**: `onSwipe`, sideways swipes in apps, panels, extra keys and screens; the drawer's tabs follow them
