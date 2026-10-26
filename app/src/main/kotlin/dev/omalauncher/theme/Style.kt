@@ -153,6 +153,13 @@ class Style(
 
         val APP_TILES = Setting.Flag("home.app-tiles", true, "Apps on home in a tile like a widget; false draws bare icons on the wallpaper.")
         val RECENT_APPS = Setting.Flag("home.recent-apps", true, "The strip of recently used apps above the prompt bar.")
+        val EMPTY_PAGE_LEFT = Setting.Flag("home.empty-page-left", true, "The empty page left of home's leftmost, inviting a new face; false ends home at its own first page.")
+        val EMPTY_PAGE_RIGHT =
+            Setting.Flag(
+                "home.empty-page-right",
+                true,
+                "The empty page after home's last, for new tiles; false shows it only while a tile is carried, to drop it on.",
+            )
         val COLUMNS = Setting.Count("home.columns", 6, 4..9, "Columns of home's grid. Fewer make bigger cells, and apps show their names under their icons once a cell is tall enough.")
         val FORCE_SINGLE_PAGE =
             Setting.Flag(
@@ -205,12 +212,6 @@ class Style(
                 "drawer.owl",
                 "The app drawer, which swiping up opens: a panel's file name in ~/.config/omalauncher/widgets, by default drawer.owl; \"none\" leaves only tapping the bar to open drawer.owl. One that's gone or doesn't compile falls back to drawer.owl, then to .stock-drawer.owl, the drawer as it ships.",
             )
-        val SWIPE_UP_KEYBOARD =
-            Setting.Flag(
-                "gestures.swipe-up-keyboard",
-                true,
-                "Swiping up into the drawer brings up the keyboard to search; false leaves it down until the prompt bar is tapped. Opening the drawer otherwise (tapping the bar, Super+Space) always brings it up.",
-            )
         val SWIPE_DOWN =
             Setting.Text(
                 "gestures.swipe-down",
@@ -255,9 +256,9 @@ object StyleFile {
 
     val ALL: List<Setting<*>> =
         with(Style) {
-            listOf(THEME, BACKGROUND, FONT, APP_TILES, RECENT_APPS, COLUMNS, FORCE_SINGLE_PAGE, GAPS_IN, GAPS_OUT, TILE_OPACITY, TILE_FROST, TILE_BORDER_WIDTH, TILE_BORDER, TILE_BORDER_FOCUSED) +
+            listOf(THEME, BACKGROUND, FONT, APP_TILES, RECENT_APPS, EMPTY_PAGE_LEFT, EMPTY_PAGE_RIGHT, COLUMNS, FORCE_SINGLE_PAGE, GAPS_IN, GAPS_OUT, TILE_OPACITY, TILE_FROST, TILE_BORDER_WIDTH, TILE_BORDER, TILE_BORDER_FOCUSED) +
                 listOf(SCREEN_GAPS_OUT, SCREEN_BORDER_WIDTH, KEYBAR_GAPS_OUT, KEYBAR_BORDER_WIDTH, MONOCHROME_ICONS, CORNER_SCALE) +
-                listOf(STATUS_BAR_SHOWN) + STATUS_BAR.all + NAVIGATION_BAR.all + listOf(TERMINAL_FONT, TERMINAL_TEXT, SWIPE_UP, SWIPE_UP_KEYBOARD, SWIPE_DOWN)
+                listOf(STATUS_BAR_SHOWN) + STATUS_BAR.all + NAVIGATION_BAR.all + listOf(TERMINAL_FONT, TERMINAL_TEXT, SWIPE_UP, SWIPE_DOWN)
         }
 
     private val byKey = ALL.associateBy { it.key }

@@ -2,10 +2,10 @@
 
 Part of the widget docs: README.md, one folder up, comes first, and paths here are from the widgets folder.
 
-`meta { owl: N }` is the language version a file needs; this launcher has 14, and without `meta` it's 1. Declare
+`meta { owl: N }` is the language version a file needs; this launcher has 15, and without `meta` it's 1. Declare
 the highest level of what the file uses: using something from a later level than the file declares is an error,
 and a launcher older than the level says "update the launcher" instead of failing on what it doesn't know. For a
-file only this phone runs, `owl: 14` is fine; for the store, a lower level reaches older launchers too.
+file only this phone runs, `owl: 12` is fine; for the store, a lower level reaches older launchers too.
 
 - **2**: `Terminal`
 - **3**: `sprite`
@@ -31,4 +31,5 @@ file only this phone runs, `owl: 14` is fine; for the store, a lower level reach
   `notification("snooze")`, `"snoozeAll"`, `"unsnooze"` and `"unsnoozeAll"`, `animate offset`, `tileOpacity`, `tileFrost`, and in `android.modes` the radios, location, rotation, dark theme, brightness, `dndAllows` and `torchLevel`; `privateSpace`, and the private space in `android.drawer` (see Private space in docs/panels.md).
   Only a brightness written out, `torch(40)`, asks for owl 13; `torch(value)` from a Slider can't be told from on and off when the file is
   checked, so a file that dims the torch should say `owl: 13` itself, as older launchers do nothing with a number
-- **14**: `onSwipe`, sideways swipes in apps, panels, extra keys and screens; the drawer's tabs follow them
+- **14**: a face's `edge`, with `screenTop`, `screenLeft` and `screenRight` in a face, and `ripple`; `onSwipe`, sideways swipes in apps, panels, extra keys and screens, where the drawer's tabs follow them
+- **15**: a panel's `keyboard`

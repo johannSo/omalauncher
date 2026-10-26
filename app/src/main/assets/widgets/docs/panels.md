@@ -11,7 +11,6 @@ is picked in settings › gestures, or in style.toml as the panel's file name (s
 ```toml
 [gestures]
 swipe-up = "my-drawer.owl"     # drawer.owl by default; "none" leaves the swipe to tapping the bar
-swipe-up-keyboard = false      # the keyboard stays down after swiping up, until the bar is tapped
 swipe-down = "controls.owl"    # "none" nothing
 ```
 
@@ -25,6 +24,10 @@ Behind a panel the launcher draws the theme's background, as opaque as the panel
 through, to 1, solid; without one 0.97, so home barely shows (owl 13). `drawer.owl` and `controls.owl` both have 0.97. Leave
 a panel's outer node without a `background` of its own, or it covers home whatever `opacity` is; a background on the
 boxes inside it is fine.
+
+Opening the drawer brings up the keyboard, so search is ready. For a drawer that's more for scrolling, `keyboard: false`
+(owl 15) leaves it down: tap the prompt bar to search, and a hardware keyboard types into it as before. It's `true` or
+`false` in the file, not an expression; a panel from the top has no bar, so there it changes nothing.
 
 ```owl
 panel "my drawer" {

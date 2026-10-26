@@ -334,8 +334,6 @@ class Program(
     /** The tile's: an app has none of these. */
     val size: Pair<Int, Int>? = null,
     val minSize: Pair<Int, Int> = 1 to 1,
-    /** A face (`face "…" { }`): it is its home page, the whole screen with no frame, and nothing else goes on it. */
-    val isFace: Boolean = false,
     /** A face's or an app's `statusBar`: while false, the status bar hides as it shows; null keeps it. */
     val statusBar: Ev? = null,
     val page: Int = 1,
@@ -351,7 +349,7 @@ class Program(
     /** An app's `back`: while true, the frame shows a back chevron and Back runs [onBack] instead of closing it. */
     val back: Ev? = null,
     val onBack: Action? = null,
-    /** An app's `edge`: its view runs on under the navigation bar, which `screenInset` measures. */
+    /** An app's `edge`: its view runs on under the navigation bar, which `screenInset` measures. A face's: its nodes run on under the status bar and a camera cutout, which `screenTop`, `screenLeft` and `screenRight` measure. */
     val edge: Boolean = false,
     /** A panel's `onSubmit`: Enter in the prompt bar while it's open, with what's typed as `value`. */
     val onSubmit: Action? = null,
@@ -361,6 +359,8 @@ class Program(
     val enter: Ev? = null,
     /** A panel's `opacity`: how much the backdrop the launcher draws behind it covers home, 0 to 1; null for the default. */
     val opacity: Ev? = null,
+    /** A panel's `keyboard`: whether the keyboard comes up as it opens above the prompt bar; false leaves it down until the bar is tapped. */
+    val keyboard: Boolean = true,
     val onTap: Action? = null,
     val triggers: List<Trigger>,
     /** Shell commands this widget can run, known without running it; for reviewing shared widgets. */
@@ -393,4 +393,10 @@ class Program(
 ) {
     /** [icon] or [iconImage] as a cache key, hashed once: the launcher looks icons up on every recomposition. */
     val iconKey: String? by lazy { icon ?: iconImage?.let { "image:" + it.contentHashCode() } }
+
+    /** A face (`face "…" { }`): it is its home page, the whole screen with no frame, and nothing else goes on it. */
+    val isFace get() = kind == OwlKind.Face
+
+    /** The bytes of the `asset` named [name], if there is one. */
+    fun asset(name: String): ByteArray? = (globals.firstOrNull { it.name == name } as? Global.Asset)?.bytes
 }

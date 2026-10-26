@@ -104,6 +104,9 @@ class LauncherState {
     /** Home page to scroll to (e.g. from Super+number); consumed by the pager. */
     var requestedPage by mutableStateOf<Int?>(null)
 
+    /** Home pressed on home with nothing over it; set by the home screen, which closes a folder or goes to page 1. */
+    var onHomeAgain: () -> Unit = {}
+
     /** A composition scope: animations need its frame clock. Null until the UI is composed. */
     private var composeScope: CoroutineScope? = null
     private val scope get() = composeScope ?: CoroutineScope(Dispatchers.Main)
@@ -121,19 +124,7 @@ class LauncherState {
     ) = composeScope?.launch { drawer.animateTo(target, spring(stiffness = stiffness)) }
         ?: scope.launch { drawer.snapTo(target) }
 
-    /**
-     * Whether the drawer was last opened by swiping up, rather than by a tap, a key or a widget: the prompt bar
-     * leaves the keyboard down then if style.toml's gestures.swipe-up-keyboard says so.
-     */
-    var swipedOpen = false
-        private set
-
-    fun open() {
-        swipedOpen = false
-        expand()
-    }
-
-    private fun expand() = animate(1f, Spring.StiffnessMediumLow)
+    fun open() = animate(1f, Spring.StiffnessMediumLow)
 
     fun close() = animate(0f, Spring.StiffnessMedium)
 
@@ -161,7 +152,6 @@ class LauncherState {
 
     fun dragBy(fraction: Float) = scope.launch {
         if (fraction != 0f) lastDragUp = fraction > 0
-        if (fraction > 0f && drawer.value == 0f) swipedOpen = true
         drawer.snapTo((drawer.value + fraction).coerceIn(0f, 1f)) }
 
     /** The swipe-down panel: 0 = up out of sight, 1 = down. Follows the finger while dragging, like [drawer]. */
@@ -216,11 +206,11 @@ class LauncherState {
     /** Settles after a drag; [velocity] is in px/s, negative = upwards. */
     fun settle(velocity: Float) {
         when {
-            velocity < -800f -> expand()
+            velocity < -800f -> open()
             velocity > 800f -> close()
             // Compose sometimes reports 0 velocity for the first gesture after resuming.
-            velocity == 0f && drawer.value > 0.05f -> if (lastDragUp) expand() else close()
-            drawer.value > 0.2f -> expand()
+            velocity == 0f && drawer.value > 0.05f -> if (lastDragUp) open() else close()
+            drawer.value > 0.2f -> open()
             else -> close()
         }
     }

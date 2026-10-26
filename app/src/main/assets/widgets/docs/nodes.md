@@ -46,7 +46,9 @@ Every node also takes:
   keys repeat: `repeat` is 0 for the press and counts up from there; `Slider` and `Input` also take
   `onChange`, and `Input` `onSubmit`, both with `value`; `Popup` takes `onDismiss`. In pages, apps and a widget's `screen { }`,
   `onLongPress` (with `x`, `y`, owl 10); on a tile, long-press belongs to the home screen, which uses it
-  to move and resize tiles; `onSwipe` (with `value`, owl 14) once a sideways swipe lifts, `left` for one from right to
+  to move and resize tiles. A node with `onTap` or `onLongPress` ripples from where it's pressed, within its `radius`, in apps, panels, faces and screens; on a widget's tile and in a key bar it stays still.
+  `ripple: false` (owl 14) leaves one still anywhere, for a node that shows its press itself, as with `onPress`.
+  `onSwipe` (with `value`, owl 14) runs once a sideways swipe lifts, `left` for one from right to
   left and `right` back, leaving up and down to a list inside. It works in apps, panels, extra keys and a `screen { }`:
   on home, sideways swipes turn pages. With a keyboard or a gamepad, Tab and the arrows (the D-pad) move between the nodes that
   have `onTap` or `onLongPress`, ringed in `accent`; Enter, Space or A taps one at its middle, and holding it, or Menu
@@ -246,7 +248,8 @@ widget "shell" {
 
 - The tile is inert until tapped, so swipes still turn pages. Tapping it gives it
   the keyboard and its touches (drag scrolls, hold-and-drag selects). A tap
-  outside it, Back or another page lets go. The ⌨ button toggles the soft keyboard.
+  outside it, Back or another page lets go. The ⌨ button toggles the soft keyboard,
+  and a tap on the line with the terminal's cursor (its prompt) brings it back.
 - The terminal keeps running while its page is off screen. It ends when the widget
   is removed or its file changes. When `command` exits, the tile offers a restart;
   use `"btop; exec bash"` to fall back to a shell.

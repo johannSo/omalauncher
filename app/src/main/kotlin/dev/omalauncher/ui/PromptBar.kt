@@ -144,7 +144,7 @@ internal fun PromptBar(
     }
 
     /** The drawer's panel, while it shows: what's typed, Enter and the arrow keys are its. */
-    fun drawer() = if (panelShown) runtime.upPanel()?.let { runtime.widgets.panelInstance(it)?.second } else null
+    fun drawer() = if (panelShown) runtime.widgets.drawerPanel()?.let { runtime.widgets.panelInstance(it)?.second } else null
 
     /** Enter: what the drawer does with it (open the app it picked), or, from a drawer without onSubmit, the agent. */
     fun submit() {
@@ -208,10 +208,11 @@ internal fun PromptBar(
     }
     // The panel and the bar open and close together: opening it (Super+D, a widget) focuses the bar, closing it lets go.
     LaunchedEffect(panelShown) {
-        // Opened to dictate, or swiped open with gestures.swipe-up-keyboard off, the keyboard stays down.
-        if (panelShown && !speech.listening && !(state.swipedOpen && !LauncherStyle.swipeUpKeyboard)) {
+        // Opened to dictate, the keyboard stays down. So it does for a drawer with keyboard: false, though the bar still
+        // takes focus, for a hardware keyboard to type into; focusing it can raise the soft one, so that's sent down again.
+        if (panelShown && !speech.listening) {
             focus.requestFocus()
-            keyboard?.show()
+            if (runtime.widgets.drawerPanel()?.let { runtime.widgets.panelInstance(it) }?.second?.program?.keyboard != false) keyboard?.show() else keyboard?.hide()
         } else if (!panelShown && focused) {
             focusManager.clearFocus()
             keyboard?.hide()
