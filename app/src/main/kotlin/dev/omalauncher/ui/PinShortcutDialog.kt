@@ -39,8 +39,8 @@ internal fun PinShortcutDialog(
     DialogFrame(onDismiss) {
         BasicText(stringResource(R.string.store_pin_title), style = Mono.copy(fontSize = TextSize.Title))
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            icon?.let { Image(it, label, Modifier.size(52.dp)) }
-                ?: IconBadge(52.dp, Palette.background) {
+            icon?.let { Image(it, label, Modifier.size(52.dp * LauncherStyle.iconScale)) }
+                ?: IconBadge(52.dp * LauncherStyle.iconScale, Palette.background) {
                     BasicText(initials(label), style = Mono.copy(color = Palette.accent, fontSize = TextSize.Title))
                 }
             Column {

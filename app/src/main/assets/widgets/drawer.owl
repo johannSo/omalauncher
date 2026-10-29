@@ -62,9 +62,17 @@ panel "app drawer" {
   state tab = "personal"
   // The result picked with the arrow or Tab keys, -1 for the ask row; null follows the ranking.
   state pick = null
+  // The letter picked on the rail, null for every app (the launcher sets it back to null as the drawer closes, so it
+  // opens on every app again); and whether a finger is on the rail.
+  state railLetter = null
+  state railTouch = false
 
-  // As the launcher's drawer fits them: a column for every 76 dp.
-  let cols = max(1, floor(((screenWidth ?? 400) - 24) / 76))
+  // How big icons draw and whether names go under them, as style.toml's icons.size and icons.drawer-labels say.
+  let scale = d.iconSize ?? 1
+  let labels = d.labels ?? true
+  // As the launcher's drawer fits them: a column for every 76 dp, wider for big icons, beside the letter rail.
+  let railWidth = 28
+  let cols = max(1, floor(((screenWidth ?? 400) - 24 - railWidth) / max(76, 52 * scale + 24)))
   let typed = trim(query)
   let searching = typed != ""
   // The private space's tab shows while it's there, unless it's locked and hidden while locked: then only typing
@@ -72,7 +80,17 @@ panel "app drawer" {
   let tabs = flatten([["personal"], d.work != null ? ["work"] : [], d.private != null && !(d.private.locked && d.private.hidden) ? ["private"] : []])
   // A tab that went away (the space locked and hid) leaves the personal one.
   let shown = contains(tabs, tab) ? tab : "personal"
-  let mine = d.apps.filter(a => shown == "personal" ? a.profile != "work" && a.profile != "private" : a.profile == shown)
+  let tabApps = d.apps.filter(a => shown == "personal" ? a.profile != "work" && a.profile != "private" : a.profile == shown)
+  // The letter rail, as Niagara's: each app goes under its first letter, 0 for a digit and # for anything else.
+  let firsts = tabApps.map(a => merge(a, {first: lower(sub(trim(a.name), 0, 1))}))
+  let bucketed = firsts.map(a => merge(a, {bucket: a.first != "" && contains("0123456789", a.first) ? "0" : upper(a.first) != a.first ? a.first : "#"}))
+  let letters = flatten([["★"], unique(sort(bucketed.map(a => a.bucket)))])
+  let rail = !searching && len(letters) > 2
+  // A letter the tab doesn't have (its last app went) shows them all.
+  let railed = rail && railLetter != null && contains(letters, railLetter) ? railLetter : null
+  let mine = railed == null ? tabApps : bucketed.filter(a => a.bucket == railed)
+  // Each letter's height on the rail, so all of them fit beside the list; the rail's own touches find the letter by it.
+  let letterHeight = clamp(floor(((screenHeight ?? 600) - 80) / len(letters)), 8, 24)
   // Each section's id keys its rows; its title is the one shown.
   let sections = shown == "work" ? [
       {id: "shortcuts", title: str.shortcuts, apps: mine.filter(a => a.kind == "shortcut")},
@@ -86,8 +104,9 @@ panel "app drawer" {
       {id: "shortcuts", title: str.shortcuts, apps: mine.filter(a => a.kind == "shortcut")},
       {id: "android", title: str.android, apps: mine.filter(a => a.kind == "android")}
     ]
-  // A title, then rows of cols apps. Without Linux, its section is an offer to install it.
-  let rows = flatten(sections.filter(s => len(s.apps) > 0 || s.work || s.private || (s.linux && !linux)).map(s => flatten([
+  // A title, then rows of cols apps. Without Linux, its section is an offer to install it. Under a rail letter only the
+  // sections with its apps show.
+  let rows = flatten(sections.filter(s => len(s.apps) > 0 || (railed == null && (s.work || s.private || (s.linux && !linux)))).map(s => flatten([
       [{key: "h:" + s.id, title: s.linux && !linux ? str.linuxApps : s.title, work: s.work, private: s.private, offer: s.linux && !linux}],
       chunk(s.apps, cols).map((cells, r) => {key: s.id + ":" + r, cells: cells})
     ])))
@@ -108,8 +127,11 @@ panel "app drawer" {
     }
   }
 
-  // Typing starts the pick over, at the best match.
-  on typed { pick = null }
+  // Typing starts the pick over, at the best match, and searches every app, whatever letter the rail had.
+  on typed {
+    pick = null
+    railLetter = null
+  }
 
   // How much the drawer covers home: near-opaque, as home's widgets showing through make the icons hard to read.
   opacity: 0.97
@@ -131,14 +153,14 @@ panel "app drawer" {
   // An app's icon as the drawer draws it: its own, its silhouette on a badge with monochrome icons, or its initials.
   component AppIcon(a) {
     Box {
-      size: 52
+      size: 52 * scale
       align: center
-      radius: 26 * corners
+      radius: 26 * scale * corners
       background: a.hasIcon && !d.monochrome ? transparent : surface
       if a.hasIcon {
-        Image { src: a.icon; size: d.monochrome ? 36 : 52; tint: d.monochrome ? accent : null; label: a.label }
+        Image { src: a.icon; size: (d.monochrome ? 36 : 52) * scale; tint: d.monochrome ? accent : null; label: a.label }
       } else {
-        Text { text: a.initials; fontSize: 18; color: accent }
+        Text { text: a.initials; fontSize: 18 * scale; color: accent }
       }
     }
   }
@@ -154,7 +176,10 @@ panel "app drawer" {
       borderColor: accent
       // Paused work apps show dimmed; opening one turns work apps back on.
       opacity: a.paused ? 0.4 : 1
-      onTap: open(a.key)
+      onTap: {
+        railLetter = null
+        open(a.key)
+      }
       onLongPress: {
         haptic()
         menuShortcuts = null
@@ -163,7 +188,7 @@ panel "app drawer" {
       }
       AppIcon { a: a }
       // Always two lines tall, so a row keeps its height whichever apps fill it.
-      Text { text: a.name; fontSize: 12; align: center; maxLines: 2; minLines: 2; fill: width }
+      Text { visible: labels; text: a.name; fontSize: 12; align: center; maxLines: 2; minLines: 2; fill: width }
       Popup {
         visible: menu == a.key && menuShortcuts != null
         position: above
@@ -192,6 +217,52 @@ panel "app drawer" {
     }
   }
 
+  // A row of the list: a section's title, or a row of its apps.
+  component DrawerRow(row) {
+    Column {
+      fill: width
+      gap: 0
+      if row.title != null {
+        // A section's title, with the work switch, the private space's lock and buttons, or the offer to install Linux at its end.
+        Column {
+          fill: width
+          gap: 0
+          Row {
+            fill: width
+            gap: 8
+            align: center
+            padding: [8, 12, 0, 4]
+            Text { text: row.title; color: muted; weight: 1 }
+            Text { text: "[" + (d.work.paused ? str.turnOn : str.pause) + "]"; visible: row.work == true; color: accent; onTap: workApps("toggle") }
+            // Unlocked: install apps into it, Android's settings for it (16 on), and the lock.
+            Text { text: "[" + str.install + "]"; visible: row.private == true && !d.private.locked; color: accent; onTap: privateSpace("install") }
+            Text { text: "[" + str.settings + "]"; visible: row.private == true && !d.private.locked && d.private.settings; color: accent; onTap: privateSpace("settings") }
+            Text { text: "[" + (d.private.locked ? str.unlock : str.lock) + "]"; visible: row.private == true; color: accent; onTap: privateSpace("toggle") }
+            Text { text: "[" + (d.linux == "installing" ? str.installing : d.linux == "off" ? str.startLinux : str.installLinux) + "]"; visible: row.offer == true; color: accent; onTap: launcher("linux") }
+          }
+          // Before Android 16 has a setting for it, the drawer keeps its own: hiding the tab while the space is locked.
+          Row {
+            visible: row.private == true && !d.private.locked && !d.private.settings
+            fill: width
+            gap: 8
+            align: center
+            padding: [8, 12, 0, 4]
+            Text { text: str.hideWhileLocked; color: muted; weight: 1 }
+            Text { text: "[" + (d.private.hidden ? str.shownOn : str.shownOff) + "]"; color: accent; onTap: privateSpace(d.private.hidden ? "show" : "hide") }
+          }
+        }
+      } else {
+        Row {
+          fill: width
+          gap: 0
+          for a in row.cells { Cell { a: a; picked: false } }
+          // A short last row keeps its cells the width of the others'.
+          for s in range(0, cols - len(row.cells)) { Spacer { weight: 1 } }
+        }
+      }
+    }
+  }
+
   Column {
     gap: 0
     padding: [12, 0]
@@ -199,6 +270,7 @@ panel "app drawer" {
     onSwipe: {
       if !searching {
         tab = tabs[clamp(indexOf(tabs, shown) + (value == "left" ? 1 : -1), 0, len(tabs) - 1)]
+        railLetter = null
       }
     }
     Row {
@@ -207,8 +279,10 @@ panel "app drawer" {
       gap: 0
       // Typing searches every profile, so the tabs step aside.
       for t in len(tabs) > 1 && !searching ? tabs : [] {
-        Text { text: get(str, t); color: shown == t ? accent : muted; background: shown == t ? surface : transparent; radius: 18 * corners; padding: [14, 10]; onTap: tab = t }
+        Text { text: get(str, t); color: shown == t ? accent : muted; background: shown == t ? surface : transparent; radius: 18 * corners; padding: [14, 10]; onTap: { tab = t; railLetter = null } }
       }
+      // The rail's letter, parked here while it shows only its apps; a tap shows them all again.
+      Text { visible: railed != null; text: upper(railed ?? ""); fontSize: 18; color: accent; background: surface; radius: 18 * corners; padding: [14, 8]; onTap: railLetter = null }
       Spacer { weight: 1 }
       Box {
         size: 44
@@ -221,68 +295,91 @@ panel "app drawer" {
         Box { visible: d.updates > 0; align: topEnd; size: 44; padding: 8; Box { size: 8; radius: 4; background: red } }
       }
     }
-    Column {
-      visible: !searching
-      lazy: true
+    // The list, with the letter rail at its side.
+    Box {
       weight: 1
       fill: width
-      gap: 0
-      for row in rows key row.key {
-        if row.title != null {
-          // A section's title, with the work switch, the private space's lock and buttons, or the offer to install Linux at its end.
-          Column {
-            fill: width
-            gap: 0
-            Row {
-              fill: width
-              gap: 8
-              align: center
-              padding: [8, 12, 0, 4]
-              Text { text: row.title; color: muted; weight: 1 }
-              Text { text: "[" + (d.work.paused ? str.turnOn : str.pause) + "]"; visible: row.work == true; color: accent; onTap: workApps("toggle") }
-              // Unlocked: install apps into it, Android's settings for it (16 on), and the lock.
-              Text { text: "[" + str.install + "]"; visible: row.private == true && !d.private.locked; color: accent; onTap: privateSpace("install") }
-              Text { text: "[" + str.settings + "]"; visible: row.private == true && !d.private.locked && d.private.settings; color: accent; onTap: privateSpace("settings") }
-              Text { text: "[" + (d.private.locked ? str.unlock : str.lock) + "]"; visible: row.private == true; color: accent; onTap: privateSpace("toggle") }
-              Text { text: "[" + (d.linux == "installing" ? str.installing : d.linux == "off" ? str.startLinux : str.installLinux) + "]"; visible: row.offer == true; color: accent; onTap: launcher("linux") }
-            }
-            // Before Android 16 has a setting for it, the drawer keeps its own: hiding the tab while the space is locked.
-            Row {
-              visible: row.private == true && !d.private.locked && !d.private.settings
-              fill: width
-              gap: 8
-              align: center
-              padding: [8, 12, 0, 4]
-              Text { text: str.hideWhileLocked; color: muted; weight: 1 }
-              Text { text: "[" + (d.private.hidden ? str.shownOn : str.shownOff) + "]"; color: accent; onTap: privateSpace(d.private.hidden ? "show" : "hide") }
-            }
-          }
-        } else {
-          Row {
-            fill: width
-            gap: 0
-            for a in row.cells { Cell { a: a; picked: false } }
-            // A short last row keeps its cells the width of the others'.
-            for s in range(0, cols - len(row.cells)) { Spacer { weight: 1 } }
-          }
-        }
-      }
-    }
-    Column {
-      visible: searching
-      lazy: true
-      reverse: true
-      weight: 1
-      fill: width
-      gap: 0
-      for row in hitRows key row.key {
-        Row {
-          fill: width
+      align: center
+      Row {
+        fill: true
+        gap: 0
+        align: center
+        Column {
+          visible: !searching && railed == null
+          lazy: true
+          weight: 1
+          fill: height
           gap: 0
-          for a, i in row.cells { Cell { a: a; picked: row.start + i == chosen } }
-          for s in range(0, cols - len(row.cells)) { Spacer { weight: 1 } }
+          for row in rows key row.key { DrawerRow { row: row } }
         }
+        // A letter's apps sit right above the bar, by the thumb, as search results do.
+        Column {
+          visible: !searching && railed != null
+          lazy: true
+          reverse: true
+          weight: 1
+          fill: height
+          gap: 0
+          for row in reverse(rows) key row.key { DrawerRow { row: row } }
+        }
+        Column {
+          visible: searching
+          lazy: true
+          reverse: true
+          weight: 1
+          fill: height
+          gap: 0
+          for row in hitRows key row.key {
+            Row {
+              fill: width
+              gap: 0
+              for a, i in row.cells { Cell { a: a; picked: row.start + i == chosen } }
+              for s in range(0, cols - len(row.cells)) { Spacer { weight: 1 } }
+            }
+          }
+        }
+        // The letter rail, as Niagara's: a touch or a drag along it shows only the apps under the letter beneath the
+        // finger, ★ all of them again. Its letters are letterHeight tall, so where the finger is says which.
+        Column {
+          visible: rail
+          width: railWidth
+          height: letterHeight * len(letters)
+          gap: 0
+          drag: vertical
+          ripple: false
+          onPress: {
+            let at = letters[clamp(floor(y / letterHeight), 0, len(letters) - 1)]
+            railTouch = true
+            if at != (railed ?? "★") {
+              haptic()
+              railLetter = at == "★" ? null : at
+            }
+          }
+          onDrag: {
+            let at = letters[clamp(floor(y / letterHeight), 0, len(letters) - 1)]
+            railTouch = true
+            if at != (railed ?? "★") {
+              haptic()
+              railLetter = at == "★" ? null : at
+            }
+          }
+          // Takes the tap, which would close the drawer otherwise; onPress has picked the letter already.
+          onTap: railTouch = false
+          onRelease: railTouch = false
+          onDragEnd: railTouch = false
+          for l in letters key l {
+            Box {
+              height: letterHeight
+              fill: width
+              align: center
+              Text { text: upper(l); fontSize: min(14, letterHeight * 0.7); maxLines: 1; color: l == (railed ?? "★") ? accent : muted }
+            }
+          }
+        }
+        Spacer { visible: !rail; width: railWidth }
       }
+      // The letter big in the middle while the finger rides the rail.
+      Text { visible: railTouch && railed != null; text: upper(railed ?? ""); fontSize: 96; color: accent; align: center; fill: width }
     }
     Row {
       visible: offersPrivate

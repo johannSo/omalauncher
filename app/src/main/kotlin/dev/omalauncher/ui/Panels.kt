@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import dev.omalauncher.Runtime
 import dev.omalauncher.widgets.render.LocalInputFocus
+import dev.omalauncher.widgets.lang.Null
 import dev.omalauncher.widgets.render.WidgetScreen
 
 /*
@@ -43,6 +44,9 @@ internal fun UpPanel(
     if (inst.query !== bar) inst.query = bar
     // Opened from the top later, the same file sees "".
     DisposableEffect(inst, bar) { onDispose { if (inst.query === bar) inst.query = { "" } } }
+    // The drawer opens on every app again, as Niagara's does: the letter picked on drawer.owl's rail goes as it closes.
+    // A panel without that state is left as it is.
+    DisposableEffect(inst) { onDispose { inst.setState(RAIL_LETTER, Null) } }
     val pull = rememberDrawerPull(state)
     CompositionLocalProvider(LocalInputFocus provides true) {
         WidgetScreen(
@@ -101,3 +105,6 @@ internal fun PanelPreview(inst: dev.omalauncher.widgets.runtime.WidgetInstance) 
         WidgetScreen(inst, Modifier.fillMaxSize())
     }
 }
+
+/** The state drawer.owl keeps its rail's letter in (this fork's). */
+private const val RAIL_LETTER = "railLetter"

@@ -20,6 +20,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
+import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Process
@@ -36,6 +37,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.PathParser
+import dev.omalauncher.ui.IconLook
+import dev.omalauncher.ui.IconPackStore
+import dev.omalauncher.ui.finishIcon
 import dev.omalauncher.ui.iconMask
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -187,6 +191,8 @@ data class PrivateSpace(
  */
 class AndroidAppCatalog(
     private val context: Context,
+    /** The icons an icon pack draws in place of the apps' own; see [IconPackStore]. */
+    private val iconPacks: IconPackStore,
 ) {
     val apps = mutableStateListOf<AndroidApp>()
 
@@ -266,8 +272,20 @@ class AndroidAppCatalog(
     var listed by mutableStateOf(false)
         private set
 
-    /** Icon edge in px: the drawer's 52dp icon at this screen's density. */
-    private val iconPx = (52 * context.resources.displayMetrics.density).toInt().coerceAtLeast(48)
+    /** How icons are drawn (style.toml's [icons]): set before [start], and through [restyle] after. */
+    @Volatile
+    var look = IconLook(px = (52 * context.resources.displayMetrics.density).toInt().coerceAtLeast(48))
+
+    /** Icons drawn in an earlier [look], drawn again by the next [reload] and kept on show until then. */
+    private val stale = HashSet<String>()
+
+    /** Draws every icon again in [look], an icon pack or tint picked in style.toml among them. */
+    fun restyle(look: IconLook) {
+        if (look == this.look) return
+        this.look = look
+        stale += icons.keys
+        reload()
+    }
 
     fun start() {
         launcherApps.registerCallback(
@@ -649,7 +667,7 @@ class AndroidAppCatalog(
                 // otherwise wait their turn in the alphabet.
                 val first = iconsFirst()
                 for ((info, app) in infos.sortedBy { it.second.key !in first }) {
-                    if (app.key !in icons) loadIcon(app.key, markOf(app.profile)) { info.getIcon(0) }
+                    if (app.key !in icons || app.key in stale) loadIcon(app.key, markOf(app.profile)) { iconPacks.iconFor(look, app.component) ?: info.getIcon(0) }
                 }
                 // Apps change a shortcut's icon without an update, so these are drawn again each time; there are only a few.
                 for ((info, shortcut) in made) {
@@ -710,7 +728,11 @@ class AndroidAppCatalog(
         mark: Path?,
         drawable: () -> Drawable?,
     ) = launch {
-        val rendered = withContext(iconDispatcher) { runCatching { drawable()?.let { render(it, mark) } }.getOrNull() }
+        val drawn = look
+        val rendered = withContext(iconDispatcher) { runCatching { drawable()?.let { render(it, mark, drawn) } }.getOrNull() }
+        // One drawn in a look that changed meanwhile waits for the next reload, which draws it in the new one.
+        if (drawn != look) return@launch
+        stale -= key
         if (rendered != null) {
             icons[key] = rendered.first
             masks[key] = rendered.second
@@ -721,11 +743,18 @@ class AndroidAppCatalog(
     private fun render(
         d: Drawable,
         mark: Path?,
+        look: IconLook = this.look,
     ): Pair<ImageBitmap, ImageBitmap> {
-        val bmp = Bitmap.createBitmap(iconPx, iconPx, Bitmap.Config.ARGB_8888)
-        d.setBounds(0, 0, iconPx, iconPx)
-        d.draw(Canvas(bmp))
-        var mask = iconMask(d, iconPx)
+        val px = look.px
+        // Without its backdrop, an adaptive icon's logo, scaled as iconMask scales it so its safe zone fills the icon.
+        val drawn = if (!look.backdrop) (d as? AdaptiveIconDrawable)?.foreground ?: d else d
+        val inset = if (drawn !== d) px / 4 else 0
+        var bmp = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
+        drawn.setBounds(-inset, -inset, px + inset, px + inset)
+        drawn.draw(Canvas(bmp))
+        var mask = iconMask(d, px)
+        // Shaped, drained and tinted before the badge, which keeps its own colors and isn't cut off by a circle.
+        bmp = finishIcon(bmp, look)
         if (mark != null) mask = addBadge(bmp, mask, mark)
         return bmp.asImageBitmap() to mask.asImageBitmap()
     }
@@ -766,9 +795,9 @@ class AndroidAppCatalog(
         mark: Path,
     ): Bitmap {
         val mask = if (silhouette.isMutable) silhouette else silhouette.copy(Bitmap.Config.ALPHA_8, true)
-        val r = iconPx * 0.2f
-        val cx = iconPx - r
-        val cy = iconPx - r
+        val r = icon.width * 0.2f
+        val cx = icon.width - r
+        val cy = icon.width - r
         val glyph = Path(mark)
         val scale = r * 1.2f / 24f
         glyph.transform(Matrix().apply { setScale(scale, scale); postTranslate(cx - 12 * scale, cy - 12 * scale) })

@@ -14,6 +14,9 @@
     <!-- Uninstall from the app drawer's long-press menu (ACTION_DELETE). -->
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
+    <!-- Swiping down on home can pull down the notification shade (StatusBar.kt). A normal permission, no prompt. -->
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+
     <!-- Android 15+: the private space's apps, on the drawer's private tab while it's unlocked
          (AndroidApps.kt). A normal permission, granted at install; Android shows the space only to
          the default home app, which must keep its apps out of sight, search included, while it's
@@ -39,6 +42,70 @@
         <!-- Lets SpeechRecognizer find the phone's recognition service. -->
         <intent>
             <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <!-- Icon packs (IconPacks.kt) declare themselves with another launcher's theme, as an action or as a category of MAIN. -->
+        <intent>
+            <action android:name="com.novalauncher.THEME" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="com.novalauncher.THEME" />
+        </intent>
+        <intent>
+            <action android:name="org.adw.launcher.THEMES" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="org.adw.launcher.THEMES" />
+        </intent>
+        <intent>
+            <action android:name="org.adw.launcher.icons.THEMES" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="org.adw.launcher.icons.THEMES" />
+        </intent>
+        <intent>
+            <action android:name="com.gau.go.launcherex.theme" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="com.gau.go.launcherex.theme" />
+        </intent>
+        <intent>
+            <action android:name="com.anddoes.launcher.THEME" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="com.anddoes.launcher.THEME" />
+        </intent>
+        <intent>
+            <action android:name="com.teslacoilsw.launcher.THEME" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="com.teslacoilsw.launcher.THEME" />
+        </intent>
+        <intent>
+            <action android:name="com.fede.launcher.THEME_ICONPACK" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="com.fede.launcher.THEME_ICONPACK" />
+        </intent>
+        <intent>
+            <action android:name="com.motorola.launcher3.THEME" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="com.motorola.launcher3.THEME" />
+        </intent>
+        <intent>
+            <action android:name="com.sonymobile.home.THEME" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="com.sonymobile.home.THEME" />
         </intent>
     </queries>
 

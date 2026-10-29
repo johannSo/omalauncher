@@ -126,7 +126,7 @@ internal fun ShortcutRows(
 /** A shortcut's icon at menu size: its silhouette with monochrome icons, its initials without an icon. */
 @Composable
 private fun ShortcutIcon(s: OfferedShortcut) {
-    val size = 24.dp
+    val size = 24.dp * LauncherStyle.iconScale
     val mono = LauncherStyle.monochromeIcons
     val bmp = if (mono) s.mask else s.icon
     when {

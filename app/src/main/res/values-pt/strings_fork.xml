@@ -22,4 +22,27 @@
     <string name="fork_linux_status">%1$s · %2$s</string>
     <string name="fork_linux_off_body">Apps Linux, widgets de terminal e agentes esperam até você iniciá-lo.</string>
     <string name="fork_linux_shut_down_body">Fecha os apps e terminais Linux e para os agentes trabalhando neles; arquivos e pacotes ficam. Ele continua desligado, também depois de reiniciar, até você iniciá-lo aqui.</string>
+    <string name="fork_gestures_shade">painel de notificações</string>
+    <string name="fork_style_icons">ícones de apps</string>
+    <string name="fork_style_icon_pack">pacote de ícones</string>
+    <string name="fork_style_icon_pack_none">os de cada app</string>
+    <string name="fork_style_icon_pack_hint">nenhum pacote de ícones instalado: instale um pela loja de apps e escolha-o aqui</string>
+    <string name="fork_style_icon_size">tamanho</string>
+    <string name="fork_style_icon_small">pequeno</string>
+    <string name="fork_style_icon_normal">normal</string>
+    <string name="fork_style_icon_large">grande</string>
+    <string name="fork_style_icon_shape">formato</string>
+    <string name="fork_style_shape_system">sistema</string>
+    <string name="fork_style_shape_circle">círculo</string>
+    <string name="fork_style_shape_squircle">squircle</string>
+    <string name="fork_style_icon_backdrop">fundo</string>
+    <string name="fork_style_grayscale">tons de cinza</string>
+    <string name="fork_style_tint">tonalidade</string>
+    <string name="fork_style_tint_bottom">degradê até</string>
+    <string name="fork_style_tint_none">nenhuma</string>
+    <string name="fork_style_tint_accent">destaque</string>
+    <string name="fork_style_tint_set">aplicar</string>
+    <string name="fork_style_home_labels">nomes no início</string>
+    <string name="fork_style_drawer_labels">nomes na gaveta</string>
+    <string name="fork_style_icons_monochrome">os ícones monocromáticos estão ativados: o pacote, o formato, os tons de cinza e a tonalidade aparecem com ícones coloridos</string>
 </resources>

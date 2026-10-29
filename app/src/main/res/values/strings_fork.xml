@@ -22,4 +22,27 @@
     <string name="fork_linux_status">%1$s · %2$s</string>
     <string name="fork_linux_off_body">Linux apps, terminal widgets and agents wait until you start it.</string>
     <string name="fork_linux_shut_down_body">Closes Linux apps and terminals and stops agents working in them; files and packages stay. It stays off, also after a restart, until you start it here.</string>
+    <string name="fork_gestures_shade">notification shade</string>
+    <string name="fork_style_icons">app icons</string>
+    <string name="fork_style_icon_pack">icon pack</string>
+    <string name="fork_style_icon_pack_none">each app\'s own</string>
+    <string name="fork_style_icon_pack_hint">no icon packs installed: get one from the app store, then pick it here</string>
+    <string name="fork_style_icon_size">size</string>
+    <string name="fork_style_icon_small">small</string>
+    <string name="fork_style_icon_normal">normal</string>
+    <string name="fork_style_icon_large">large</string>
+    <string name="fork_style_icon_shape">shape</string>
+    <string name="fork_style_shape_system">system</string>
+    <string name="fork_style_shape_circle">circle</string>
+    <string name="fork_style_shape_squircle">squircle</string>
+    <string name="fork_style_icon_backdrop">backdrop</string>
+    <string name="fork_style_grayscale">grayscale</string>
+    <string name="fork_style_tint">tint</string>
+    <string name="fork_style_tint_bottom">gradient to</string>
+    <string name="fork_style_tint_none">none</string>
+    <string name="fork_style_tint_accent">accent</string>
+    <string name="fork_style_tint_set">set</string>
+    <string name="fork_style_home_labels">names on home</string>
+    <string name="fork_style_drawer_labels">names in drawer</string>
+    <string name="fork_style_icons_monochrome">monochrome icons are on: the pack, shape, grayscale and tint show once icons are colored</string>
 </resources>

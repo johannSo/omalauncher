@@ -353,7 +353,8 @@ private fun StripCell(
     val haptics = LocalHapticFeedback.current
     val mono = LauncherStyle.monochromeIcons
     val bare = LauncherStyle.bareAppIcons
-    val size = 40.dp
+    // icons.size scales it, up to the cell, as the strip keeps its height.
+    val size = (40.dp * LauncherStyle.iconScale).coerceAtMost(48.dp)
     Box(
         Modifier
             .size(48.dp)

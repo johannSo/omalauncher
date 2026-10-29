@@ -148,6 +148,8 @@ fun StyleScreen(
             Flag(R.string.style_pages, R.string.style_pages_one, R.string.style_pages_auto, style, Style.FORCE_SINGLE_PAGE)
             NumberOption(R.string.style_corners, Corners.entries.map { it.label to it.scale.toDouble() }, Style.CORNER_SCALE, style)
             HomePreview(runtime)
+            // This fork's icon settings (style.toml's [icons], from Omalauncher+).
+            IconOptions(runtime, style)
             // Like Hyprland's gaps_in, gaps_out and border_size; the colors are in style.toml.
             Heading(R.string.style_widgets)
             Stepper(R.string.style_gaps_in, style, Style.GAPS_IN)
@@ -648,7 +650,7 @@ private fun previewText(columns: Int) =
 
 /** A section's title, set apart from the muted labels of the options under it by the accent color, as the weather screen sets its sections apart; [actions] go at the far end. */
 @Composable
-private fun Heading(
+internal fun Heading(
     @StringRes text: Int,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
@@ -687,7 +689,7 @@ private fun FontOption(
 }
 
 /** Just under the anchor, lined up with its start, and kept on screen. */
-private object BelowAnchorStart : PopupPositionProvider {
+internal object BelowAnchorStart : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,
@@ -704,14 +706,14 @@ private val LabelWidth = 104.dp
 
 /** An option's name; a long one wraps rather than push its control out of line with the others. */
 @Composable
-private fun OptionLabel(
+internal fun OptionLabel(
     text: String,
     modifier: Modifier = Modifier,
 ) = BasicText(text, modifier.width(LabelWidth).padding(end = 8.dp), style = Mono.copy(color = Palette.muted))
 
 /** A note under an option, lined up with its control. */
 @Composable
-private fun OptionHint(
+internal fun OptionHint(
     text: String,
     modifier: Modifier = Modifier,
 ) = BasicText(text, modifier.padding(start = LabelWidth), style = Mono.copy(color = Palette.muted, fontSize = TextSize.Small))
@@ -826,7 +828,7 @@ private fun NumberSlider(
 
 /** [Style] flags as a choice of two, [on] first, set together. */
 @Composable
-private fun Flag(
+internal fun Flag(
     @StringRes label: Int,
     @StringRes on: Int,
     @StringRes off: Int,
@@ -845,7 +847,7 @@ private fun Flag(
 
 /** A [Style] number as named [presets]; a value set in style.toml between them shows as custom. */
 @Composable
-private fun NumberOption(
+internal fun NumberOption(
     @StringRes label: Int,
     presets: List<Pair<Int, Double>>,
     setting: Setting.Number,
@@ -873,7 +875,7 @@ private fun CountOption(
  * None is picked for a value set in style.toml outside the options; [custom] says what it is.
  */
 @Composable
-private fun StyleOption(
+internal fun StyleOption(
     @StringRes label: Int,
     options: List<String>,
     selected: Int,

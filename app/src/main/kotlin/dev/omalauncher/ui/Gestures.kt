@@ -74,6 +74,9 @@ class Gestures(
 
     companion object {
         const val NONE = "none"
+
+        /** Swiping down pulls down Android's notification shade (this fork's, from Omalauncher+). */
+        const val SHADE = "notification-shade"
         private const val OLD_SWIPE_UP = "gesture_swipe_up"
         private const val MOVED = "gestures_in_style"
     }
@@ -82,9 +85,13 @@ class Gestures(
 /** The panel [choice] names, if it's one that runs; null for nothing, and a panel that's gone or broken. */
 internal fun Runtime.panelOf(choice: String) = choice.takeIf { it != Gestures.NONE }?.takeIf { widgets.panelInstance(it) != null }
 
-/** What [choice] is called in settings: nothing, or the panel's name (its file's, while it has none). */
+/** What [choice] is called in settings: nothing, the notification shade, or the panel's name (its file's, while it has none). */
 internal fun Runtime.gestureLabel(choice: String) =
-    if (choice == Gestures.NONE) gestures.context.getString(R.string.gestures_nothing) else widgets.panels().firstOrNull { it.file.name == choice }?.name ?: choice.removeSuffix(".owl")
+    when (choice) {
+        Gestures.NONE -> gestures.context.getString(R.string.gestures_nothing)
+        Gestures.SHADE -> gestures.context.getString(R.string.fork_gestures_shade)
+        else -> widgets.panels().firstOrNull { it.file.name == choice }?.name ?: choice.removeSuffix(".owl")
+    }
 
 /**
  * Picked panels that don't compile, drawer.owl and keybar.owl, for home's error banner: without a tile, nothing else would say so,
@@ -129,7 +136,7 @@ internal fun Modifier.drawerSwipe(
 }
 
 /** What a drag on home turned out to be, decided by where the drawer is and which way it first moves. */
-private enum class HomeDrag { Undecided, Drawer, Pull, Ignored }
+private enum class HomeDrag { Undecided, Drawer, Pull, Shade, Ignored }
 
 /** The drag under way: not state, nothing draws from it. */
 private class DragTrack {
@@ -165,6 +172,8 @@ internal fun Modifier.homeSwipe(
                         when {
                             state.drawer.value > 0f -> HomeDrag.Drawer
                             dy < 0f && gestures.swipeUp != Gestures.NONE -> HomeDrag.Drawer
+                            // Android's own shade comes down by itself, as on stock launchers.
+                            dy > 0f && gestures.swipeDown == Gestures.SHADE -> HomeDrag.Shade.also { expandNotificationShade(gestures.context) }
                             // Picked as the drag starts: it comes down from out of sight above with the finger.
                             dy > 0f -> runtime.panelOf(gestures.swipeDown)?.let { name -> state.pulled = name; HomeDrag.Pull } ?: HomeDrag.Ignored
                             else -> HomeDrag.Ignored
@@ -256,7 +265,8 @@ fun GesturesScreen(
         GestureRow(stringResource(R.string.gestures_swipe_up), panels + listOf(nothing), gestures.swipeUp) { gestures.swipeUp = it }
         EditPanel(runtime, gestures.swipeUp, onAgent)
         Spacer(Modifier.height(8.dp))
-        GestureRow(stringResource(R.string.gestures_swipe_down), listOf(nothing) + panels, gestures.swipeDown) { gestures.swipeDown = it }
+        val shade = Gestures.SHADE to stringResource(R.string.fork_gestures_shade)
+        GestureRow(stringResource(R.string.gestures_swipe_down), listOf(nothing, shade) + panels, gestures.swipeDown) { gestures.swipeDown = it }
         EditPanel(runtime, gestures.swipeDown, onAgent)
         BasicText(
             stringResource(R.string.gestures_hint),

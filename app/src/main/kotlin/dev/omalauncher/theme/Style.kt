@@ -216,7 +216,7 @@ class Style(
             Setting.Text(
                 "gestures.swipe-down",
                 "none",
-                "What swiping down on home opens: \"none\" nothing, or a panel's file name in ~/.config/omalauncher/widgets (\"my-panel.owl\"); one that's gone or doesn't compile opens nothing.",
+                "What swiping down on home opens: \"none\" nothing, \"notification-shade\" Android's notifications, or a panel's file name in ~/.config/omalauncher/widgets (\"my-panel.owl\"); one that's gone or doesn't compile opens nothing.",
             )
     }
 
@@ -257,7 +257,7 @@ object StyleFile {
     val ALL: List<Setting<*>> =
         with(Style) {
             listOf(THEME, BACKGROUND, FONT, APP_TILES, RECENT_APPS, EMPTY_PAGE_LEFT, EMPTY_PAGE_RIGHT, COLUMNS, FORCE_SINGLE_PAGE, GAPS_IN, GAPS_OUT, TILE_OPACITY, TILE_FROST, TILE_BORDER_WIDTH, TILE_BORDER, TILE_BORDER_FOCUSED) +
-                listOf(SCREEN_GAPS_OUT, SCREEN_BORDER_WIDTH, KEYBAR_GAPS_OUT, KEYBAR_BORDER_WIDTH, MONOCHROME_ICONS, CORNER_SCALE) +
+                listOf(SCREEN_GAPS_OUT, SCREEN_BORDER_WIDTH, KEYBAR_GAPS_OUT, KEYBAR_BORDER_WIDTH, MONOCHROME_ICONS) + ForkStyle.ICONS + listOf(CORNER_SCALE) +
                 listOf(STATUS_BAR_SHOWN) + STATUS_BAR.all + NAVIGATION_BAR.all + listOf(TERMINAL_FONT, TERMINAL_TEXT, SWIPE_UP, SWIPE_DOWN)
         }
 

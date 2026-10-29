@@ -37,10 +37,13 @@ import dev.omalauncher.linux.defaultApps
 import dev.omalauncher.linux.matches
 import dev.omalauncher.linux.run
 import dev.omalauncher.linux.shellQuote
+import dev.omalauncher.theme.ForkStyle
 import dev.omalauncher.theme.Style
 import dev.omalauncher.theme.StyleStore
 import dev.omalauncher.theme.ThemeStore
 import dev.omalauncher.ui.Gestures
+import dev.omalauncher.ui.IconLook
+import dev.omalauncher.ui.IconPackStore
 import dev.omalauncher.ui.KeyboardBridge
 import dev.omalauncher.ui.SettingsPage
 import dev.omalauncher.ui.TerminalTiles
@@ -93,7 +96,9 @@ class Runtime(
     val launcherFont = LauncherFont(proot, style, context.resources).also { it.restore() }
     val gestures = Gestures(context, style)
     val linuxApps = LinuxAppCatalog(context, proot)
-    val androidApps = AndroidAppCatalog(context)
+    /** The icon packs on the phone; style.toml's icons.pack picks one. */
+    val iconPacks = IconPackStore(context)
+    val androidApps = AndroidAppCatalog(context, iconPacks)
     val appWidgets = AppWidgetCatalog(context)
     val usage = AppUsage(context)
     val themes = ThemeStore(context, proot, style, isLinux = { linux }, onConfigChanged = ::syncGuest)
@@ -169,6 +174,16 @@ class Runtime(
         // The recent strip's and home's pinned apps.
         androidApps.iconsFirst = {
             usage.recent.take(20).filter { it.startsWith("a:") }.mapTo(HashSet()) { it.substringAfter(':') } + widgets.shortcuts.items.mapNotNull(::androidKeyOf)
+        }
+        // style.toml's [icons]: a new look, the icon pack updated or the theme's color an icon tint names draws every icon again.
+        val density = context.resources.displayMetrics.density
+        iconPacks.check(style.style[ForkStyle.ICON_PACK])
+        androidApps.look = IconLook.of(style.style, density, iconPacks.stamp)
+        scope.launch {
+            snapshotFlow { style.style[ForkStyle.ICON_PACK] }.drop(1).collect { iconPacks.check(it) }
+        }
+        scope.launch {
+            snapshotFlow { IconLook.of(style.style, density, iconPacks.stamp) }.drop(1).collect { androidApps.restyle(it) }
         }
         androidApps.start()
         appWidgets.start()

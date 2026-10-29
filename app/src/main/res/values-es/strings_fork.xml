@@ -22,4 +22,27 @@
     <string name="fork_linux_status">%1$s · %2$s</string>
     <string name="fork_linux_off_body">Las apps de Linux, los widgets de terminal y los agentes esperan hasta que lo inicies.</string>
     <string name="fork_linux_shut_down_body">Cierra las apps y terminales de Linux y detiene los agentes que trabajan en ellas; los archivos y paquetes se quedan. Sigue apagado, también tras reiniciar, hasta que lo inicies aquí.</string>
+    <string name="fork_gestures_shade">panel de notificaciones</string>
+    <string name="fork_style_icons">iconos de apps</string>
+    <string name="fork_style_icon_pack">pack de iconos</string>
+    <string name="fork_style_icon_pack_none">los de cada app</string>
+    <string name="fork_style_icon_pack_hint">no hay packs de iconos instalados: instala uno desde la tienda y elígelo aquí</string>
+    <string name="fork_style_icon_size">tamaño</string>
+    <string name="fork_style_icon_small">pequeño</string>
+    <string name="fork_style_icon_normal">normal</string>
+    <string name="fork_style_icon_large">grande</string>
+    <string name="fork_style_icon_shape">forma</string>
+    <string name="fork_style_shape_system">sistema</string>
+    <string name="fork_style_shape_circle">círculo</string>
+    <string name="fork_style_shape_squircle">squircle</string>
+    <string name="fork_style_icon_backdrop">fondo</string>
+    <string name="fork_style_grayscale">escala de grises</string>
+    <string name="fork_style_tint">tinte</string>
+    <string name="fork_style_tint_bottom">degradado a</string>
+    <string name="fork_style_tint_none">ninguno</string>
+    <string name="fork_style_tint_accent">acento</string>
+    <string name="fork_style_tint_set">aplicar</string>
+    <string name="fork_style_home_labels">nombres en inicio</string>
+    <string name="fork_style_drawer_labels">nombres en el cajón</string>
+    <string name="fork_style_icons_monochrome">los iconos monocromos están activados: el pack, la forma, la escala de grises y el tinte se ven con iconos en color</string>
 </resources>

@@ -85,6 +85,8 @@ import dev.omalauncher.ui.kind
 import dev.omalauncher.ui.profileKind
 import dev.omalauncher.ui.profileWord
 import dev.omalauncher.ui.LauncherStyle
+import dev.omalauncher.ui.drawerLabels
+import dev.omalauncher.ui.iconScale
 import dev.omalauncher.ui.SettingsPage
 import dev.omalauncher.ui.allApps
 import dev.omalauncher.ui.appIconOf
@@ -520,7 +522,7 @@ class WidgetServices(
         )
 
     /**
-     * The drawer for `source d = android.drawer`: `{apps, linux, monochrome, work, private, updates}`. `apps` is every app in the drawer's
+     * The drawer for `source d = android.drawer`: `{apps, linux, monochrome, work, private, updates, labels, iconSize}`. `apps` is every app in the drawer's
      * order (owl apps, Linux apps, shortcuts, Android apps, then the work profile's shortcuts and apps, then the private
      * space's while it's unlocked), each `{key, kind, name, label, icon, hasIcon, initials, profile, alias, paused, actions, score, last}`:
      * - `label` what screen readers say for it ("WhatsApp work"), for an Image's `label`; `profile` as in `android.apps`, or `private`; `alias` what search matches besides the name ("WhatsApp work");
@@ -529,7 +531,8 @@ class WidgetServices(
      *   silhouette when `monochrome`.
      * `linux` is "installed", "installing", "off" (shut down in settings) or "missing"; `work` is `{paused}` while there's a work profile, else null;
      * `private` is `{locked, hidden, settings}` while there's a private space this launcher may see, else null;
-     * `updates` counts the system updates waiting.
+     * `updates` counts the system updates waiting; `labels` whether names go under the icons and `iconSize` how big
+     * icons draw, as a multiple of 1 (style.toml's icons.drawer-labels and icons.size, this fork's).
      */
     private fun drawer(): Value {
         val apps = runtime.androidApps
@@ -570,6 +573,8 @@ class WidgetServices(
                 "work" to work,
                 "private" to space,
                 "updates" to Num((runtime.updates.pending?.count ?: 0).toDouble()),
+                "labels" to bool(LauncherStyle.drawerLabels),
+                "iconSize" to Num(LauncherStyle.iconScale.toDouble()),
             ),
         )
     }

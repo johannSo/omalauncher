@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
+import dev.omalauncher.theme.ForkStyle
 import dev.omalauncher.ui.ImagePicker
 import dev.omalauncher.ui.MicPermission
 import dev.omalauncher.ui.Palette
@@ -133,6 +134,8 @@ class MainActivity : ComponentActivity() {
         removeStaleWindowTasks()
         // Made the default home app (or no longer it) while away: only then does Android show us pinned shortcuts.
         runtime.androidApps.checkShortcutAccess()
+        // The icon pack installed, updated or removed while away: its icons are drawn again.
+        runtime.iconPacks.check(runtime.style.style[ForkStyle.ICON_PACK])
         // The user may have set or replaced the wallpaper while we were in the background.
         lifecycleScope.launch { runtime.themes.refreshLiveWallpaper() }
     }

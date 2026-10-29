@@ -22,4 +22,27 @@
     <string name="fork_linux_status">%1$s · %2$s</string>
     <string name="fork_linux_off_body">Aplikasi Linux, widget terminal, dan agen menunggu sampai Anda memulainya.</string>
     <string name="fork_linux_shut_down_body">Menutup aplikasi dan terminal Linux serta menghentikan agen yang bekerja di dalamnya; file dan paket tetap ada. Linux tetap mati, juga setelah dimulai ulang, sampai Anda memulainya di sini.</string>
+    <string name="fork_gestures_shade">panel notifikasi</string>
+    <string name="fork_style_icons">ikon aplikasi</string>
+    <string name="fork_style_icon_pack">paket ikon</string>
+    <string name="fork_style_icon_pack_none">bawaan tiap aplikasi</string>
+    <string name="fork_style_icon_pack_hint">belum ada paket ikon terinstal: instal dari toko aplikasi, lalu pilih di sini</string>
+    <string name="fork_style_icon_size">ukuran</string>
+    <string name="fork_style_icon_small">kecil</string>
+    <string name="fork_style_icon_normal">normal</string>
+    <string name="fork_style_icon_large">besar</string>
+    <string name="fork_style_icon_shape">bentuk</string>
+    <string name="fork_style_shape_system">sistem</string>
+    <string name="fork_style_shape_circle">lingkaran</string>
+    <string name="fork_style_shape_squircle">squircle</string>
+    <string name="fork_style_icon_backdrop">latar</string>
+    <string name="fork_style_grayscale">abu-abu</string>
+    <string name="fork_style_tint">warna</string>
+    <string name="fork_style_tint_bottom">gradasi ke</string>
+    <string name="fork_style_tint_none">tidak ada</string>
+    <string name="fork_style_tint_accent">aksen</string>
+    <string name="fork_style_tint_set">atur</string>
+    <string name="fork_style_home_labels">nama di layar utama</string>
+    <string name="fork_style_drawer_labels">nama di laci aplikasi</string>
+    <string name="fork_style_icons_monochrome">ikon monokrom aktif: paket, bentuk, abu-abu, dan warna tampil saat ikon berwarna</string>
 </resources>
