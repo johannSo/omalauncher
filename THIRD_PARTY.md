@@ -1,6 +1,6 @@
 # Third-party material
 
-The MIT license in [LICENSE](LICENSE) covers Omalauncher's own code and artwork.
+The MIT license in [LICENSE](LICENSE) covers the code and artwork of Omalauncher and OmaLauncher++.
 It does not cover the files below, which stay under their owners' terms.
 
 ## Coding agent logos

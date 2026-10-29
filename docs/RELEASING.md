@@ -1,5 +1,39 @@
 # Releasing
 
+## OmaLauncher++
+
+OmaLauncher++ is released on GitHub only, as an APK built locally from `main`
+and tagged `v<versionName>` (`v1.0.0`). Every release is signed with the same
+key, the one `keystore.properties` points at: a different key and phones can't
+update, so never change it.
+
+1. Bump `versionCode` and `versionName` in `app/build.gradle.kts`, and add the
+   release to `CHANGELOG.md`.
+2. Build and test:
+
+   ```sh
+   ./scripts/fetch-proot.sh
+   ./gradlew :owl:test :app:testDebugUnitTest :app:assembleRelease
+   cp app/build/outputs/apk/release/app-release.apk omalauncher-pp-v1.0.0.apk
+   sha256sum omalauncher-pp-v1.0.0.apk > SHA256SUMS
+   ```
+
+3. Tag and publish:
+
+   ```sh
+   git tag v1.0.0 && git push origin main v1.0.0
+   gh release create v1.0.0 omalauncher-pp-v1.0.0.apk SHA256SUMS --title "OmaLauncher++ 1.0.0"
+   ```
+
+`.github/workflows/release.yml` is Omalauncher's: it needs the Play upload key
+as secrets, which this repo doesn't have, so it stops at "Write the signing
+key" on every tag. The release above is the one that counts.
+
+## Omalauncher on Play
+
+What follows is how Omalauncher, which OmaLauncher++ forks, is released to
+Play. It doesn't apply to OmaLauncher++.
+
 The Play listing lives in `fastlane/metadata/android/en-US` (title, short and
 full description, `changelogs/<versionCode>.txt`, images). Publishing runs
 locally; only the maintainer can upload. Release builds are signed with the upload key described in

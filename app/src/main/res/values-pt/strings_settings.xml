@@ -32,7 +32,7 @@
     <string name="settings_android">configurações do android</string>
     <string name="settings_android_subtitle">as configurações do sistema do telefone</string>
     <string name="settings_licenses">licenças</string>
-    <string name="settings_licenses_subtitle">software de código aberto no Omalauncher</string>
+    <string name="settings_licenses_subtitle">software de código aberto no OmaLauncher++</string>
 
     <string name="settings_system_updating">atualizando o sistema: %1$s…</string>
     <string name="settings_system_update_failed">uma atualização do sistema não terminou</string>

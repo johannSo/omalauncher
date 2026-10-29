@@ -30,7 +30,7 @@
     <string name="settings_android">setelan android</string>
     <string name="settings_android_subtitle">setelan sistem ponsel</string>
     <string name="settings_licenses">lisensi</string>
-    <string name="settings_licenses_subtitle">perangkat lunak open source di Omalauncher</string>
+    <string name="settings_licenses_subtitle">perangkat lunak open source di OmaLauncher++</string>
 
     <string name="settings_system_updating">memperbarui sistem: %1$s…</string>
     <string name="settings_system_update_failed">pembaruan sistem tidak selesai</string>

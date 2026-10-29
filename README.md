@@ -1,19 +1,46 @@
-# Omalauncher
+# OmaLauncher++
 
-## What this fork changes
+An Android home screen with the look of [Omarchy](https://omarchy.org), and an
+optional Arch Linux ARM system next to your phone apps. OmaLauncher++ runs the
+system under proot, without root, and is its Wayland compositor: every Linux
+window opens as its own Android task, with its own card in Recents.
 
-This is a fork of [SimonSchubert/omalauncher](https://github.com/SimonSchubert/omalauncher).
-`main` mirrors upstream, and `deploy` is upstream plus the features below. The
-[releases](https://github.com/johannSo/omalauncher/releases), tagged
-`v<version>-tos.N`, are built from `deploy`. They're signed with the fork's own
-key, so they install over each other but not over the Play version.
+OmaLauncher++ is an independent fork of
+[Omalauncher](https://github.com/SimonSchubert/omalauncher) by Simon Schubert,
+with the features [below](#what-omalauncher-adds) on top. It's its own app
+(`dev.omalauncher.pp`), so it installs next to Omalauncher rather than over it.
+Download the APK from the
+[releases](https://github.com/johannSo/omalauncher-pp/releases).
+
+![The home screen in twelve Omarchy themes, each with different widgets](art/collage.png)
 
 <p>
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01.png" width="24%" alt="Screenshot">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02.png" width="24%" alt="Screenshot">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03.png" width="24%" alt="Screenshot">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04.png" width="24%" alt="Screenshot">
   <img src="art/fork/01.png" width="24%" alt="Android widgets next to owl widgets on home">
   <img src="art/fork/02.png" width="24%" alt="The drawer's letter rail showing the apps under C">
   <img src="art/fork/03.png" width="24%" alt="The private space on its own drawer tab">
   <img src="art/fork/04.png" width="24%" alt="Style › app icons with an icon pack and a tint">
 </p>
+
+- **Themes**: all 22 Omarchy themes, with their wallpapers, applied to the
+  launcher and to the Linux apps, plus the community themes from
+  [omarchy.org/themes](https://omarchy.org/themes/), or your own in
+  `~/.config/omarchy/themes`
+- **Widgets** written in OWL, a small declarative language you can edit on the
+  phone, plus a [widget store](https://github.com/SimonSchubert/omarchy-widgets)
+- **Linux, optional**: pacman and the AUR, Linux apps in their own windows,
+  terminal widgets, a file manager, and opt-in GPU acceleration on Mali and Adreno 6xx+ GPUs
+- **Coding agents**: the bar at the bottom sends a prompt to Claude Code, Codex,
+  Copilot, opencode and others, which open in a terminal
+- No account, no ads, no tracking
+
+Needs an arm64 phone with Android 10 or newer. Without Linux, the launcher still
+has the themes, wallpapers, Android apps and the widgets that don't run commands.
+
+## What OmaLauncher++ adds
 
 - **Android widgets on home**: home's long-press menu › android widgets lists
   every widget your apps offer, with a preview and the cells it takes, and an
@@ -48,38 +75,13 @@ to the private tab, and the private space locks and unlocks:
 
 <img src="art/fork/drawer.webp" width="360" alt="Dragging along the drawer's letter rail, swiping to the private tab, and locking and unlocking the private space">
 
-The rest of this README is upstream's.
+## Coming from Omalauncher
 
-An Android home screen with the look of [Omarchy](https://omarchy.org), and an
-optional Arch Linux ARM system next to your phone apps. Omalauncher runs the
-system under proot, without root, and is its Wayland compositor: every Linux
-window opens as its own Android task, with its own card in Recents.
-
-<a href="https://play.google.com/store/apps/details?id=dev.omalauncher"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80"></a>
-
-![The home screen in twelve Omarchy themes, each with different widgets](art/collage.png)
-
-<p>
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01.png" width="24%" alt="Screenshot">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02.png" width="24%" alt="Screenshot">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03.png" width="24%" alt="Screenshot">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04.png" width="24%" alt="Screenshot">
-</p>
-
-- **Themes**: all 22 Omarchy themes, with their wallpapers, applied to the
-  launcher and to the Linux apps, plus the community themes from
-  [omarchy.org/themes](https://omarchy.org/themes/), or your own in
-  `~/.config/omarchy/themes`
-- **Widgets** written in OWL, a small declarative language you can edit on the
-  phone, plus a [widget store](https://github.com/SimonSchubert/omarchy-widgets)
-- **Linux, optional**: pacman and the AUR, Linux apps in their own windows,
-  terminal widgets, a file manager, and opt-in GPU acceleration on Mali and Adreno 6xx+ GPUs
-- **Coding agents**: the bar at the bottom sends a prompt to Claude Code, Codex,
-  Copilot, opencode and others, which open in a terminal
-- No account, no ads, no tracking
-
-Needs an arm64 phone with Android 10 or newer. Without Linux, the launcher still
-has the themes, wallpapers, Android apps and the widgets that don't run commands.
+Settings › backup › export to a file in the old launcher (an Omalauncher fork
+build from v0.16.0-tos.2 on), then import from a file in OmaLauncher++: home,
+the style, your widgets, faces, owl apps and themes come over. Android widgets
+come back as tiles to tap and add again, widgets' secrets have to be entered
+again, and Linux isn't in a backup, so OmaLauncher++ sets it up again.
 
 ## Using it
 
@@ -93,9 +95,7 @@ into the field. Speech is recognized by Android (on the device when the phone
 supports it), so only text reaches Linux.
 
 The app drawer is a widget too, `drawer.owl` in the widgets folder, so an
-agent can rewrite it. Here Grok sorts it into folders:
-
-<img src="art/drawer-folders.webp" width="360" alt="Grok rewrites drawer.owl, and the app drawer opens sorted into folders">
+agent can rewrite it.
 
 Touch input in Linux windows: tap is a left click, long press is a right
 click, drag scrolls; apps with touch support (foot, GTK) get real touch.
@@ -126,18 +126,19 @@ swipe-down panel dismisses it.
 ./scripts/fetch-proot.sh          # Termux's proot -> app/src/main/jniLibs (needs bsdtar)
 ./gradlew :app:installDebug
 # optional: skip the 830 MB download on the device
-adb push ArchLinuxARM-aarch64-latest.tar.gz /sdcard/Android/data/dev.omalauncher/files/
+adb push ArchLinuxARM-aarch64-latest.tar.gz /sdcard/Android/data/dev.omalauncher.pp/files/
 ```
 
 Tests: `./gradlew :owl:test :app:testDebugUnitTest`. `./gradlew :owl:owlJar`
 builds `owl/build/cli/owl.jar`, the checker the widget store's CI runs.
 
 In debug builds you can launch guest commands with
-`adb shell am start -n dev.omalauncher/.MainActivity --es exec foot`.
+`adb shell am start -n dev.omalauncher.pp/dev.omalauncher.MainActivity --es exec foot`.
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): the compositor, rendering, GPU
   acceleration, and how updates reach existing installs
-- [docs/RELEASING.md](docs/RELEASING.md): Play releases and store assets
+- [docs/RELEASING.md](docs/RELEASING.md): OmaLauncher++ releases, and Omalauncher's
+  Play releases and store assets
 - [app/src/main/assets/widgets/README.md](app/src/main/assets/widgets/README.md):
   the widget language
 
@@ -152,12 +153,14 @@ In debug builds you can launch guest commands with
 
 ## License
 
-MIT, see [LICENSE](LICENSE), for Omalauncher's own code and artwork. The
+MIT, see [LICENSE](LICENSE), for the code and artwork of Omalauncher and
+OmaLauncher++. The
 coding agents' logos, the symbol font and Omarchy's theme colors are not
 covered; [THIRD_PARTY.md](THIRD_PARTY.md) lists them with their sources and
 licenses. The app also ships proot, talloc and libandroid-shmem (GPL-2.0,
 LGPL-3.0 and BSD-3-Clause, prebuilt by Termux), listed in the app under
 settings › licenses.
 
-Omalauncher is an independent project and is not affiliated with or endorsed
-by Omarchy, Arch Linux, or the makers of the coding agents it installs.
+OmaLauncher++ is an independent fork, not affiliated with or endorsed by Simon
+Schubert's Omalauncher, Omarchy, Arch Linux, or the makers of the coding agents
+it installs.

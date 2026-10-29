@@ -70,7 +70,7 @@ personal to work to private, left to right back.
 ## Private space
 
 Android 15 and newer can keep apps in a private space, a profile of its own behind its own lock. Android shows
-it only to the default home app, so the drawer lists it once Omalauncher is your home app, the way it lists a work
+it only to the default home app, so the drawer lists it once OmaLauncher++ is your home app, the way it lists a work
 profile: on a private tab, after the personal and work tabs, with a lock on each app's icon. Screen readers say
 "Private WhatsApp", and search finds it by "WhatsApp private" too.
 

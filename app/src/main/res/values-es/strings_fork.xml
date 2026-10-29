@@ -54,8 +54,8 @@
     <string name="fork_backup_import_title">¿importar esta copia?</string>
     <string name="fork_backup_import_message">El inicio, el estilo, tus widgets, faces y apps owl, y tus temas pasan a ser los de la copia, y el launcher se reinicia: las apps y terminales de Linux se cierran. Los widgets de android de otro teléfono vuelven como mosaicos que se tocan para añadirlos de nuevo, y los secretos de los widgets hay que introducirlos otra vez. Linux no está en la copia.</string>
     <string name="fork_backup_import_confirm">importar</string>
-    <string name="fork_backup_not_a_backup">ese archivo no es una copia de Omalauncher</string>
-    <string name="fork_backup_newer">esa copia es de un Omalauncher más nuevo: actualiza este primero</string>
+    <string name="fork_backup_not_a_backup">ese archivo no es una copia de OmaLauncher++</string>
+    <string name="fork_backup_newer">esa copia es de un OmaLauncher++ más nuevo: actualiza este primero</string>
     <string name="fork_backup_import_failed">no se pudo importar la copia: %1$s</string>
     <string name="fork_app_widget_restore">toca para añadirlo de nuevo</string>
 </resources>

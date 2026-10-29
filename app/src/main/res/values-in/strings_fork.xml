@@ -54,8 +54,8 @@
     <string name="fork_backup_import_title">impor cadangan ini?</string>
     <string name="fork_backup_import_message">Layar utama, gaya, widget, face, dan aplikasi owl kamu, serta tema kamu diganti dengan isi cadangan, lalu launcher dimulai ulang: aplikasi dan terminal Linux ditutup. Widget android dari ponsel lain kembali sebagai ubin yang diketuk untuk ditambahkan lagi, dan rahasia widget harus dimasukkan lagi. Linux sendiri tidak termasuk dalam cadangan.</string>
     <string name="fork_backup_import_confirm">impor</string>
-    <string name="fork_backup_not_a_backup">file itu bukan cadangan Omalauncher</string>
-    <string name="fork_backup_newer">cadangan itu dari Omalauncher yang lebih baru: perbarui yang ini dulu</string>
+    <string name="fork_backup_not_a_backup">file itu bukan cadangan OmaLauncher++</string>
+    <string name="fork_backup_newer">cadangan itu dari OmaLauncher++ yang lebih baru: perbarui yang ini dulu</string>
     <string name="fork_backup_import_failed">tidak bisa mengimpor cadangan: %1$s</string>
     <string name="fork_app_widget_restore">ketuk untuk menambahkannya lagi</string>
 </resources>

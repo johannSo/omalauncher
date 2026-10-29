@@ -4,6 +4,15 @@ The most important changes in each release. The Play Store notes for a release
 are in `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`.
 Dates are when the build was uploaded to Play.
 
+## OmaLauncher++ 1.0.0 (versionCode 27) – unreleased
+
+- The fork is OmaLauncher++ now, an app of its own (`dev.omalauncher.pp`) that installs
+  next to Omalauncher, on its own versions. Settings › backup carries home, the style,
+  widgets, faces, owl apps and themes over from an Omalauncher fork build.
+- On top of Omalauncher 0.16.0: Android widgets on home, the private space on a drawer tab,
+  swiping between drawer tabs, the drawer's letter rail, icon packs and icon styling, swipe
+  down for the notification shade, shutting Linux down, and Mali on the Pixel 6 and 6a.
+
 ## 0.16.0 (versionCode 27) – 2026-10-29
 
 - Settings has a language: the phone's, or one the launcher has its text in. A pick brings

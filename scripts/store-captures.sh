@@ -19,7 +19,7 @@ STORE="${1:-$HERE/../../omarchy-widgets}"
 shift || true
 export ANDROID_SERIAL="${ANDROID_SERIAL:-emulator-5562}"
 OUT="$HERE/../store/screenshots/raw"
-PKG=dev.omalauncher
+PKG=dev.omalauncher.pp
 DATA=/data/data/$PKG
 BACKUP=cache/store-backup.tar
 SIZE=1080x1670
@@ -69,7 +69,7 @@ restore() {
   if [ "${clock:-null}" = null ]; then adb shell settings delete system time_12_24 >/dev/null; else adb shell settings put system time_12_24 "$clock"; fi
   adb shell am force-stop $PKG
   app "rm -rf files/widgets/*.owl files/widgets/.store-ff.sh shared_prefs/app_usage.xml && tar xf $BACKUP && rm $BACKUP"
-  adb shell am start -n $PKG/.MainActivity >/dev/null
+  adb shell am start -n $PKG/dev.omalauncher.MainActivity >/dev/null
   echo "restored the launcher's widgets and theme"
 }
 trap restore EXIT
@@ -170,7 +170,7 @@ shot_linux() {
   adb push "$ff" /data/local/tmp/store-ff.sh >/dev/null
   rm "$ff"
   app "cp /data/local/tmp/store-ff.sh files/widgets/.store-ff.sh"
-  adb shell am start -n $PKG/.MainActivity --es exec "'foot bash /root/.config/omalauncher/widgets/.store-ff.sh'" >/dev/null
+  adb shell am start -n $PKG/dev.omalauncher.MainActivity --es exec "'foot bash /root/.config/omalauncher/widgets/.store-ff.sh'" >/dev/null
   sleep 10
 }
 shot_style() {
@@ -191,7 +191,7 @@ for scene in "${SCENES[@]}"; do
   # A bare home: no widgets, no layout, no pinned apps, and RECENT for recent apps.
   app "rm -f files/widgets/*.owl shared_prefs/widget_grid.xml shared_prefs/shortcuts.xml"
   if [ "$shot" = face ]; then usage "${FACE_APPS[@]}"; else usage "${RECENT[@]}"; fi
-  adb shell am start -n $PKG/.MainActivity --es theme "$theme" >/dev/null
+  adb shell am start -n $PKG/dev.omalauncher.MainActivity --es theme "$theme" >/dev/null
   sleep 3
   # One at a time, each once the one before has its spot: the launcher places tiles as they load, so adding them
   # all at once mixes up the order.

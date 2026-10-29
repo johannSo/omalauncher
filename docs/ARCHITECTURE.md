@@ -1,6 +1,6 @@
 # Architecture
 
-How Omalauncher is put together, for anyone working on it.
+How OmaLauncher++ (and Omalauncher, which it forks) is put together, for anyone working on it.
 
 An Android home-screen launcher that runs Arch Linux ARM under proot and acts
 as its Wayland compositor. The home screen (widgets, pinned apps, the bar

@@ -146,7 +146,7 @@
     <string name="packages_install">instalar</string>
 
     <string name="licenses_title">licencias</string>
-    <string name="licenses_header">Omalauncher %1$s · © 2026 Simon Schubert\n\nIncluye el software de código abierto que aparece abajo.</string>
+    <string name="licenses_header">OmaLauncher++ %1$s · basado en Omalauncher, © 2026 Simon Schubert\n\nIncluye el software de código abierto que aparece abajo.</string>
     <string name="licenses_website">sitio web</string>
     <string name="licenses_source">código fuente</string>
     <string name="licenses_use_proot">ejecuta el sistema Linux opcional</string>

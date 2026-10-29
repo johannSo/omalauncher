@@ -35,7 +35,7 @@
     <string name="settings_android">android settings</string>
     <string name="settings_android_subtitle">the phone\'s system settings</string>
     <string name="settings_licenses">licenses</string>
-    <string name="settings_licenses_subtitle">open source software in Omalauncher</string>
+    <string name="settings_licenses_subtitle">open source software in OmaLauncher++</string>
 
     <!-- %1$s is what the running update does, like "upgrading packages". -->
     <string name="settings_system_updating">updating the system: %1$s…</string>
