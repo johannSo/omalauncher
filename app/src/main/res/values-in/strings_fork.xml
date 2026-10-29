@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text of the fork's own features (deploy), kept apart from upstream's strings_*.xml so merges stay clean. -->
+<resources>
+    <string name="fork_settings_linux_running">berjalan · matikan, hapus</string>
+    <string name="fork_settings_linux_shutting_down">mematikan…</string>
+    <string name="fork_settings_linux_off">mati · mulai</string>
+    <string name="fork_home_start">mulai</string>
+    <string name="fork_home_widgets">widget</string>
+    <string name="fork_home_widget_settings">setelan</string>
+    <string name="fork_home_android_widgets">widget android</string>
+    <string name="fork_app_widget_gone">aplikasinya sudah tidak ada</string>
+    <string name="fork_widget_picker_app">widget %1$s</string>
+    <string name="fork_widget_picker_search">cari widget</string>
+    <string name="fork_widget_picker_none">tidak ada aplikasi di ponsel ini yang menawarkan widget</string>
+    <string name="fork_widget_picker_no_match">tidak ada widget yang cocok</string>
+    <string name="fork_linux_start">mulai linux</string>
+    <string name="fork_linux_starting">memulai…</string>
+    <string name="fork_linux_running">berjalan</string>
+    <string name="fork_linux_shutting_down">mematikan…</string>
+    <string name="fork_linux_shut_down">matikan</string>
+    <string name="fork_linux_off">mati</string>
+    <string name="fork_linux_status">%1$s · %2$s</string>
+    <string name="fork_linux_off_body">Aplikasi Linux, widget terminal, dan agen menunggu sampai Anda memulainya.</string>
+    <string name="fork_linux_shut_down_body">Menutup aplikasi dan terminal Linux serta menghentikan agen yang bekerja di dalamnya; file dan paket tetap ada. Linux tetap mati, juga setelah dimulai ulang, sampai Anda memulainya di sini.</string>
+</resources>

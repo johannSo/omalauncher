@@ -3,10 +3,12 @@ package dev.omalauncher.linux
 import android.content.Context
 import android.os.Build
 import android.util.Log
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import dev.omalauncher.LauncherData
+import dev.omalauncher.R
 import kotlinx.coroutines.sync.Mutex
 import java.io.File
 import java.io.FileNotFoundException
@@ -81,7 +83,7 @@ class Gpu(
             // names the /usr/local file, so that file has to exist before we activate.
             if (!proot.hostFile(driver.icdPath).isFile) {
                 retireLegacyManifest(driver)
-                if (!run("installing", GpuDrivers.manifestScript(driver))) {
+                if (!run(R.string.linux_job_installing, GpuDrivers.manifestScript(driver))) {
                     proot.graphicsEnv = SOFTWARE_ENV
                     conceal(driver)
                     return
@@ -94,16 +96,16 @@ class Gpu(
             !driverCurrent -> {
                 Log.i(TAG, "the pinned driver changed, installing it and checking again")
                 stageMesaBundle()
-                run("installing", GpuDrivers.updateScript(driver) + " && " + GpuDrivers.probeScript(driver))
+                run(R.string.linux_job_installing, GpuDrivers.updateScript(driver) + " && " + GpuDrivers.probeScript(driver))
             }
             mesaCurrent -> {
                 Log.i(TAG, "system changed since the last GPU check, checking again")
-                run("checking", GpuDrivers.probeScript(driver))
+                run(R.string.linux_job_checking, GpuDrivers.probeScript(driver))
             }
             else -> {
                 Log.i(TAG, "the patched Mesa changed, installing it and checking again")
                 stageMesaBundle()
-                run("installing", GpuDrivers.mesaZinkScript() + " && " + GpuDrivers.probeScript(driver))
+                run(R.string.linux_job_installing, GpuDrivers.mesaZinkScript() + " && " + GpuDrivers.probeScript(driver))
             }
         }
         if (ok) {
@@ -124,7 +126,7 @@ class Gpu(
         retireLegacyManifest(driver)
         val script = GpuDrivers.installScript(driver) + " && " + GpuDrivers.probeScript(driver)
         // The install script runs pacman.
-        if (run("installing", script, pacman.lock)) {
+        if (run(R.string.linux_job_installing, script, pacman.lock)) {
             activate(driver)
         } else {
             // Nothing to come back to on the next start; the failure stays on screen.
@@ -185,13 +187,13 @@ class Gpu(
      * [recheck] only skips the install when the recorded hash is already the pinned one.
      */
     private suspend fun run(
-        action: String,
+        @StringRes action: Int,
         script: String,
         lock: Mutex? = null,
     ): Boolean {
         val (ok, tail) = proot.trackedJob(action, script, lock) { state = it }
         val name = tail.toList().firstNotNullOfOrNull { DEVICE_NAME.find(it)?.groupValues?.get(1) }
-        Log.i(TAG, "$action: ${if (ok) "ok, $name" else "failed"}")
+        Log.i(TAG, "${context.getString(action)}: ${if (ok) "ok, $name" else "failed"}")
         if (ok) {
             device = name
             prefs.edit().putString(CHECKED_BUILD, build).putString(DEVICE, name)

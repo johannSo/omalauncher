@@ -28,9 +28,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.omalauncher.AddWidgetActivity
 import dev.omalauncher.AppWidgetCatalog
+import dev.omalauncher.R
 import dev.omalauncher.Runtime
 
 /** Which apps' widgets the picker lists: one app's, from its long-press menu, or with a null [packageName] every app's. */
@@ -67,15 +69,15 @@ internal fun WidgetPicker(
         }
     val q = query.trim().lowercase()
     val shown = if (q.isEmpty()) groups else groups.filter { (_, app, infos) -> q in app.lowercase() || infos.any { q in it.second.lowercase() } }
-    val title = pick.packageName?.let { pkg -> groups.firstOrNull()?.second ?: appLabel(pkg) }?.let { "$it widgets" } ?: "android widgets"
+    val title = pick.packageName?.let { pkg -> groups.firstOrNull()?.second ?: appLabel(pkg) }?.let { stringResource(R.string.fork_widget_picker_app, it) } ?: stringResource(R.string.fork_home_android_widgets)
     OverlayPanel(title, onDismiss, contentWidth = ReadingWidth) {
         if (pick.packageName == null) {
-            SearchField(query, { query = it }, onGo = {}, placeholder = "find a widget")
+            SearchField(query, { query = it }, onGo = {}, placeholder = stringResource(R.string.fork_widget_picker_search))
             Spacer(Modifier.height(12.dp))
         }
         LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (shown.isEmpty()) {
-                item { BasicText(if (groups.isEmpty()) "no app on this phone offers a widget" else "no widget matches", style = Mono.copy(color = Palette.muted)) }
+                item { BasicText(stringResource(if (groups.isEmpty()) R.string.fork_widget_picker_none else R.string.fork_widget_picker_no_match), style = Mono.copy(color = Palette.muted)) }
             }
             for ((pkg, app, infos) in shown) {
                 // A single app's list says whose it is in its title.

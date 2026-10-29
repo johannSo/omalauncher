@@ -155,7 +155,22 @@ internal val SINCE =
         // owl 14 (this fork): sideways swipes, off home, where they turn pages; the drawer's tabs follow them.
         mapOf("onSwipe" to 14) +
         // owl 15: a drawer that leaves the keyboard down as it opens.
-        mapOf(PANEL_KEYBOARD to 15)
+        mapOf(PANEL_KEYBOARD to 15) +
+        // owl 15: photos picked on Android pasted into the Linux window being typed in, as paths agents attach.
+        mapOf("pickImages" to 15) +
+        // owl 15: dictation, what the user says on a tap becoming text the widget reads.
+        listOf("android.speech", "speech").associateWith { 15 } +
+        // owl 15: the battery's current, charge and time to full, and the charger's, for a charging widget.
+        mapOf("android.power" to 15) +
+        // owl 16: texts per language, the phone's picked, and the language itself, for an API that takes it.
+        mapOf(STRINGS_DECL to 16, "lang" to 16) +
+        // owl 17: a list pulled down past its top, to fetch again.
+        mapOf("onPull" to 17) +
+        // owl 17: servers with a certificate of their own, pinned; WebSockets, and a trigger for each of their messages.
+        listOf(HTTP_PIN, "ws", "send", ON_EACH).associateWith { 17 }
+
+/** `strings { ... }`, named like this in [SINCE]. */
+internal const val STRINGS_DECL = "strings { }"
 
 /** `animate offset: ...`, named like this in [SINCE]. */
 internal const val ANIMATE_OFFSET = "animate offset"
@@ -171,6 +186,9 @@ internal val VOLUME_STREAMS = setOf("media", "ring", "notification", "alarm")
 
 /** `state x = null secret`, named like this in [SINCE]. */
 internal const val SECRET = "secret"
+
+/** `pin:` on http(...), post(...) and ws(...), named like this in [SINCE]. */
+internal const val HTTP_PIN = "pin:"
 
 /** `method:` on post(...), named like this in [SINCE]. */
 internal const val POST_METHOD = "method:"
@@ -211,6 +229,9 @@ internal const val FLATTEN_DEPTH = "flatten with a depth"
 
 internal const val ON_FIRST = "on … first"
 
+/** `on x each { }`, named like this in [SINCE]. */
+internal const val ON_EACH = "on … each"
+
 internal const val HANDLER_IF = "if in a handler"
 
 internal const val HANDLER_LET = "let in a handler"
@@ -235,6 +256,8 @@ internal val HANDLER_PARAMS =
         "onDragEnd" to listOf("vx", "vy"),
         // Sideways, as the finger lifts: `left` from right to left, `right` back.
         "onSwipe" to listOf("value"),
+        // A Column or Grid that scrolls, pulled down past its top and let go there: refresh(), mostly.
+        "onPull" to emptyList(),
         "onChange" to listOf("value"),
         "onSubmit" to listOf("value"),
         "onDismiss" to emptyList(),
@@ -243,13 +266,19 @@ internal val HANDLER_PARAMS =
     )
 
 /** Handlers only some nodes have. */
-internal val HANDLER_KINDS = mapOf("onChange" to setOf("Slider", "Input"), "onSubmit" to setOf("Input"), "onDismiss" to setOf("Popup"))
+internal val HANDLER_KINDS = mapOf("onChange" to setOf("Slider", "Input"), "onSubmit" to setOf("Input"), "onDismiss" to setOf("Popup"), "onPull" to setOf("Column", "Grid"))
 
 /** What triggers bind in their statements. */
 internal val TRIGGER_PARAMS = mapOf("on" to listOf("value", "old"))
 
-/** Data from the phone and the launcher; device is fixed, system and network are polled, the rest update as they change. */
-internal val ANDROID = setOf("battery", "device", "media", "notifications", "volume", "system", "network", "sim", "alarm", "modes", "apps", "agents", "recent", "drawer", "modifiers")
+/**
+ * speech(...)'s words that work from anywhere, a trigger or a press too: they only turn the microphone off. The others
+ * may turn it on, and with it ask for the microphone, so only from onTap; the compiler and WidgetInstance both check.
+ */
+val SPEECH_ANYWHERE = setOf("stop", "cancel")
+
+/** Data from the phone and the launcher; device is fixed, system, network and power are polled, the rest update as they change. */
+internal val ANDROID = setOf("battery", "device", "media", "notifications", "volume", "system", "network", "power", "sim", "alarm", "modes", "apps", "agents", "recent", "drawer", "modifiers", "speech")
 
 /**
  * The words an action's first value may be, when it's written out; [numbers] also allows a number. [forms] are the
@@ -296,6 +325,7 @@ internal val ACTION_WORDS =
         "settings" to SETTINGS_PAGES.let { Words(it, "settings takes ${it.joinToString()}") },
         "appAction" to setOf("pin", "info", "uninstall", "remove", "edit", "share", "widgets").let { Words(it, "appAction takes ${it.joinToString()} and an app's key") },
         "workApps" to setOf("pause", "resume", "toggle").let { Words(it, "workApps takes ${it.joinToString()}") },
+        "speech" to setOf("start", "stop", "toggle", "cancel").let { Words(it, "speech takes ${it.joinToString()}; what's heard is in source x = android.speech") },
         "latch" to KeyNames.latches.toSet().let { Words(it, "latch takes ${it.joinToString()}, and optionally once, locked or off") },
         "privateSpace" to setOf("lock", "unlock", "toggle", "settings", "install", "hide", "show").let { Words(it, "privateSpace takes ${it.joinToString()}") },
     )

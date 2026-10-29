@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text of the fork's own features (deploy), kept apart from upstream's strings_*.xml so merges stay clean. -->
+<resources>
+    <string name="fork_settings_linux_running">em execução · desligar, remover</string>
+    <string name="fork_settings_linux_shutting_down">desligando…</string>
+    <string name="fork_settings_linux_off">desligado · iniciar</string>
+    <string name="fork_home_start">iniciar</string>
+    <string name="fork_home_widgets">widgets</string>
+    <string name="fork_home_widget_settings">configurações</string>
+    <string name="fork_home_android_widgets">widgets do android</string>
+    <string name="fork_app_widget_gone">o app dele não existe mais</string>
+    <string name="fork_widget_picker_app">widgets do %1$s</string>
+    <string name="fork_widget_picker_search">encontrar um widget</string>
+    <string name="fork_widget_picker_none">nenhum app deste celular oferece um widget</string>
+    <string name="fork_widget_picker_no_match">nenhum widget corresponde</string>
+    <string name="fork_linux_start">iniciar linux</string>
+    <string name="fork_linux_starting">iniciando…</string>
+    <string name="fork_linux_running">em execução</string>
+    <string name="fork_linux_shutting_down">desligando…</string>
+    <string name="fork_linux_shut_down">desligar</string>
+    <string name="fork_linux_off">desligado</string>
+    <string name="fork_linux_status">%1$s · %2$s</string>
+    <string name="fork_linux_off_body">Apps Linux, widgets de terminal e agentes esperam até você iniciá-lo.</string>
+    <string name="fork_linux_shut_down_body">Fecha os apps e terminais Linux e para os agentes trabalhando neles; arquivos e pacotes ficam. Ele continua desligado, também depois de reiniciar, até você iniciá-lo aqui.</string>
+</resources>

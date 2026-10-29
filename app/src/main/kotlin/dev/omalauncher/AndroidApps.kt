@@ -1,7 +1,6 @@
 package dev.omalauncher
 
 import android.app.ActivityOptions
-import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -313,14 +312,7 @@ class AndroidAppCatalog(
                     addAction(Intent.ACTION_PROFILE_UNAVAILABLE)
                 }
             }
-        val receiver =
-            object : BroadcastReceiver() {
-                override fun onReceive(
-                    context: Context,
-                    intent: Intent,
-                ) = reload()
-            }
-        if (Build.VERSION.SDK_INT >= 33) context.registerReceiver(receiver, changed, Context.RECEIVER_NOT_EXPORTED) else context.registerReceiver(receiver, changed)
+        context.registerNotExported(changed) { reload() }
         reload()
     }
 
