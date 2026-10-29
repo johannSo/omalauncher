@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- The fork's README screenshots, framed like frame.html. Rendered one slide at a time by
+     scripts/render-fork-screenshots.sh (fork.html?s=N) into art/fork/. Each is a 1080x1670 capture under a caption band. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=block" rel="stylesheet">
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+  .slide { position: relative; width: 1080px; height: 1920px; overflow: hidden; font-family: 'JetBrains Mono', monospace; }
+  /* The band is the shot's own top row drawn tall, so its colors run straight on into the screen below. */
+  .band { position: absolute; top: 0; left: 0; width: 1080px; height: 250px; background-repeat: no-repeat;
+          background-position: top left; background-size: 1080px 417500px; }
+  .band::after { content: ''; position: absolute; inset: 0; background: var(--veil); }
+  .caption { position: absolute; z-index: 1; left: 64px; right: 64px; bottom: 34px; color: var(--ink);
+             font-size: 66px; font-weight: 800; line-height: 1.1; letter-spacing: -2px; }
+  .caption em { font-style: normal; color: var(--accent); }
+  .shot { position: absolute; top: 250px; left: 0; display: block; width: 1080px; height: 1670px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+// ink and accent come from each theme's colors (app/src/main/assets/themes/<theme>.toml, or a community theme's own);
+// veil evens out the band under the caption where the top of the wallpaper is busy.
+const SLIDES = [
+  { shot: 'fork-1-widgets', ink: '#ffffff', accent: '#e0335a', veil: 'rgba(12,8,25,0.6)', title: '<em>Android widgets</em> on home' },
+  { shot: 'fork-2-rail', ink: '#cdd6f4', accent: '#89b4fa', veil: 'transparent', title: 'Jump by <em>letter</em>' },
+  { shot: 'fork-3-private', ink: '#d8e3e2', accent: '#6bbdd4', veil: 'transparent', title: 'Your <em>private space</em>' },
+  { shot: 'fork-4-icons', ink: '#a9b1d6', accent: '#7aa2f7', veil: 'transparent', title: 'Icons, <em>your way</em>' },
+];
+const n = +(new URLSearchParams(location.search).get('s') || 1);
+const s = SLIDES[n - 1];
+const img = `raw/${s.shot}.png`;
+document.getElementById('root').innerHTML = `
+  <div class="slide" style="--ink:${s.ink};--accent:${s.accent};--veil:${s.veil}">
+    <div class="band" style="background-image:url(${img})"><div class="caption">${s.title}</div></div>
+    <img class="shot" src="${img}">
+  </div>`;
+document.title = String(SLIDES.length);
+</script>
+</body>
+</html>

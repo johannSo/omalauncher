@@ -1,5 +1,55 @@
 # Omalauncher
 
+## What this fork changes
+
+This is a fork of [SimonSchubert/omalauncher](https://github.com/SimonSchubert/omalauncher).
+`main` mirrors upstream, and `deploy` is upstream plus the features below. The
+[releases](https://github.com/johannSo/omalauncher/releases), tagged
+`v<version>-tos.N`, are built from `deploy`. They're signed with the fork's own
+key, so they install over each other but not over the Play version.
+
+<p>
+  <img src="art/fork/01.png" width="24%" alt="Android widgets next to owl widgets on home">
+  <img src="art/fork/02.png" width="24%" alt="The drawer's letter rail showing the apps under C">
+  <img src="art/fork/03.png" width="24%" alt="The private space on its own drawer tab">
+  <img src="art/fork/04.png" width="24%" alt="Style › app icons with an icon pack and a tint">
+</p>
+
+- **Android widgets on home**: home's long-press menu › android widgets lists
+  every widget your apps offer, with a preview and the cells it takes, and an
+  app's long-press menu offers its own. They move, resize and swap like any
+  tile, and `layout.toml` writes them as `{ android = "pkg/provider", id = n }`
+- **Private space** (Android 15+): the drawer lists it on a private tab with a
+  lock on its icons, and can lock it, unlock it and install apps into it. While
+  it's locked, none of its apps show, in search either, and it can hide
+  entirely. Private apps never go on home and aren't counted as recent
+- **Drawer tabs by swipe**: swipe sideways to move between the personal, work
+  and private tabs
+- **Letter rail** in the drawer, Niagara-style: touch or drag along it to show
+  only the apps under that letter
+- **App icons without limits** (style › app icons, `[icons]` in `style.toml`):
+  icon packs made for Nova, ADW, Apex, GO and the like, plus size, circle or
+  squircle shape, the logo without its backdrop, grayscale, a tint from the
+  theme or a gradient, and labels on or off for home and the drawer
+- **Swipe down** can pull down Android's notification shade (settings ›
+  gestures › swipe down)
+- **Shut down Linux** in settings › linux: it ends every guest process and the
+  foreground service, keeps files and packages, and stays off after a restart
+  until you start it again
+- **Mali on the Pixel 6 and 6a**: the pinned PanVK-kbase is RC3, which knows
+  the Mali-G78
+
+The icon options, the letter rail and swipe-down come from
+[Omalauncher+](https://github.com/adrianratajczak/Omalauncher-Plus) by
+adrianratajczak, rebuilt on `style.toml` and `drawer.owl`.
+
+Here a drag along the rail narrows the drawer letter by letter, a swipe moves
+to the private tab, and the private space locks and unlocks:
+
+<img src="art/fork/drawer.webp" width="360" alt="Dragging along the drawer's letter rail, swiping to the private tab, and locking and unlocking the private space">
+
+The rest of this README is upstream's.
+
 An Android home screen with the look of [Omarchy](https://omarchy.org), and an
 optional Arch Linux ARM system next to your phone apps. Omalauncher runs the
 system under proot, without root, and is its Wayland compositor: every Linux
