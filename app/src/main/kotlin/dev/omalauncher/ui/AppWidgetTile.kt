@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
@@ -15,18 +16,23 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import android.content.Context
+import dev.omalauncher.AddWidgetActivity
 import dev.omalauncher.AppWidgetCatalog
 import dev.omalauncher.R
+import dev.omalauncher.Runtime
 import dev.omalauncher.sizeWidget
 import dev.omalauncher.widgets.AndroidWidget
 
 /**
  * One of the phone's apps' widgets on home, drawn by its app. Taps reach it; a long press lifts it like any tile,
- * and the touch it had is cancelled. Once its app is gone, its name says so, until it's removed.
+ * and the touch it had is cancelled. Once its app is gone, its name says so, until it's removed. One restored from
+ * a backup isn't bound on this phone yet: a tap adds it again with [onRestore], in its cell.
  */
 @Composable
 internal fun AppWidgetTile(
@@ -34,6 +40,7 @@ internal fun AppWidgetTile(
     catalog: AppWidgetCatalog,
     focused: Boolean,
     modifier: Modifier,
+    onRestore: () -> Unit,
 ) {
     // Asked again when the apps' widgets change: an update may bring new layouts, and an app removed takes its widget.
     val info = remember(widget.id, catalog.providers) { catalog.info(widget.id) }
@@ -46,10 +53,15 @@ internal fun AppWidgetTile(
             }
         }
     if (info == null) {
-        Box(modifier.tile(focused).padding(8.dp), contentAlignment = Alignment.Center) {
+        val restorable = remember(widget.provider, catalog.providers) { catalog.provider(widget.provider) != null }
+        val tap = if (restorable) Modifier.pointerInput(widget.key) { detectTapGestures(onTap = { onRestore() }) } else Modifier
+        Box(modifier.tile(focused).then(tap).padding(8.dp), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 BasicText(widget.label, style = Mono.copy(textAlign = TextAlign.Center))
-                BasicText(stringResource(R.string.fork_app_widget_gone), style = Mono.copy(color = Palette.muted, fontSize = TextSize.Small, textAlign = TextAlign.Center))
+                BasicText(
+                    stringResource(if (restorable) R.string.fork_app_widget_restore else R.string.fork_app_widget_gone),
+                    style = Mono.copy(color = if (restorable) Palette.accent else Palette.muted, fontSize = TextSize.Small, textAlign = TextAlign.Center),
+                )
             }
         }
         return
@@ -73,4 +85,15 @@ internal fun AppWidgetTile(
             modifier = modifier.then(outline),
         )
     }
+}
+
+/** Adds [widget] again, in its cell, when it isn't bound on this phone (it came from a backup) and its app offers it. */
+internal fun restoreAndroidWidget(
+    context: Context,
+    runtime: Runtime,
+    widget: AndroidWidget,
+) {
+    val catalog = runtime.appWidgets
+    if (catalog.info(widget.id) != null || catalog.provider(widget.provider) == null) return
+    AddWidgetActivity.start(context, widget.provider, widget.page, replacing = widget.key)
 }

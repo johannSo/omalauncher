@@ -440,6 +440,22 @@ class AndroidWidgets(
         save()
     }
 
+    /** Puts [widget] where [old] was, on its page in its cell, as one restored from a backup is added again. */
+    fun replace(
+        old: AndroidWidget,
+        widget: AndroidWidget,
+    ) {
+        val i = items.indexOf(old)
+        if (i < 0) return add(widget)
+        val cell = layout.cell(old.key)
+        items[i] = widget.copy(page = old.page)
+        layout.remove(old.key)
+        cell?.let { layout.set(widget.key, it) }
+        layout.save()
+        onDelete(old.id)
+        save()
+    }
+
     /** Takes it off home, cell and all, and frees its id. */
     fun remove(key: String) {
         val widget = items.firstOrNull { it.key == key } ?: return

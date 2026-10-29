@@ -45,4 +45,17 @@
     <string name="fork_style_home_labels">nama di layar utama</string>
     <string name="fork_style_drawer_labels">nama di laci aplikasi</string>
     <string name="fork_style_icons_monochrome">ikon monokrom aktif: paket, bentuk, abu-abu, dan warna tampil saat ikon berwarna</string>
+    <string name="fork_settings_backup">cadangan</string>
+    <string name="fork_settings_backup_subtitle">ekspor atau impor layar utama, widget, dan gaya</string>
+    <string name="fork_backup_export">ekspor ke file</string>
+    <string name="fork_backup_import">impor dari file</string>
+    <string name="fork_backup_exported">cadangan disimpan</string>
+    <string name="fork_backup_export_failed">tidak bisa menyimpan cadangan: %1$s</string>
+    <string name="fork_backup_import_title">impor cadangan ini?</string>
+    <string name="fork_backup_import_message">Layar utama, gaya, widget, face, dan aplikasi owl kamu, serta tema kamu diganti dengan isi cadangan, lalu launcher dimulai ulang: aplikasi dan terminal Linux ditutup. Widget android dari ponsel lain kembali sebagai ubin yang diketuk untuk ditambahkan lagi, dan rahasia widget harus dimasukkan lagi. Linux sendiri tidak termasuk dalam cadangan.</string>
+    <string name="fork_backup_import_confirm">impor</string>
+    <string name="fork_backup_not_a_backup">file itu bukan cadangan Omalauncher</string>
+    <string name="fork_backup_newer">cadangan itu dari Omalauncher yang lebih baru: perbarui yang ini dulu</string>
+    <string name="fork_backup_import_failed">tidak bisa mengimpor cadangan: %1$s</string>
+    <string name="fork_app_widget_restore">ketuk untuk menambahkannya lagi</string>
 </resources>

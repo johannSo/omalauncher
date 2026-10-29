@@ -45,4 +45,17 @@
     <string name="fork_style_home_labels">nomes no início</string>
     <string name="fork_style_drawer_labels">nomes na gaveta</string>
     <string name="fork_style_icons_monochrome">os ícones monocromáticos estão ativados: o pacote, o formato, os tons de cinza e a tonalidade aparecem com ícones coloridos</string>
+    <string name="fork_settings_backup">backup</string>
+    <string name="fork_settings_backup_subtitle">exportar ou importar tela inicial, widgets e estilo</string>
+    <string name="fork_backup_export">exportar para um arquivo</string>
+    <string name="fork_backup_import">importar de um arquivo</string>
+    <string name="fork_backup_exported">backup salvo</string>
+    <string name="fork_backup_export_failed">não foi possível salvar o backup: %1$s</string>
+    <string name="fork_backup_import_title">importar este backup?</string>
+    <string name="fork_backup_import_message">A tela inicial, o estilo, seus widgets, faces e apps owl, e seus temas passam a ser os do backup, e o launcher reinicia: os apps e terminais do Linux fecham. Widgets do android de outro telefone voltam como blocos para tocar e adicionar de novo, e os segredos dos widgets precisam ser digitados de novo. O Linux não está no backup.</string>
+    <string name="fork_backup_import_confirm">importar</string>
+    <string name="fork_backup_not_a_backup">esse arquivo não é um backup do Omalauncher</string>
+    <string name="fork_backup_newer">esse backup é de um Omalauncher mais novo: atualize este primeiro</string>
+    <string name="fork_backup_import_failed">não foi possível importar o backup: %1$s</string>
+    <string name="fork_app_widget_restore">toque para adicionar de novo</string>
 </resources>

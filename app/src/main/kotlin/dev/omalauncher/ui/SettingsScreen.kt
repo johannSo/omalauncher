@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,17 +24,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.omalauncher.AppLanguage
+import dev.omalauncher.Backup
 import dev.omalauncher.LocalNetwork
 import dev.omalauncher.R
 import dev.omalauncher.Runtime
@@ -43,6 +47,7 @@ import dev.omalauncher.widgets.Market
 import dev.omalauncher.widgets.WidgetEngine
 import dev.omalauncher.widgets.market.CatalogEntry
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** The launcher's settings hub, opened from the gear next to the drawer's search. */
@@ -97,6 +102,7 @@ fun SettingsScreen(
                     onGestures,
                 ),
                 languageRow(),
+                backupRow(runtime),
                 SettingsRow(R.string.settings_linux, linuxStatus, onLinux),
                 if (installed) {
                     SettingsRow(
@@ -151,6 +157,73 @@ private fun languageRow(): SettingsRow {
     val label = { tag: String? -> tag?.let(AppLanguage::name) ?: phone }
     return SettingsRow(R.string.settings_language, label(picked)) {}.apply {
         menu = { close -> ChoicePopup(listOf(null) + AppLanguage.supported, picked, BelowAnchorEnd, onDismiss = close, onPick = { AppLanguage.pick(context, it) }, label = label) }
+    }
+}
+
+/**
+ * Export writes home, the style, the owl files and widgets to a zip of the user's choosing; import puts one in their
+ * place and starts the launcher again (see [Backup]), once the user agrees to.
+ */
+@Composable
+private fun backupRow(runtime: Runtime): SettingsRow {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+    val scope = rememberCoroutineScope()
+    var importing by remember { mutableStateOf<Uri?>(null) }
+    fun toast(text: String) = Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+    val export =
+        rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(Backup.MIME)) { uri ->
+            if (uri == null) return@rememberLauncherForActivityResult
+            scope.launch {
+                val result = withContext(Dispatchers.IO) { runCatching { Backup.export(context, uri) } }
+                toast(result.exceptionOrNull()?.let { resources.getString(R.string.fork_backup_export_failed, it.message) } ?: resources.getString(R.string.fork_backup_exported))
+            }
+        }
+    val open = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { importing = it }
+    importing?.let { uri ->
+        ConfirmDialog(
+            stringResource(R.string.fork_backup_import_title),
+            stringResource(R.string.fork_backup_import_message),
+            stringResource(R.string.fork_backup_import_confirm),
+            onDismiss = { importing = null },
+        ) {
+            importing = null
+            scope.launch {
+                val error =
+                    withContext(Dispatchers.IO) {
+                        runCatching { Backup.import(context, uri) { id, provider -> runtime.appWidgets.info(id)?.provider?.flattenToString() == provider } }
+                            .exceptionOrNull()
+                    }
+                toast(
+                    when {
+                        error is Backup.NotABackup && error.newer -> resources.getString(R.string.fork_backup_newer)
+                        error is Backup.NotABackup -> resources.getString(R.string.fork_backup_not_a_backup)
+                        else -> resources.getString(R.string.fork_backup_import_failed, error?.message)
+                    },
+                )
+            }
+        }
+    }
+    val exportLabel = stringResource(R.string.fork_backup_export)
+    val importLabel = stringResource(R.string.fork_backup_import)
+    return SettingsRow(R.string.fork_settings_backup, stringResource(R.string.fork_settings_backup_subtitle)) {}.apply {
+        menu = { close ->
+            ChoicePopup(
+                listOf(true, false),
+                null,
+                BelowAnchorEnd,
+                onDismiss = close,
+                onPick = { exporting ->
+                    if (exporting) {
+                        export.launch("omalauncher-${java.time.LocalDate.now()}.zip")
+                    } else {
+                        // Some file managers call a zip just bytes.
+                        open.launch(arrayOf(Backup.MIME, "application/x-zip-compressed", "application/octet-stream"))
+                    }
+                },
+                label = { if (it) exportLabel else importLabel },
+            )
+        }
     }
 }
 

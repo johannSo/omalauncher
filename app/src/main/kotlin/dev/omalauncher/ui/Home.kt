@@ -655,6 +655,7 @@ private fun HomeTile(
     val engine = runtime.widgets
     val terminals = runtime.terminals
     val density = LocalDensity.current
+    val context = LocalContext.current
     val open: () -> Unit =
         when (item) {
             is WidgetItem -> { -> engine.tap(item.spec) }
@@ -664,8 +665,9 @@ private fun HomeTile(
                 runtime.open(item)
             }
             is Folder -> { -> arrange.folder = item.key }
-            // The widget's app takes its touches itself; there's nothing for the tile to open.
-            is AndroidWidget -> { -> }
+            // The widget's app takes its touches itself; there's nothing for the tile to open. One restored from a
+            // backup and not bound here yet is added again, in its cell.
+            is AndroidWidget -> { -> restoreAndroidWidget(context, runtime, item) }
         }
     // Keys reach a tile as a finger does: Enter opens it, and Menu or holding Enter selects it, as a long press.
     // What takes taps in a widget is inside it, Right away; Enter goes there too on one with no tap of its own.
@@ -720,7 +722,7 @@ private fun HomeTile(
                 paused = runtime.androidApps.paused(item.profile),
                 clone = runtime.androidApps.cloned(item.profile),
             )
-        is AndroidWidget -> AppWidgetTile(item, runtime.appWidgets, highlighted, tile)
+        is AndroidWidget -> AppWidgetTile(item, runtime.appWidgets, highlighted, tile, onRestore = open)
         is Folder ->
             FolderTile(
                 folder = item,

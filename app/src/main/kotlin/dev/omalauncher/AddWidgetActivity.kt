@@ -11,17 +11,20 @@ import androidx.activity.ComponentActivity
  * Puts one of the phone's apps' widgets on home: binds it to a new id, which the first time takes Android's "allow
  * omalauncher to create widgets?", then shows the widget's own settings if it has any to set first. Cancelled at
  * either step, the id is freed and nothing changes. No window of its own; its own task, as [PinShortcutActivity].
+ * Given a tile to replace (a widget restored from a backup), the new one takes its place instead.
  */
 class AddWidgetActivity : ComponentActivity() {
     private val runtime get() = (application as App).runtime
     private val catalog get() = runtime.appWidgets
     private var id = NO_ID
     private var page = 1
+    private var replacing: String? = null
     private var info: AppWidgetProviderInfo? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         page = intent.getIntExtra(PAGE, 1)
+        replacing = intent.getStringExtra(REPLACING)
         @Suppress("DEPRECATION")
         val provider = intent.getParcelableExtra<ComponentName>(PROVIDER)
         info = provider?.let(catalog::provider)
@@ -72,7 +75,9 @@ class AddWidgetActivity : ComponentActivity() {
 
     private fun add(info: AppWidgetProviderInfo) {
         val widgets = runtime.widgets
-        widgets.androidWidgets.add(catalog.item(id, info, page, widgets.layout))
+        val item = catalog.item(id, info, page, widgets.layout)
+        val old = replacing?.let { key -> widgets.androidWidgets.items.firstOrNull { it.key == key } }
+        if (old != null) widgets.androidWidgets.replace(old, item) else widgets.androidWidgets.add(item)
         id = NO_ID
         finish()
     }
@@ -87,19 +92,22 @@ class AddWidgetActivity : ComponentActivity() {
         private const val PROVIDER = "provider"
         private const val PAGE = "page"
         private const val ID = "id"
+        private const val REPLACING = "replacing"
         private const val NO_ID = -1
         private const val BIND = 1
         private const val CONFIGURE = 2
 
-        /** Adds [provider]'s widget to home [page]. */
+        /** Adds [provider]'s widget to home [page], or in place of the Android widget tile keyed [replacing]. */
         fun start(
             context: Context,
             provider: ComponentName,
             page: Int,
+            replacing: String? = null,
         ) = context.startActivity(
             Intent(context, AddWidgetActivity::class.java)
                 .putExtra(PROVIDER, provider)
                 .putExtra(PAGE, page)
+                .putExtra(REPLACING, replacing)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
     }

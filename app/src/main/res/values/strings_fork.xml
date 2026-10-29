@@ -45,4 +45,17 @@
     <string name="fork_style_home_labels">names on home</string>
     <string name="fork_style_drawer_labels">names in drawer</string>
     <string name="fork_style_icons_monochrome">monochrome icons are on: the pack, shape, grayscale and tint show once icons are colored</string>
+    <string name="fork_settings_backup">backup</string>
+    <string name="fork_settings_backup_subtitle">export or import home, widgets and style</string>
+    <string name="fork_backup_export">export to a file</string>
+    <string name="fork_backup_import">import from a file</string>
+    <string name="fork_backup_exported">backup saved</string>
+    <string name="fork_backup_export_failed">couldn\'t save the backup: %1$s</string>
+    <string name="fork_backup_import_title">import this backup?</string>
+    <string name="fork_backup_import_message">Home, the style, your widgets, faces and owl apps, and your themes become the backup\'s, and the launcher starts again: Linux apps and terminals close. Android widgets from another phone come back as tiles to tap and add again, and widgets\' secrets have to be entered again. Linux itself isn\'t in a backup.</string>
+    <string name="fork_backup_import_confirm">import</string>
+    <string name="fork_backup_not_a_backup">that file isn\'t an Omalauncher backup</string>
+    <string name="fork_backup_newer">that backup is from a newer Omalauncher: update this one first</string>
+    <string name="fork_backup_import_failed">couldn\'t import the backup: %1$s</string>
+    <string name="fork_app_widget_restore">tap to add it again</string>
 </resources>
