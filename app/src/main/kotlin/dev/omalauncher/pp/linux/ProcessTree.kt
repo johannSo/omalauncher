@@ -48,3 +48,48 @@ private fun descendants(root: Int): List<Int> {
     }
     return out
 }
+
+/** A guest process: its pid and its command line, as the guest's `ps` shows it. */
+data class GuestProcess(
+    val pid: Int,
+    val argv: List<String>,
+) {
+    /** What to call it: the program, and for an interpreter the script it runs (`node vite`). */
+    val label get() = processLabel(argv)
+}
+
+/**
+ * Every guest process: our own processes running proot's [loader]. proot hands the guest's argv on, so the
+ * command line is the guest's own; the kernel's comm would only say the loader's name.
+ */
+fun guestProcesses(loader: String): List<GuestProcess> =
+    File("/proc").listFiles().orEmpty().mapNotNull { dir ->
+        val pid = dir.name.toIntOrNull() ?: return@mapNotNull null
+        val exe = runCatching { Os.readlink(File(dir, "exe").path) }.getOrNull()
+        if (exe != loader) return@mapNotNull null
+        val argv = runCatching { File(dir, "cmdline").readBytes().decodeToString().split('\u0000').dropLastWhile { it.isEmpty() } }.getOrNull()
+        GuestProcess(pid, argv.orEmpty())
+    }.sortedBy { it.pid }
+
+/** [pid]'s open sockets: fd number to socket inode, from its /proc/<pid>/fd links (`socket:[12345]`); null if unreadable. */
+fun socketFds(pid: Int): Map<Int, Long>? =
+    File("/proc/$pid/fd").list()?.mapNotNull { name ->
+        val fd = name.toIntOrNull() ?: return@mapNotNull null
+        val link = runCatching { Os.readlink("/proc/$pid/fd/$name") }.getOrNull() ?: return@mapNotNull null
+        val inode = link.removePrefix("socket:[").removeSuffix("]").takeIf { link.startsWith("socket:[") }?.toLongOrNull() ?: return@mapNotNull null
+        fd to inode
+    }?.toMap()
+
+/** Runtimes whose program name says less than the script they run. */
+private val INTERPRETER = Regex("""(node|nodejs|bun|deno|python[0-9.]*|ruby|php|perl|java)""")
+
+/** [argv]'s program, without its directory; for an interpreter, with the script after it. Empty argv: "?". */
+fun processLabel(argv: List<String>): String {
+    val program = argv.firstOrNull()?.substringAfterLast('/')?.takeIf { it.isNotEmpty() } ?: return "?"
+    if (!INTERPRETER.matches(program)) return program
+    // The first argument that isn't an option: `node --watch server.js`, `python3 -m http.server` names the module.
+    val rest = argv.drop(1)
+    val module = rest.indexOf("-m").takeIf { it >= 0 }?.let { rest.getOrNull(it + 1) }
+    val script = module ?: rest.firstOrNull { !it.startsWith('-') }?.substringAfterLast('/')
+    return if (script.isNullOrEmpty()) program else "$program $script"
+}

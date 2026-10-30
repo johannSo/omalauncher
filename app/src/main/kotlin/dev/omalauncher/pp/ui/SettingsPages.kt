@@ -41,6 +41,9 @@ enum class SettingsPage {
 
     /** Install, progress, remove; opened by anything that needs Linux. */
     Linux,
+
+    /** The SSH server and Linux's local servers, from settings › linux. */
+    Ssh,
     Licenses,
     Gestures,
 
@@ -167,7 +170,8 @@ private fun SettingsPage(
         SettingsPage.Store -> StoreScreen(runtime.widgets, runtime.agents.installed, homePage, runtime.themes.picked, onDismiss = close, onOpenApp = runtime::openOwlApp)
         SettingsPage.FaceStore -> StoreScreen(runtime.widgets, runtime.agents.installed, homePage, runtime.themes.picked, onDismiss = close, initialKind = OwlKind.Face, onOpenApp = runtime::openOwlApp)
         SettingsPage.Packages -> PackagesScreen(runtime, onDismiss = close)
-        SettingsPage.Linux -> LinuxScreen(runtime, onDismiss = close)
+        SettingsPage.Linux -> LinuxScreen(runtime, onDismiss = close, onSsh = { stack.push(SettingsPage.Ssh) })
+        SettingsPage.Ssh -> SshScreen(runtime, onDismiss = close)
         SettingsPage.Licenses -> LicensesScreen(onDismiss = close)
         SettingsPage.Gestures -> GesturesScreen(runtime, onDismiss = close, onAgent = ::agent)
         SettingsPage.Desktop -> DesktopSettingsScreen(runtime, onDismiss = close)
