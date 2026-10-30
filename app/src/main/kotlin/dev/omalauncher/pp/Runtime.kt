@@ -29,6 +29,7 @@ import dev.omalauncher.pp.linux.LinuxState
 import dev.omalauncher.pp.linux.OpenBridge
 import dev.omalauncher.pp.linux.Pacman
 import dev.omalauncher.pp.linux.Proot
+import dev.omalauncher.pp.linux.Ssh
 import dev.omalauncher.pp.linux.SystemUpdates
 import dev.omalauncher.pp.linux.LauncherFont
 import dev.omalauncher.pp.linux.TerminalFont
@@ -112,6 +113,9 @@ class Runtime(
     val dictation = Dictation(context)
     val updates = SystemUpdates(proot, pacman, agents)
     val gpu = Gpu(context, proot, pacman)
+
+    /** The SSH server into Linux and its local servers on the LAN; settings › linux › ssh. */
+    val ssh = Ssh(context, proot, pacman)
 
     /** The launcher's own provided files (default widgets, their docs); see [Provisioner]. */
     private val launcherFiles = Provisioner(proot.filesDir, LauncherData.LAUNCHER_MANIFEST, listOf(widgets::managed, style::managed))
@@ -299,6 +303,7 @@ class Runtime(
                 linux = false
                 widgets.linuxChanged(false)
                 audio.stop()
+                ssh.linuxStopping()
                 bootstrap.shutDown(proot::killAll)
                 linuxApps.clear()
                 setService(false)
@@ -338,6 +343,7 @@ class Runtime(
                 launcherFont.forget()
                 widgets.linuxChanged(false)
                 audio.stop()
+                ssh.linuxStopping(removed = true)
                 withContext(Dispatchers.IO) { proot.killAll() }
                 bootstrap.remove()
                 withContext(Dispatchers.IO) {
@@ -411,6 +417,7 @@ class Runtime(
         }
         // Apps render in software until the GPU passed its check on this system build.
         scope.launch { gpu.recheck() }
+        ssh.linuxStarted()
     }
 
     /** Turns GPU acceleration on (installing and checking the driver) or off, for Linux apps started from then on. */

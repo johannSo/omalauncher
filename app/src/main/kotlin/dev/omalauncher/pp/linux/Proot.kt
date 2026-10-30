@@ -11,6 +11,10 @@ class Proot(
     private val context: Context,
 ) {
     private val nativeDir = File(context.applicationInfo.nativeLibraryDir)
+
+    /** proot's loader: the executable every guest process runs as, as /proc/<pid>/exe tells. */
+    val loader: String = File(nativeDir, "libproot-loader.so").path
+
     val filesDir: File = context.filesDir
     val rootfs = File(filesDir, "arch")
     val tmpDir = File(filesDir, "tmp")
@@ -150,9 +154,14 @@ class Proot(
                 "-b", "/sys/devices/system/cpu",
             ) + (if (cjkFont.isFile) listOf("-b", "${cjkFont.path}:$GUEST_CJK_FONT") else emptyList()) +
             binds.flatMap { (guest, host) -> listOf("-b", "${host.path}:$guest") } +
+            listOf("-w", GUEST_HOME, "/usr/bin/env", "-i") + guestEnvironment() + listOf("/bin/sh", "-c", script)
+
+    /**
+     * Every guest command's environment, as NAME=value. sshd hands it on to SSH sessions ([sshdConfig]), which
+     * otherwise start with sshd's own few variables.
+     */
+    fun guestEnvironment(): List<String> =
             listOf(
-                "-w", GUEST_HOME,
-                "/usr/bin/env", "-i",
                 "HOME=$GUEST_HOME",
                 "USER=root",
                 "LANG=C.UTF-8",
@@ -184,7 +193,7 @@ class Proot(
                 "QT_QPA_PLATFORM=wayland",
                 "MOZ_ENABLE_WAYLAND=1",
                 "SDL_VIDEODRIVER=wayland",
-            ) + graphicsEnv + listOf("/bin/sh", "-c", script)
+            ) + graphicsEnv
 
     /**
      * Kills every proot we started and every guest process: before the rootfs
@@ -195,7 +204,6 @@ class Proot(
      */
     fun killAll() {
         val proot = File(nativeDir, "libproot.so").path
-        val loader = File(nativeDir, "libproot-loader.so").path
         for (dir in File("/proc").listFiles().orEmpty()) {
             val pid = dir.name.toIntOrNull() ?: continue
             val argv0 = runCatching { File(dir, "cmdline").readBytes().takeWhile { it != 0.toByte() }.toByteArray().decodeToString() }.getOrNull()
@@ -209,7 +217,7 @@ class Proot(
         ProcessBuilder(command(script)).apply {
             environment().apply {
                 clear()
-                put("PROOT_LOADER", File(nativeDir, "libproot-loader.so").path)
+                put("PROOT_LOADER", loader)
                 put("PROOT_TMP_DIR", tmpDir.path)
                 put("LD_LIBRARY_PATH", nativeDir.path)
             }

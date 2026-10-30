@@ -170,6 +170,26 @@
             android:taskAffinity=""
             android:theme="@style/Theme.Omalauncher.Dialog" />
 
+        <!-- "Add as SSH key" in the share sheet (SshKeyShareActivity.kt): disabled until the SSH server is turned on
+             (linux/Ssh.kt), so other shares don't offer it. -->
+        <activity
+            android:name=".SshKeyShareActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|density|uiMode"
+            android:enabled="false"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:label="@string/ssh_share_label"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Omalauncher.Dialog">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/*" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="application/x-pem-file" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".LinuxWindowActivity"
             android:label="@string/activity_linux"

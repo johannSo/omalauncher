@@ -320,7 +320,7 @@ internal fun qrCode(link: String): BitMatrix =
     )
 
 @Composable
-private fun QrCode(
+internal fun QrCode(
     code: BitMatrix,
     modifier: Modifier = Modifier,
     dark: Color = Color.Black,

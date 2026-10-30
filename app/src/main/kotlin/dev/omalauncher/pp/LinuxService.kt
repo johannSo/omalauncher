@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -51,7 +52,10 @@ class LinuxService : Service() {
         if (watch == null) {
             watch =
                 scope.launch {
-                    state.map(::text).distinctUntilChanged().collect { nm.notify(1, build(it)) }
+                    // While sshd listens, the command to log in with is under the status.
+                    combine(state.map(::text), (application as App).runtime.ssh.notice, ::Pair)
+                        .distinctUntilChanged()
+                        .collect { (text, ssh) -> nm.notify(1, build(text, ssh)) }
                 }
         }
         // Not restarted after the process dies: Linux only comes back with the launcher (Runtime.start),
@@ -76,10 +80,14 @@ class LinuxService : Service() {
             else -> getString(R.string.linux_notification_running)
         }
 
-    private fun build(text: String): Notification =
+    private fun build(
+        text: String,
+        ssh: String? = null,
+    ): Notification =
         Notification
             .Builder(this, CHANNEL)
             .setContentTitle(text)
+            .setContentText(ssh)
             .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
