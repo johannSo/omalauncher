@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_tweaks_rename">ganti nama</string>
+    <string name="app_tweaks_hide">sembunyikan</string>
+    <string name="app_tweaks_unhide">tampilkan</string>
+
+    <string name="app_tweaks_settings">aplikasi tersembunyi</string>
+    <plurals name="app_tweaks_settings_subtitle">
+        <item quantity="other">%1$d tersembunyi · sembunyikan dan ganti nama aplikasi</item>
+    </plurals>
+    <string name="app_tweaks_settings_none">sembunyikan dan ganti nama aplikasi</string>
+
+    <string name="app_tweaks_title">aplikasi tersembunyi</string>
+    <string name="app_tweaks_search">cari aplikasi</string>
+    <string name="app_tweaks_intro">Aplikasi tersembunyi tidak muncul di laci, aplikasi terbaru, dan pencarian bilah; yang ada di layar utama tetap di sana. Aplikasi yang diganti namanya memakai nama barunya di mana saja. Agen bisa mengubah keduanya di ~/.config/omalauncher/apps/apps.toml.</string>
+    <string name="app_tweaks_find_hidden">temukan yang tersembunyi lewat nama lengkap</string>
+    <string name="app_tweaks_on">aktif</string>
+    <string name="app_tweaks_off">nonaktif</string>
+    <string name="app_tweaks_hidden_section">tersembunyi</string>
+    <string name="app_tweaks_shown_section">ditampilkan</string>
+    <string name="app_tweaks_show">tampilkan</string>
+    <string name="app_tweaks_none">tidak ada aplikasi yang cocok</string>
+    <string name="app_tweaks_own_name">dulu %1$s</string>
+    <string name="app_tweaks_kind_linux">linux</string>
+    <string name="app_tweaks_kind_owl">aplikasi owl</string>
+    <string name="app_tweaks_kind_shortcut">pintasan</string>
+    <string name="app_tweaks_kind_work">kerja</string>
+    <string name="app_tweaks_kind_clone">klon</string>
+
+    <string name="app_tweaks_rename_title">ganti nama %1$s</string>
+    <string name="app_tweaks_rename_hint">dipakai di mana saja: layar utama, laci, aplikasi terbaru, dan pencarian</string>
+    <string name="app_tweaks_rename_confirm">ganti nama</string>
+    <string name="app_tweaks_rename_reset">nama asli</string>
+</resources>

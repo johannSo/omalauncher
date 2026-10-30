@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hiding and renaming apps (AppTweakStore, ui/HiddenAppsScreen.kt): settings › hidden apps, and the apps' long-press menus. -->
+<resources>
+    <!-- Long-press menu entries of an app in the drawer, the recent apps and on home. -->
+    <string name="app_tweaks_rename">rename</string>
+    <string name="app_tweaks_hide">hide</string>
+    <string name="app_tweaks_unhide">unhide</string>
+
+    <string name="app_tweaks_settings">hidden apps</string>
+    <plurals name="app_tweaks_settings_subtitle">
+        <item quantity="one">%1$d hidden · hide and rename apps</item>
+        <item quantity="other">%1$d hidden · hide and rename apps</item>
+    </plurals>
+    <string name="app_tweaks_settings_none">hide and rename apps</string>
+
+    <string name="app_tweaks_title">hidden apps</string>
+    <string name="app_tweaks_search">search apps</string>
+    <string name="app_tweaks_intro">Hidden apps stay out of the drawer, the recent apps and the bar\'s search; one on home stays there. A renamed app goes by its new name everywhere. Agents can change both in ~/.config/omalauncher/apps/apps.toml.</string>
+    <!-- Whether typing a hidden app's whole name in the bar still finds it. -->
+    <string name="app_tweaks_find_hidden">find hidden by full name</string>
+    <string name="app_tweaks_on">on</string>
+    <string name="app_tweaks_off">off</string>
+    <string name="app_tweaks_hidden_section">hidden</string>
+    <string name="app_tweaks_shown_section">shown</string>
+    <string name="app_tweaks_show">show</string>
+    <string name="app_tweaks_none">no apps match</string>
+    <!-- Under a renamed app's name: the name it has of its own. -->
+    <string name="app_tweaks_own_name">was %1$s</string>
+    <string name="app_tweaks_kind_linux">linux</string>
+    <string name="app_tweaks_kind_owl">owl app</string>
+    <string name="app_tweaks_kind_shortcut">shortcut</string>
+    <string name="app_tweaks_kind_work">work</string>
+    <string name="app_tweaks_kind_clone">clone</string>
+
+    <!-- %1$s is the app's own name. -->
+    <string name="app_tweaks_rename_title">rename %1$s</string>
+    <string name="app_tweaks_rename_hint">used everywhere: home, the drawer, recent apps and search</string>
+    <string name="app_tweaks_rename_confirm">rename</string>
+    <string name="app_tweaks_rename_reset">own name</string>
+</resources>

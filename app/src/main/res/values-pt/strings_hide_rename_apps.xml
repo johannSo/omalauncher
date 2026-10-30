@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_tweaks_rename">renomear</string>
+    <string name="app_tweaks_hide">ocultar</string>
+    <string name="app_tweaks_unhide">mostrar</string>
+
+    <string name="app_tweaks_settings">apps ocultos</string>
+    <plurals name="app_tweaks_settings_subtitle">
+        <item quantity="one">%1$d oculto · ocultar e renomear apps</item>
+        <item quantity="many">%1$d ocultos · ocultar e renomear apps</item>
+        <item quantity="other">%1$d ocultos · ocultar e renomear apps</item>
+    </plurals>
+    <string name="app_tweaks_settings_none">ocultar e renomear apps</string>
+
+    <string name="app_tweaks_title">apps ocultos</string>
+    <string name="app_tweaks_search">buscar apps</string>
+    <string name="app_tweaks_intro">Apps ocultos não aparecem na gaveta, nos apps recentes nem na busca da barra; um que está na tela inicial continua lá. Um app renomeado usa o novo nome em todo lugar. Agentes podem mudar os dois em ~/.config/omalauncher/apps/apps.toml.</string>
+    <string name="app_tweaks_find_hidden">encontrar ocultos pelo nome completo</string>
+    <string name="app_tweaks_on">ativado</string>
+    <string name="app_tweaks_off">desativado</string>
+    <string name="app_tweaks_hidden_section">ocultos</string>
+    <string name="app_tweaks_shown_section">visíveis</string>
+    <string name="app_tweaks_show">mostrar</string>
+    <string name="app_tweaks_none">nenhum app corresponde</string>
+    <string name="app_tweaks_own_name">antes %1$s</string>
+    <string name="app_tweaks_kind_linux">linux</string>
+    <string name="app_tweaks_kind_owl">app owl</string>
+    <string name="app_tweaks_kind_shortcut">atalho</string>
+    <string name="app_tweaks_kind_work">trabalho</string>
+    <string name="app_tweaks_kind_clone">clone</string>
+
+    <string name="app_tweaks_rename_title">renomear %1$s</string>
+    <string name="app_tweaks_rename_hint">usado em todo lugar: tela inicial, gaveta, apps recentes e busca</string>
+    <string name="app_tweaks_rename_confirm">renomear</string>
+    <string name="app_tweaks_rename_reset">nome original</string>
+</resources>

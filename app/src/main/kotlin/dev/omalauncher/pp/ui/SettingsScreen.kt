@@ -65,6 +65,7 @@ fun SettingsScreen(
     onGestures: () -> Unit,
     onDesktop: () -> Unit,
     onSearch: () -> Unit,
+    onHiddenApps: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val linux by runtime.bootstrap.state.collectAsState()
@@ -105,6 +106,7 @@ fun SettingsScreen(
                     onGestures,
                 ),
                 SettingsRow(R.string.settings_search, stringResource(R.string.settings_search_subtitle), onSearch),
+                SettingsRow(R.string.app_tweaks_settings, hiddenAppsSubtitle(runtime), onHiddenApps),
                 languageRow(),
                 otherAppsRow(),
                 backupRow(runtime),

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_tweaks_rename">renombrar</string>
+    <string name="app_tweaks_hide">ocultar</string>
+    <string name="app_tweaks_unhide">mostrar</string>
+
+    <string name="app_tweaks_settings">apps ocultas</string>
+    <plurals name="app_tweaks_settings_subtitle">
+        <item quantity="one">%1$d oculta · ocultar y renombrar apps</item>
+        <item quantity="many">%1$d ocultas · ocultar y renombrar apps</item>
+        <item quantity="other">%1$d ocultas · ocultar y renombrar apps</item>
+    </plurals>
+    <string name="app_tweaks_settings_none">ocultar y renombrar apps</string>
+
+    <string name="app_tweaks_title">apps ocultas</string>
+    <string name="app_tweaks_search">buscar apps</string>
+    <string name="app_tweaks_intro">Las apps ocultas no aparecen en el cajón, en las apps recientes ni en la búsqueda de la barra; si está en inicio, se queda ahí. Una app renombrada usa su nuevo nombre en todas partes. Los agentes pueden cambiar ambas cosas en ~/.config/omalauncher/apps/apps.toml.</string>
+    <string name="app_tweaks_find_hidden">encontrar ocultas por nombre completo</string>
+    <string name="app_tweaks_on">sí</string>
+    <string name="app_tweaks_off">no</string>
+    <string name="app_tweaks_hidden_section">ocultas</string>
+    <string name="app_tweaks_shown_section">visibles</string>
+    <string name="app_tweaks_show">mostrar</string>
+    <string name="app_tweaks_none">ninguna app coincide</string>
+    <string name="app_tweaks_own_name">antes %1$s</string>
+    <string name="app_tweaks_kind_linux">linux</string>
+    <string name="app_tweaks_kind_owl">app owl</string>
+    <string name="app_tweaks_kind_shortcut">acceso directo</string>
+    <string name="app_tweaks_kind_work">trabajo</string>
+    <string name="app_tweaks_kind_clone">clon</string>
+
+    <string name="app_tweaks_rename_title">renombrar %1$s</string>
+    <string name="app_tweaks_rename_hint">se usa en todas partes: inicio, el cajón, las apps recientes y la búsqueda</string>
+    <string name="app_tweaks_rename_confirm">renombrar</string>
+    <string name="app_tweaks_rename_reset">nombre propio</string>
+</resources>

@@ -21,6 +21,7 @@ panel "app drawer" {
       copy: "copy"; call: "call"; message: "message"; search: "search"; webFor: (text) => "search the web for ${text}"
       groupCalc: "calculator"; groupSettings: "android settings"; groupShortcuts: "app shortcuts"; groupContacts: "contacts"
       groupFiles: "files"; groupPackages: "packages"; groupWeb: "web"
+      rename: "rename"; hide: "hide"; unhide: "unhide"
     }
     id {
       personal: "pribadi"; work: "kerja"; apps: "aplikasi"; linux: "linux"; shortcuts: "pintasan"; android: "android"
@@ -35,6 +36,7 @@ panel "app drawer" {
       copy: "salin"; call: "telepon"; message: "pesan"; search: "cari"; webFor: (text) => "cari di web: ${text}"
       groupCalc: "kalkulator"; groupSettings: "setelan android"; groupShortcuts: "pintasan aplikasi"; groupContacts: "kontak"
       groupFiles: "file"; groupPackages: "paket"; groupWeb: "web"
+      rename: "ganti nama"; hide: "sembunyikan"; unhide: "tampilkan"
     }
     es {
       personal: "personal"; work: "trabajo"; apps: "apps"; linux: "linux"; shortcuts: "accesos directos"; android: "android"
@@ -49,6 +51,7 @@ panel "app drawer" {
       copy: "copiar"; call: "llamar"; message: "mensaje"; search: "buscar"; webFor: (text) => "buscar en la web: ${text}"
       groupCalc: "calculadora"; groupSettings: "configuración de android"; groupShortcuts: "accesos directos"; groupContacts: "contactos"
       groupFiles: "archivos"; groupPackages: "paquetes"; groupWeb: "web"
+      rename: "renombrar"; hide: "ocultar"; unhide: "mostrar"
     }
     pt {
       personal: "pessoal"; work: "trabalho"; apps: "apps"; linux: "linux"; shortcuts: "atalhos"; android: "android"
@@ -63,6 +66,7 @@ panel "app drawer" {
       copy: "copiar"; call: "ligar"; message: "mensagem"; search: "buscar"; webFor: (text) => "buscar na web: ${text}"
       groupCalc: "calculadora"; groupSettings: "configurações do android"; groupShortcuts: "atalhos de apps"; groupContacts: "contatos"
       groupFiles: "arquivos"; groupPackages: "pacotes"; groupWeb: "web"
+      rename: "renomear"; hide: "ocultar"; unhide: "mostrar"
     }
   }
   source d = android.drawer
@@ -122,8 +126,11 @@ panel "app drawer" {
       [{key: "h:" + s.id, title: s.linux && !linux ? str.linuxApps : s.title, work: s.work, private: s.private, offer: s.linux && !linux}],
       chunk(s.apps, cols).map((cells, r) => {key: s.id + ":" + r, cells: cells})
     ])))
+  // Apps hidden in settings › hidden apps aren't in d.apps: typing one's full name, the one it was given or its own,
+  // still finds it, as on stock launchers, unless that's turned off there too.
+  let foundHidden = searching && d.findHidden == true ? (d.hidden ?? []).filter(a => lower(trim(a.name)) == lower(typed) || lower(trim(a.own)) == lower(typed)) : []
   // Every profile's apps match while typing, best first; the list runs up from the bar, so the best sits right above it.
-  let hits = searching ? rank(d.apps, typed) : []
+  let hits = searching ? flatten([foundHidden, rank(d.apps, typed)]) : []
   // Typing "private" while the private space is locked offers to unlock it, as stock launchers do when it's hidden.
   let offersPrivate = searching && d.private != null && d.private.locked && len(typed) >= 3 && (startsWith("private space", lower(typed)) || startsWith(lower(str.privateSpace), lower(typed)))
   // What the bar finds besides apps (settings › search): a calculation, settings pages, shortcuts, contacts, files,

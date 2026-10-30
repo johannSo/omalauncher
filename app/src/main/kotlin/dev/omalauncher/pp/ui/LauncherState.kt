@@ -40,6 +40,9 @@ class LauncherState {
     /** The list of the phone's apps' widgets, while it's open: every app's, or one app's. */
     var pickingWidget by mutableStateOf<WidgetPick?>(null)
 
+    /** The app whose new name is being asked for, from its long-press menu. */
+    internal var renaming by mutableStateOf<AppHit?>(null)
+
     /** The open drawer or a full-screen panel hides the home screen; animated widgets stop ticking under it. */
     val homeCovered: Boolean
         get() = drawer.value > 0.99f || shared != null || sharing != null || pickingWidget != null

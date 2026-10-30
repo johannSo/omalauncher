@@ -51,6 +51,8 @@ enum class SettingsPage {
     Desktop,
     /** What the bar finds besides apps. */
     Search,
+    /** Apps hidden and renamed (apps.toml). */
+    HiddenApps,
 }
 
 /** Opens [page] over the ones in [stack]; one that's already open comes back to the top, closing what's over it. */
@@ -126,6 +128,7 @@ private fun SettingsPage(
                 onGestures = { stack.push(SettingsPage.Gestures) },
                 onDesktop = { stack.push(SettingsPage.Desktop) },
                 onSearch = { stack.push(SettingsPage.Search) },
+                onHiddenApps = { stack.push(SettingsPage.HiddenApps) },
             )
         SettingsPage.Style -> StyleScreen(runtime, onDismiss = close, onBrowse = { stack.push(SettingsPage.Themes) }, onAgent = ::agent)
         SettingsPage.Pages -> {
@@ -176,5 +179,6 @@ private fun SettingsPage(
         SettingsPage.Gestures -> GesturesScreen(runtime, onDismiss = close, onAgent = ::agent)
         SettingsPage.Desktop -> DesktopSettingsScreen(runtime, onDismiss = close)
         SettingsPage.Search -> SearchScreen(runtime, onDismiss = close)
+        SettingsPage.HiddenApps -> HiddenAppsScreen(runtime, onDismiss = close)
     }
 }

@@ -79,6 +79,8 @@ internal fun TextDialog(
     confirm: String,
     hint: String? = null,
     onDismiss: () -> Unit,
+    /** More buttons, before cancel. */
+    actions: @Composable () -> Unit = {},
     onConfirm: (String) -> Unit,
 ) {
     // The cursor at the end, to type on after the folder given.
@@ -106,6 +108,7 @@ internal fun TextDialog(
                     .padding(horizontal = 14.dp, vertical = 12.dp),
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            actions()
             BracketAction(stringResource(R.string.files_cancel), Palette.muted, onClick = onDismiss)
             BracketAction(confirm, Palette.accent) { if (text.isNotBlank()) onConfirm(text.trim()) }
         }

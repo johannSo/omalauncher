@@ -60,25 +60,35 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.graphics.ColorFilter
 import dev.omalauncher.pp.AndroidApp
 import dev.omalauncher.pp.AndroidShortcut
+import dev.omalauncher.pp.AppTweakStore
 import dev.omalauncher.pp.Runtime
+import dev.omalauncher.pp.spokenLabel
 import dev.omalauncher.pp.linux.LinuxApp
 import dev.omalauncher.pp.widgets.WidgetSpec
 import dev.omalauncher.pp.widgets.render.LocalMenuOpened
 
 /** One app the drawer lists: an owl app, a Linux or Android app, or a shortcut. */
 internal sealed interface AppHit {
-    /** Stable id, also the [dev.omalauncher.pp.AppUsage] key. */
+    /** Stable id, also the [dev.omalauncher.pp.AppUsage] key and the one apps.toml's entries are asked by. */
     val key: String
-    val label: String
+
+    /** The app's own name. */
+    val own: String
+
+    /** What it's called everywhere: the name apps.toml gives it, else [own]. The private space's apps keep theirs. */
+    val label: String get() = if (privateSpace) own else AppTweakStore.current.label(key, own)
+
+    /** Hidden in apps.toml: kept out of the drawer, the recent apps and search, but for its full name typed. Never the private space's. */
+    val hidden: Boolean get() = !privateSpace && AppTweakStore.current.hidden(key)
 
     /** What screen readers say, to tell a work app, a clone or a private one from the personal one of the same name. */
     val spoken: String get() = label
 
     /**
      * Another name search matches: a work app's own name with "work" added, so "work" or "whatsapp work"
-     * finds it; a clone's with "clone", a private one's with "private".
+     * finds it; a clone's with "clone", a private one's with "private". A renamed app's own name, so it's still found by it.
      */
-    val alias: String? get() = null
+    val alias: String? get() = own.takeIf { it != label }
 
     /** In a paused work profile: shown dimmed, and opening it turns work apps back on. */
     fun paused(runtime: Runtime) = false
@@ -90,7 +100,7 @@ internal sealed interface AppHit {
         val app: LinuxApp,
     ) : AppHit {
         override val key get() = "l:" + app.id
-        override val label get() = app.name
+        override val own get() = app.name
     }
 
     data class Android(
@@ -99,9 +109,9 @@ internal sealed interface AppHit {
         val widgets: Boolean = false,
     ) : AppHit {
         override val key get() = "a:" + app.key
-        override val label get() = app.label
-        override val spoken get() = app.spoken
-        override val alias get() = profileKind?.let { "${app.label} $it" }
+        override val own get() = app.label
+        override val spoken get() = spokenLabel(label, app.profile, app.clone, app.privateSpace)
+        override val alias get() = profileKind?.let { "$own $it" } ?: own.takeIf { it != label }
         override val privateSpace get() = app.privateSpace
 
         override fun paused(runtime: Runtime) = runtime.androidApps.paused(app.profile)
@@ -112,7 +122,7 @@ internal sealed interface AppHit {
         val spec: WidgetSpec,
     ) : AppHit {
         override val key get() = "o:" + spec.file.name
-        override val label get() = spec.name
+        override val own get() = spec.name
     }
 
     /** A shortcut an app put on the home screen, such as a website installed from a browser. */
@@ -120,9 +130,9 @@ internal sealed interface AppHit {
         val shortcut: AndroidShortcut,
     ) : AppHit {
         override val key get() = "s:" + shortcut.key
-        override val label get() = shortcut.label
-        override val spoken get() = shortcut.spoken
-        override val alias get() = profileKind?.let { "${shortcut.label} $it" }
+        override val own get() = shortcut.label
+        override val spoken get() = spokenLabel(label, shortcut.profile, shortcut.clone, shortcut.privateSpace)
+        override val alias get() = profileKind?.let { "$own $it" } ?: own.takeIf { it != label }
         override val privateSpace get() = shortcut.privateSpace
 
         override fun paused(runtime: Runtime) = runtime.androidApps.paused(shortcut.profile)
@@ -132,6 +142,9 @@ internal sealed interface AppHit {
 internal fun allApps(runtime: Runtime): List<AppHit> =
     runtime.widgets.apps().map { AppHit.Owl(it) } + runtime.linuxApps.apps.map { AppHit.Linux(it) } + runtime.androidApps.apps.map { AppHit.Android(it, runtime.appWidgets.offers(it)) } +
         runtime.androidApps.shortcuts.map { AppHit.Shortcut(it) }
+
+/** [allApps] but the ones hidden in apps.toml: what lists of apps show, as the drawer does. */
+internal fun shownApps(runtime: Runtime): List<AppHit> = allApps(runtime).filterNot { it.hidden }
 
 /** What the app cells do: open, pin to home, the Android app's info and uninstall, removing a shortcut, and an owl app's edit, share and remove. */
 internal class AppHandlers(
@@ -150,6 +163,10 @@ internal class AppHandlers(
     val removeOwl: (WidgetSpec) -> Unit,
     /** Lists an Android app's widgets, to put one on home. */
     val widgets: (AndroidApp) -> Unit,
+    /** Hides the app from the drawer, the recent apps and search (true), or shows it again. */
+    val hide: (AppHit, Boolean) -> Unit = { _, _ -> },
+    /** Asks for a name to call the app by. */
+    val rename: (AppHit) -> Unit = {},
 )
 
 /** The shortcuts an Android app offers above its menu's actions; null for anything else. */
@@ -189,16 +206,19 @@ internal fun profileWord(
 
 /**
  * The long-press menu's entries, as the words `appAction(word, key)` takes: pin to home, for owl apps editing,
- * sharing and removing, for Android apps their widgets, info and uninstall, and for shortcuts removing them. The
- * private space's apps can't go on home, which shows while it's locked too.
+ * sharing and removing, for Android apps their widgets, info and uninstall, and for shortcuts removing them; and
+ * renaming and hiding any of them (unhiding, for a hidden one found by its name). The private space's apps can't go
+ * on home, which shows while it's locked too, and keep their names and the space's own hiding.
  */
-internal fun AppHit.actionWords(): List<String> =
-    when (this) {
-        is AppHit.Linux -> listOf("pin")
-        is AppHit.Owl -> listOf("pin", "edit", "share", "remove")
-        is AppHit.Android -> listOfNotNull(if (app.privateSpace) null else "pin", if (widgets) "widgets" else null, "info", if (app.system) null else "uninstall")
-        is AppHit.Shortcut -> listOfNotNull(if (shortcut.privateSpace) null else "pin", "remove")
+internal fun AppHit.actionWords(): List<String> {
+    val tweaks = if (privateSpace) emptyList() else listOf("rename", if (hidden) "unhide" else "hide")
+    return when (this) {
+        is AppHit.Linux -> listOf("pin") + tweaks
+        is AppHit.Owl -> listOf("pin", "edit", "share") + tweaks + "remove"
+        is AppHit.Android -> listOfNotNull(if (app.privateSpace) null else "pin", if (widgets) "widgets" else null) + tweaks + listOfNotNull("info", if (app.system) null else "uninstall")
+        is AppHit.Shortcut -> listOfNotNull(if (shortcut.privateSpace) null else "pin") + tweaks + "remove"
     }
+}
 
 private val ACTION_LABELS =
     mapOf(
@@ -209,6 +229,9 @@ private val ACTION_LABELS =
         "share" to R.string.home_share,
         "remove" to R.string.home_remove,
         "widgets" to R.string.fork_home_widgets,
+        "rename" to R.string.app_tweaks_rename,
+        "hide" to R.string.app_tweaks_hide,
+        "unhide" to R.string.app_tweaks_unhide,
     )
 
 /** Runs the menu entry [word], from the menu or a widget's `appAction(...)`; one the app's menu doesn't offer does nothing. */
@@ -230,6 +253,8 @@ internal fun AppHit.act(
             }
         "edit" -> (this as? AppHit.Owl)?.let { handlers.edit(it.spec) }
         "share" -> (this as? AppHit.Owl)?.let { handlers.share(it.spec) }
+        "rename" -> handlers.rename(this)
+        "hide", "unhide" -> handlers.hide(this, word == "hide")
     }
 }
 
@@ -392,7 +417,7 @@ private fun StripCell(
 internal fun familiarApps(
     runtime: Runtime,
     limit: Int,
-): List<AppHit> = (recentApps(runtime, limit) + allApps(runtime)).distinctBy { it.key }.take(limit)
+): List<AppHit> = (recentApps(runtime, limit) + shownApps(runtime)).distinctBy { it.key }.take(limit)
 
 /** The apps opened lately, last opened first; ones not installed (or not loaded yet) are skipped. */
 internal fun recentApps(
@@ -413,7 +438,8 @@ internal fun recentApps(
                 "o" -> owl.lastOrNull { it.file.name == id }?.let(AppHit::Owl)
                 else -> null
             }
-        }.take(limit)
+        }.filterNot { it.hidden }
+        .take(limit)
         .toList()
 }
 

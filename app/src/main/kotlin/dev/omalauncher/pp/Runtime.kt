@@ -104,6 +104,9 @@ class Runtime(
     val androidApps = AndroidAppCatalog(context, iconPacks)
     val appWidgets = AppWidgetCatalog(context)
     val usage = AppUsage(context)
+
+    /** Apps hidden and renamed, in apps.toml. */
+    val appTweaks = AppTweakStore(context, androidApps)
     val themes = ThemeStore(context, proot, style, isLinux = { linux }, onConfigChanged = ::syncGuest)
     private val audio = AudioBridge(proot)
     private val openBridge = OpenBridge(context, proot, onOpenFiles = ::openFiles, onEdit = ::edit, onMcp = { mcp.serve(it) })
@@ -263,6 +266,7 @@ class Runtime(
             widgets.start()
             themes.load()
             style.start()
+            appTweaks.start()
             // On the first-run screen the download is the screen's job, with progress.
             if (launcherReady) scope.launch { themes.ensureRelease() }
             // Shut down, it stays down: no foreground service, nothing started.
@@ -594,11 +598,16 @@ class Runtime(
     /**
      * A pinned app's name as the drawer shows it, so it follows the phone's language and the app's updates; the name
      * it was pinned with while its app is gone or not listed yet, and for Linux apps. An owl app's follows its file's name.
+     * A name apps.toml gives the app goes before any of these.
      */
-    fun shortcutLabel(shortcut: Shortcut) =
-        androidKeyOf(shortcut)?.let { androidApps.labels[it] }
-            ?: shortcut.owl?.let { widgets.specs.app(it)?.name }
-            ?: shortcut.label
+    fun shortcutLabel(shortcut: Shortcut): String {
+        val own =
+            androidKeyOf(shortcut)?.let { androidApps.labels[it] }
+                ?: shortcut.owl?.let { widgets.specs.app(it)?.name }
+                ?: shortcut.label
+        val key = shortcut.component?.let { "a:" + androidKeyOf(shortcut) } ?: AppTweaks.drawerKeyOfTile(shortcut.key)
+        return key?.let { appTweaks.tweaks.label(it, own) } ?: own
+    }
 
     /** A pinned Android app's or shortcut's key in [androidApps]; null for a Linux app. */
     private fun androidKeyOf(shortcut: Shortcut) =
@@ -694,6 +703,12 @@ class Runtime(
         linuxApps.apps.firstOrNull { it.matches(appId) }?.let { return it.name }
         return title.ifEmpty { appId.ifEmpty { context.getString(R.string.home_linux_window) } }
     }
+
+    /** A Linux window's Recents card label: [name] from [displayName], or the name apps.toml gives its app. */
+    fun taskLabel(
+        appId: String,
+        name: String,
+    ) = linuxApps.apps.firstOrNull { it.matches(appId) }?.let { appTweaks.tweaks.label("l:" + it.id, name) } ?: name
 
     /** The agent running in a Linux window: one started for it, or one named after it. */
     fun agentOf(

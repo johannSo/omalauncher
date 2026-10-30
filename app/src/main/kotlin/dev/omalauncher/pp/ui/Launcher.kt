@@ -184,6 +184,9 @@ private fun DesktopScreen(
                     state.closeNow()
                     state.pickingWidget = WidgetPick(app.component.packageName)
                 },
+                hide = { hit, hidden -> runtime.appTweaks.hide(hit.key, hidden) },
+                // Over the drawer, which then shows the new name.
+                rename = { state.renaming = it },
             )
         }
 
@@ -331,6 +334,7 @@ private fun ThemesOverlay(
         )
     }
     state.pickingWidget?.let { pick -> WidgetPicker(runtime, pick, state.currentPage, onDismiss = { state.pickingWidget = null }) }
+    state.renaming?.let { RenameAppDialog(runtime, it, onDismiss = { state.renaming = null }) }
     state.sharing?.let { spec ->
         ShareWidgetScreen(
             spec,
