@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The tiling desktop for Linux windows, on a monitor or a large screen (desktop/). -->
+<resources>
+    <string name="desktop_title">escritorio</string>
+    <string name="desktop_notification_channel">monitor</string>
+    <string name="desktop_notification_title">%1$s conectado</string>
+    <string name="desktop_notification_text">toca para abrir el escritorio de Omarchy en él</string>
+    <string name="desktop_terminal">terminal</string>
+    <string name="desktop_keys">super+enter terminal · super+1–9 espacio de trabajo · super+shift+1–9 mover allí · super+flechas foco · super+shift+flechas intercambiar · super+f pantalla completa · super+v flotante (super+arrastrar la mueve, botón derecho cambia su tamaño) · super+w cerrar</string>
+    <string name="desktop_settings_title">escritorio</string>
+    <string name="desktop_settings">escritorio</string>
+    <string name="desktop_settings_subtitle">ventanas de Linux en mosaico en un monitor o tableta</string>
+    <string name="desktop_on_monitor">abierto en un monitor</string>
+    <string name="desktop_on_screen">abierto en esta pantalla</string>
+    <string name="desktop_external">al conectar un monitor</string>
+    <string name="desktop_external_ask">preguntar</string>
+    <string name="desktop_external_auto">abrir el escritorio</string>
+    <string name="desktop_external_off">nada</string>
+    <string name="desktop_large_screens">esta pantalla</string>
+    <string name="desktop_on">escritorio</string>
+    <string name="desktop_off">una tarea por ventana</string>
+    <string name="desktop_large_screens_hint">En una tableta o un plegable abierto, las ventanas de Linux se abren una al lado de otra en el escritorio en lugar de cada una en su propia tarea.</string>
+    <string name="desktop_large_screens_small">Para tabletas y plegables abiertos: esta pantalla mide menos de 600dp, así que aquí cada ventana sigue en su propia tarea.</string>
+    <string name="desktop_no_monitor">ningún monitor conectado</string>
+    <string name="desktop_open">abrir</string>
+    <string name="desktop_open_there">escritorio abierto</string>
+    <string name="desktop_not_allowed">Android solo lo duplica</string>
+    <string name="desktop_open_here">abrir en esta pantalla</string>
+    <string name="desktop_style_hint">Márgenes, bordes, la barra y la escala del monitor: [desktop] en ~/.config/omalauncher/style/style.toml.</string>
+</resources>

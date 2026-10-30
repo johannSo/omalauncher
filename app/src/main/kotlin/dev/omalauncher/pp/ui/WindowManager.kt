@@ -31,8 +31,16 @@ class WindowManager : WindowManagerHooks {
     /** Toplevels that have (or are getting) their own Android task. */
     val appWindows = mutableStateListOf<XdgToplevel>()
 
-    /** Each window's size in pixels, as its activity lays it out. */
-    private val sizes = HashMap<XdgToplevel, Pair<Int, Int>>()
+    /** Each window's size in pixels, as its activity (or the desktop) lays it out. */
+    private val sizes = HashMap<XdgToplevel, AppLayout>()
+
+    /** A window's view: [scale] is its pixels per logical pixel, 0 for the output's; see [applyAppLayout]. */
+    private data class AppLayout(
+        val width: Int,
+        val height: Int,
+        val scale: Int,
+        val fullscreen: Boolean,
+    )
 
     /** Starts the activity for an app window; set by the runtime. */
     var openAppWindow: (handle: String) -> Unit = {}
@@ -92,13 +100,19 @@ class WindowManager : WindowManagerHooks {
         }
     }
 
-    /** Sizes an app window to its activity; called when that activity's view gets its size. */
+    /**
+     * Sizes an app window to its activity; called when that activity's view gets its size. The desktop's views
+     * (see [dev.omalauncher.pp.desktop.Desktop]) can draw at a [scale] of their own, a monitor's rather than the phone's
+     * (0 is the output's), and say their window is [fullscreen].
+     */
     fun applyAppLayout(
         window: XdgToplevel,
         width: Int,
         height: Int,
+        scale: Int = 0,
+        fullscreen: Boolean = false,
     ) {
-        sizes[window] = width to height
+        sizes[window] = AppLayout(width, height, scale, fullscreen)
         synchronized(server) { configure(window) }
     }
 
@@ -136,8 +150,9 @@ class WindowManager : WindowManagerHooks {
     }
 
     private fun configure(window: XdgToplevel) {
-        val (w, h) = sizes[window] ?: return
-        window.configure(w / scale, h / scale, window === focused)
+        val l = sizes[window] ?: return
+        val s = l.scale.takeIf { it > 0 } ?: scale
+        window.configure(l.width / s, l.height / s, window === focused, l.fullscreen)
     }
 
     fun pointerMove(hit: SurfaceHit?) = server.postInput { pointerMotion(hit?.surface, hit?.x ?: 0f, hit?.y ?: 0f) }

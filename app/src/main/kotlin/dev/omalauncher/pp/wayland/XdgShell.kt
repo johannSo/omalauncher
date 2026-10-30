@@ -198,6 +198,26 @@ class XdgToplevel(
     @Volatile
     var renderer: WindowRenderer? = null
 
+    /** The window this one belongs to, as a dialog does; the desktop floats those. */
+    @Volatile
+    var parent: XdgToplevel? = null
+        private set
+
+    /** The client's smallest and largest size in logical pixels, 0 where it has none; equal for a fixed-size dialog. */
+    @Volatile
+    var minSize = 0 to 0
+        private set
+
+    @Volatile
+    var maxSize = 0 to 0
+        private set
+
+    /** The client asked to go fullscreen (F11, a video player's f) or back; the desktop follows it. */
+    var wantsFullscreen by mutableStateOf(false)
+        private set
+
+    private var configuredFullscreen = false
+
     val surface get() = xdg.surface
 
     override fun request(
@@ -206,9 +226,14 @@ class XdgToplevel(
     ) {
         when (opcode) {
             0 -> destroy()
+            1 -> parent = args.obj().takeIf { it != 0 }?.let { client.get<XdgToplevel>(it) }
             2 -> title = args.string().orEmpty()
             3 -> appId = args.string().orEmpty()
-            else -> Unit // move/resize/maximize/etc.: every window fills its Android task
+            7 -> maxSize = args.int() to args.int()
+            8 -> minSize = args.int() to args.int()
+            11 -> wantsFullscreen = true
+            12 -> wantsFullscreen = false
+            else -> Unit // move/resize/maximize/etc.: every window fills its Android task, or its tile
         }
     }
 
@@ -217,17 +242,22 @@ class XdgToplevel(
         width: Int,
         height: Int,
         active: Boolean,
+        fullscreen: Boolean = false,
         force: Boolean = false,
     ) {
-        if (!force && width == configuredWidth && height == configuredHeight && active == configuredActive) return
+        if (!force && width == configuredWidth && height == configuredHeight && active == configuredActive && fullscreen == configuredFullscreen) return
         configuredWidth = width
         configuredHeight = height
         configuredActive = active
+        configuredFullscreen = fullscreen
         val states =
             buildList {
                 if (active) add(4) // activated
-                if (version >= 2) addAll(listOf(5, 6, 7, 8)) // tiled on all edges
-                else add(1) // maximized: best "don't draw shadows" hint for v1 clients
+                when {
+                    fullscreen -> add(2)
+                    version >= 2 -> addAll(listOf(5, 6, 7, 8)) // tiled on all edges
+                    else -> add(1) // maximized: best "don't draw shadows" hint for v1 clients
+                }
             }
         send(event(0).int(width).int(height).ints(states.toIntArray()))
         xdg.sendConfigure()

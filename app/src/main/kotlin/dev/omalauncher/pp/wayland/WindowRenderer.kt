@@ -84,6 +84,19 @@ class WindowRenderer(
     @Volatile
     var visibleHeight = 0
 
+    /**
+     * View pixels per logical pixel, 0 for the output's scale. The desktop on a monitor draws at the monitor's: clients
+     * still draw at the output's (the phone's), and their pixels are scaled down to fit.
+     */
+    @Volatile
+    var scale = 0
+        set(value) {
+            if (value == field) return
+            field = value
+            redrawAll = true
+            requestFrame()
+        }
+
     private var drawn: List<Layer> = emptyList()
 
     @Volatile
@@ -202,7 +215,7 @@ class WindowRenderer(
     /** The window's surfaces bottom to top, then its popups; call with the server locked. */
     private fun buildScene(): List<Layer> {
         val g = window.xdg.effectiveGeometry
-        val output = server.output.scale
+        val output = scale.takeIf { it > 0 } ?: server.output.scale
         val scale = output * fitScale(g.width * output, g.height * output, width, visibleBottom())
         val layers = ArrayList<Layer>()
         addTree(layers, window.surface, -g.x * scale, -g.y * scale, scale, inPopup = false)

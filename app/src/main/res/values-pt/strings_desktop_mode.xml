@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The tiling desktop for Linux windows, on a monitor or a large screen (desktop/). -->
+<resources>
+    <string name="desktop_title">área de trabalho</string>
+    <string name="desktop_notification_channel">monitor</string>
+    <string name="desktop_notification_title">%1$s conectado</string>
+    <string name="desktop_notification_text">toque para abrir a área de trabalho do Omarchy nele</string>
+    <string name="desktop_terminal">terminal</string>
+    <string name="desktop_keys">super+enter terminal · super+1–9 área de trabalho · super+shift+1–9 mover para lá · super+setas foco · super+shift+setas trocar · super+f tela cheia · super+v flutuante (super+arrastar move, botão direito redimensiona) · super+w fechar</string>
+    <string name="desktop_settings_title">área de trabalho</string>
+    <string name="desktop_settings">área de trabalho</string>
+    <string name="desktop_settings_subtitle">janelas do Linux lado a lado num monitor ou tablet</string>
+    <string name="desktop_on_monitor">aberta num monitor</string>
+    <string name="desktop_on_screen">aberta nesta tela</string>
+    <string name="desktop_external">ao conectar um monitor</string>
+    <string name="desktop_external_ask">perguntar</string>
+    <string name="desktop_external_auto">abrir a área de trabalho</string>
+    <string name="desktop_external_off">nada</string>
+    <string name="desktop_large_screens">esta tela</string>
+    <string name="desktop_on">área de trabalho</string>
+    <string name="desktop_off">uma tarefa por janela</string>
+    <string name="desktop_large_screens_hint">Num tablet ou dobrável aberto, as janelas do Linux abrem lado a lado na área de trabalho em vez de cada uma na sua própria tarefa.</string>
+    <string name="desktop_large_screens_small">Para tablets e dobráveis abertos: esta tela tem menos de 600dp, então aqui cada janela continua com sua própria tarefa.</string>
+    <string name="desktop_no_monitor">nenhum monitor conectado</string>
+    <string name="desktop_open">abrir</string>
+    <string name="desktop_open_there">área de trabalho aberta</string>
+    <string name="desktop_not_allowed">o Android só o espelha</string>
+    <string name="desktop_open_here">abrir nesta tela</string>
+    <string name="desktop_style_hint">Espaços, bordas, a barra e a escala do monitor: [desktop] em ~/.config/omalauncher/style/style.toml.</string>
+</resources>

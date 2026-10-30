@@ -286,6 +286,25 @@
             android:label="Kimi"
             android:targetActivity=".LinuxWindowActivity" />
 
+        <!-- The tiling desktop for Linux windows (desktop/Desktop.kt), on a monitor or on a large screen; each start is
+             a task of its own, and the one before it goes. While this is the home app, Android also starts it as the
+             home of a display that gets a launcher of its own (SECONDARY_HOME), which must not be singleTask. -->
+        <activity
+            android:name=".desktop.DesktopActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|density|uiMode"
+            android:exported="true"
+            android:label="@string/desktop_title"
+            android:resizeableActivity="true"
+            android:taskAffinity="${applicationId}.desktop"
+            android:theme="@style/Theme.Omalauncher.Window"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.SECONDARY_HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <!-- One task per owl app, named after it; launched with its file name in the intent's data. -->
         <activity
             android:name=".OwlAppActivity"

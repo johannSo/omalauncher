@@ -16,6 +16,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
+import dev.omalauncher.pp.desktop.Desktop
 import dev.omalauncher.pp.linux.AGENTS
 import dev.omalauncher.pp.linux.Agent
 import dev.omalauncher.pp.linux.AgentStore
@@ -118,6 +119,9 @@ class Runtime(
     val dictation = Dictation(context)
     val updates = SystemUpdates(proot, pacman, agents)
     val gpu = Gpu(context, proot, pacman)
+
+    /** The tiling desktop Linux windows open in on a monitor or a large screen; see [Desktop]. */
+    val desktop = Desktop(context, this)
 
     /** The launcher's own provided files (default widgets, their docs); see [Provisioner]. */
     private val launcherFiles = Provisioner(proot.filesDir, LauncherData.LAUNCHER_MANIFEST, listOf(widgets::managed, style::managed))
@@ -225,6 +229,7 @@ class Runtime(
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK),
             )
         }
+        desktop.install()
     }
 
     /** The launcher first (it never waits for Linux), then Linux if it's installed or an install was started. */
@@ -633,7 +638,7 @@ class Runtime(
         // all share the app_id org.quickshell, so their window title, which is their name, decides.
         wm.appWindows
             .firstOrNull { (it.appId.isNotEmpty() && app.matches(it.appId)) || it.title.equals(app.name, ignoreCase = true) }
-            ?.let { if (bringToFront(it)) return }
+            ?.let { if (desktop.bringToFront(it) || bringToFront(it)) return }
         launch(app.exec)
     }
 
