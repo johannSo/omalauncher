@@ -368,7 +368,9 @@ class Runtime(
 
     /** Starts Linux after [shutDownLinux], as the launcher does when it starts. */
     fun startLinux() {
-        if (bootstrap.state.value != LinuxState.Off || linuxJob?.isActive == true) return
+        // Not while a snapshot is taken or restored: a restore swaps the system's folders under a Linux started from a
+        // quick settings tile, and starts Linux again itself when it's done.
+        if (bootstrap.state.value != LinuxState.Off || linuxJob?.isActive == true || snapshots.busy) return
         starting = true
         runLinux {
             bootstrap.turnOn()

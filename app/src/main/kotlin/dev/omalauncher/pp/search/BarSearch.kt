@@ -5,9 +5,11 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.snapshotFlow
+import dev.omalauncher.pp.AppTweakStore
 import dev.omalauncher.pp.R
 import dev.omalauncher.pp.Runtime
 import dev.omalauncher.pp.copyText
+import dev.omalauncher.pp.focus.FocusRules
 import dev.omalauncher.pp.linux.Aur
 import dev.omalauncher.pp.linux.LinuxState
 import dev.omalauncher.pp.linux.Package
@@ -143,8 +145,12 @@ class BarSearch(
             }
         }
         if (on(SearchStyle.SHORTCUTS)) {
+            // Not of an app focus mode leaves out now; under the name apps.toml gives the app.
+            val focus = runtime.focus.active?.profile
             for ((e, score) in shortcuts.search(q)) {
-                out += SearchResult(SearchGroup.Shortcuts, key { shortcuts.open(e) }, e.label, score, "open", subtitle = e.app.label, icon = "icon:a:" + e.app.key)
+                if (!FocusRules.allows(focus, listOf(e.app.component.packageName))) continue
+                val app = AppTweakStore.current.label("a:" + e.app.key, e.app.label)
+                out += SearchResult(SearchGroup.Shortcuts, key { shortcuts.open(e) }, e.label, score, "open", subtitle = app, icon = "icon:a:" + e.app.key)
             }
         }
         if (on(SearchStyle.WEB)) {

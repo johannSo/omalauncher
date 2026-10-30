@@ -5,6 +5,7 @@ import android.widget.Toast
 import dev.omalauncher.pp.AppTweakStore
 import dev.omalauncher.pp.LauncherData
 import dev.omalauncher.pp.Runtime
+import dev.omalauncher.pp.focus.FocusRules
 import dev.omalauncher.pp.linux.Proot
 import dev.omalauncher.pp.theme.Style
 import dev.omalauncher.pp.theme.StyleFile
@@ -402,15 +403,18 @@ class LauncherTools(
         main {
             val apps = JSONArray()
             val tweaks = AppTweakStore.current
-            // Apps hidden in apps.toml stay out, as in the drawer, and the others go by the names given them there.
+            val focus = runtime.focus.active?.profile
+            // Apps hidden in apps.toml, or left out by the focus profile on, stay out, as in the drawer; the others go
+            // by the names apps.toml gives them.
             fun add(
                 k: String,
                 key: String,
                 drawerKey: String,
+                focusId: String,
                 own: String,
                 extra: JSONObject.() -> Unit = {},
             ) {
-                if (kind != null && kind != k || tweaks.hidden(drawerKey)) return
+                if (kind != null && kind != k || tweaks.hidden(drawerKey) || !FocusRules.allows(focus, listOf(focusId))) return
                 val name = tweaks.label(drawerKey, own)
                 if (query.isNotEmpty() && !name.contains(query, ignoreCase = true) && !key.contains(query, ignoreCase = true)) return
                 apps.put(JSONObject().put("kind", k).put("key", key).put("name", name).apply(extra))
@@ -420,10 +424,10 @@ class LauncherTools(
                 val pkg = app.component.packageName
                 // As layout.toml writes it: the package alone when it's the package's only app in the launcher's profile.
                 val key = if (app.profile == null && android.count { it.profile == null && it.component.packageName == pkg } == 1) pkg else app.key
-                add("android", key, "a:" + app.key, app.label) { if (app.profile != null) put("profile", app.profile) }
+                add("android", key, "a:" + app.key, pkg, app.label) { if (app.profile != null) put("profile", app.profile) }
             }
-            for (app in runtime.linuxApps.apps) add("linux", "linux:${app.id}", "l:" + app.id, app.name) { put("command", app.exec).put("terminal", app.terminal) }
-            for (spec in engine.specs) if (spec.kind == OwlKind.App) add("owl", "owl:${spec.file.name}", "o:" + spec.file.name, spec.name) { put("runs", spec.program != null) }
+            for (app in runtime.linuxApps.apps) add("linux", "linux:${app.id}", "l:" + app.id, "linux:" + app.id, app.name) { put("command", app.exec).put("terminal", app.terminal) }
+            for (spec in engine.specs) if (spec.kind == OwlKind.App) add("owl", "owl:${spec.file.name}", "o:" + spec.file.name, "owl:" + spec.file.name, spec.name) { put("runs", spec.program != null) }
             JSONObject().put("apps", apps)
         }
 
