@@ -25,10 +25,6 @@ update, so never change it.
    gh release create v1.0.0 omalauncher.pp-v1.0.0.apk SHA256SUMS --title "OmaLauncher++ 1.0.0"
    ```
 
-`.github/workflows/release.yml` is Omalauncher's: it needs the Play upload key
-as secrets, which this repo doesn't have, so it stops at "Write the signing
-key" on every tag. The release above is the one that counts.
-
 ## Omalauncher on Play
 
 What follows is how Omalauncher, which OmaLauncher++ forks, is released to
@@ -60,7 +56,8 @@ bundle exec fastlane android deploy       # build + upload straight to productio
 git tag v<versionName> && git push origin v<versionName>
 ```
 
-The tag starts `.github/workflows/release.yml`: it runs the tests, builds the
+In Omalauncher's repo the tag starts its `.github/workflows/release.yml` (not
+kept in OmaLauncher++): it runs the tests, builds the
 signed APK and attaches it to a GitHub release with `SHA256SUMS` and the R8
 `mapping.txt`, using `changelogs/<versionCode>.txt` as the notes (it fails
 without one). The mapping matches the Play build's, so it retraces Play crashes.
