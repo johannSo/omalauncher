@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="snapshots_title">instantáneas</string>
+    <string name="snapshots_row_none">ninguna aún · deshaz una actualización que rompió algo</string>
+    <plurals name="snapshots_row">
+        <item quantity="one">%d instantánea a la que volver</item>
+        <item quantity="many">%d instantáneas a las que volver</item>
+        <item quantity="other">%d instantáneas a las que volver</item>
+    </plurals>
+    <string name="snapshots_body">Una instantánea guarda el sistema Linux tal como está: sus paquetes y todo lo que hay en /etc, /usr, /var y /opt. Restaurar una deshace una actualización que rompió algo. /root y /home, tus propios archivos, se quedan como están salvo que elijas lo contrario. Las instantáneas comparten lo que no cambió entre ellas, así que una tras una actualización solo ocupa lo que esta cambió.</string>
+    <string name="snapshots_storage">%1$s libres · las instantáneas ocupan %2$s</string>
+    <string name="snapshots_take">instantánea ahora</string>
+    <string name="snapshots_low_space">queda poco almacenamiento: la instantánea antes de una actualización se omite si no cabe</string>
+    <string name="snapshots_list">instantáneas</string>
+    <string name="snapshots_none">ninguna aún</string>
+    <string name="snapshots_options">opciones</string>
+    <string name="snapshots_option_before_update">antes de actualizar</string>
+    <string name="snapshots_option_on">instantánea</string>
+    <string name="snapshots_option_off">no</string>
+    <string name="snapshots_option_keep">conservar</string>
+    <string name="snapshots_option_keep_hint">las más recientes; la próxima instantánea borra las más antiguas</string>
+    <string name="snapshots_option_home">/root, /home</string>
+    <string name="snapshots_option_home_in">incluidos</string>
+    <string name="snapshots_option_home_out">fuera</string>
+    <string name="snapshots_reason_update">antes de una actualización</string>
+    <string name="snapshots_reason_manual">a mano</string>
+    <string name="snapshots_details">%1$s · %2$s propios · sistema de %3$s</string>
+    <string name="snapshots_restore">restaurar</string>
+    <string name="snapshots_delete">borrar</string>
+    <string name="snapshots_restore_ask">¿volver Linux a esta instantánea?</string>
+    <string name="snapshots_restore_body">Linux se apaga, vuelve a como estaba entonces y arranca de nuevo: los paquetes instalados o actualizados desde entonces también vuelven atrás. /root y /home se quedan como están.</string>
+    <string name="snapshots_restore_body_home">Linux se apaga, vuelve a como estaba entonces y arranca de nuevo: los paquetes instalados o actualizados desde entonces también vuelven atrás, igual que /root y /home. Los archivos cambiados ahí desde entonces se pierden.</string>
+    <string name="snapshots_restore_home">/root, /home</string>
+    <string name="snapshots_restore_home_keep">conservar</string>
+    <string name="snapshots_restore_home_back">volver atrás</string>
+    <string name="snapshots_delete_ask">¿borrar esta instantánea?</string>
+    <string name="snapshots_job_taking">tomando una instantánea</string>
+    <string name="snapshots_job_restoring">restaurando una instantánea</string>
+    <string name="snapshots_step_scanning">leyendo el sistema…</string>
+    <string name="snapshots_step_storing">%1$s de %2$s guardados</string>
+    <string name="snapshots_step_saving">guardando…</string>
+    <string name="snapshots_step_unpacking">%1$d de %2$d archivos</string>
+    <string name="snapshots_step_swapping">colocándola…</string>
+    <string name="snapshots_no_room">sin instantánea: necesita %1$s libres y hay %2$s</string>
+    <string name="snapshots_no_room_restore">no hay almacenamiento para restaurar: necesita %1$s libres y hay %2$s</string>
+    <string name="snapshots_ran_out">el almacenamiento se agotó y la instantánea se detuvo</string>
+    <string name="snapshots_gone">esta instantánea ya no existe</string>
+    <string name="snapshots_damaged">un archivo de la instantánea está dañado (%1$s); no se cambió nada</string>
+</resources>

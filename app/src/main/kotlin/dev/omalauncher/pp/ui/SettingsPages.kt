@@ -42,6 +42,9 @@ enum class SettingsPage {
     Linux,
     Licenses,
     Gestures,
+
+    /** Snapshots of Linux to roll back to, from settings › linux. */
+    Snapshots,
 }
 
 /** Opens [page] over the ones in [stack]; one that's already open comes back to the top, closing what's over it. */
@@ -159,8 +162,9 @@ private fun SettingsPage(
         SettingsPage.Store -> StoreScreen(runtime.widgets, runtime.agents.installed, homePage, runtime.themes.picked, onDismiss = close, onOpenApp = runtime::openOwlApp)
         SettingsPage.FaceStore -> StoreScreen(runtime.widgets, runtime.agents.installed, homePage, runtime.themes.picked, onDismiss = close, initialKind = OwlKind.Face, onOpenApp = runtime::openOwlApp)
         SettingsPage.Packages -> PackagesScreen(runtime, onDismiss = close)
-        SettingsPage.Linux -> LinuxScreen(runtime, onDismiss = close)
+        SettingsPage.Linux -> LinuxScreen(runtime, onDismiss = close, onSnapshots = { stack.push(SettingsPage.Snapshots) })
         SettingsPage.Licenses -> LicensesScreen(onDismiss = close)
         SettingsPage.Gestures -> GesturesScreen(runtime, onDismiss = close, onAgent = ::agent)
+        SettingsPage.Snapshots -> SnapshotsScreen(runtime, onDismiss = close)
     }
 }

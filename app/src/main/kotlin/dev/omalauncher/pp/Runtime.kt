@@ -29,6 +29,7 @@ import dev.omalauncher.pp.linux.LinuxState
 import dev.omalauncher.pp.linux.OpenBridge
 import dev.omalauncher.pp.linux.Pacman
 import dev.omalauncher.pp.linux.Proot
+import dev.omalauncher.pp.linux.Snapshots
 import dev.omalauncher.pp.linux.SystemUpdates
 import dev.omalauncher.pp.linux.LauncherFont
 import dev.omalauncher.pp.linux.TerminalFont
@@ -73,6 +74,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -110,7 +112,13 @@ class Runtime(
 
     /** Widgets' speech(...) and android.speech. */
     val dictation = Dictation(context)
-    val updates = SystemUpdates(proot, pacman, agents)
+    /** Snapshots of the rootfs to roll back to; one is taken before each system update. */
+    val snapshots: Snapshots =
+        Snapshots(context, proot, style, pacman) {
+            bootstrap.reloadJournal()
+            updates.forget()
+        }
+    val updates: SystemUpdates = SystemUpdates(proot, pacman, agents, snapshots::beforeUpdate)
     val gpu = Gpu(context, proot, pacman)
 
     /** The launcher's own provided files (default widgets, their docs); see [Provisioner]. */
@@ -226,6 +234,8 @@ class Runtime(
         started = true
         scope.launch {
             withContext(Dispatchers.IO) {
+                // A restore the app was killed during finishes before anything reads the rootfs.
+                snapshots.recover()
                 launcherFiles.sync()
                 agents.load()
             }
@@ -340,6 +350,7 @@ class Runtime(
                 audio.stop()
                 withContext(Dispatchers.IO) { proot.killAll() }
                 bootstrap.remove()
+                snapshots.deleteAll()
                 withContext(Dispatchers.IO) {
                     updates.forget()
                     agents.load()
@@ -348,6 +359,28 @@ class Runtime(
                 linuxApps.clear()
                 setService(false)
             }
+    }
+
+    /**
+     * Rolls Linux back to snapshot [id] ([Snapshots.restore]): shuts it down first, as "shut down" does, and starts
+     * it again afterwards if it was running. [withHome] rolls /root and /home back too.
+     */
+    fun restoreSnapshot(
+        id: String,
+        withHome: Boolean,
+    ) {
+        val state = bootstrap.state.value
+        if ((state != LinuxState.Installed && state != LinuxState.Off) || linuxJob?.isActive == true || snapshots.busy) return
+        snapshots.waitForRestore()
+        val running = linux
+        if (running) shutDownLinux()
+        val shutDown = linuxJob
+        scope.launch {
+            shutDown?.join()
+            // Unless something else (an install, a removal) held Linux meanwhile: then nothing is restored.
+            if (bootstrap.state.value == LinuxState.Off) pacman.lock.withLock { snapshots.restore(id, withHome) } else snapshots.waitForRestore(false)
+            if (running) startLinux()
+        }
     }
 
     /** The foreground service keeps the process, and with it Linux, alive; only while Linux is installed or installing. */
