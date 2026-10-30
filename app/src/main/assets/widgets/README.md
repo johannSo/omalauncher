@@ -90,7 +90,7 @@ declarations.md, nodes.md, expressions.md and handlers.md; a face, an app, a pan
 | read | for |
 |---|---|
 | docs/declarations.md | sources (`cmd`, `http`, `ws`, `stream`, `file`, `clock`), state, lets, triggers (`every`, `at`, `when`, `on`, `on … each`), putting values into commands and URLs, `requires` and working without Linux |
-| docs/android.md | the phone's data: battery, media, notifications, volume, the next alarm, modes, apps, the drawer, agents, the private space |
+| docs/android.md | the phone's data: battery, media, notifications, volume, the next alarm, modes, location, steps, apps, the drawer, agents, the private space |
 | docs/expressions.md | operators and every function, dates and times, numbers, changing lists and maps, chance |
 | docs/nodes.md | every node and its properties, the tile's size, text in pieces, fonts, gradients, frosted glass, images from the web, components, Terminal |
 | docs/handlers.md | handlers, every action, sending to web APIs with `post`, tokens and passwords, sounds |
@@ -134,7 +134,7 @@ docs say what's current.
 | a number over time | `examples/20-system` (history, Sparkline, requires), `examples/93-latency` (stream: one long-running command) |
 | JSON and lists from commands | `examples/80-system-info` (json), `examples/70-processes` (lines into maps, a bar per row), `examples/94-scripts`, `examples/96-ai-usage` (jq in a `"""` command), `examples/60-agents` (for, if, Button) |
 | the web, no Linux needed | `examples/50-weather` (http), `examples/86-whats-new` (a screen behind the tile), `10-today` (weather, Input for a city, persist), `examples/75-live-price` (ws: a WebSocket, greeting each connection, every message) |
-| the phone's own data | `examples/40-battery` (Ring), `examples/85-quick` (alarm, modes, torch), `examples/97-now-playing` (media, album art), `examples/98-notifications`, `examples/99-volume` (Slider), `20-fetch` (with or without Linux) |
+| the phone's own data | `examples/40-battery` (Ring), `examples/85-quick` (alarm, modes, torch), `examples/97-now-playing` (media, album art, seeking), `examples/84-steps` (a permission asked from a tap, a week of bars), `10-today` (weather where you are, by `android.location`), `examples/98-notifications`, `examples/99-volume` (Slider), `20-fetch` (with or without Linux) |
 | state, buttons and timers | `examples/91-focus` (persist, `at`, notify), `examples/87-breathe` (a session paced by the clock), `examples/88-notes` (Input, a saved list) |
 | drawing | `examples/90-analog-clock` (Canvas), `50-koi` (pixel art, taps), `60-owl` (sprites, a pet that keeps its state), `examples/92-aurora` and `examples/89-lava` (Shader) |
 | faces, a whole page | `examples/00-start` (frost, Grid, spans), `examples/01-minimal`, `examples/02-pixel`, `examples/03-matrix` |

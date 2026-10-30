@@ -24,6 +24,7 @@ import androidx.compose.runtime.snapshotFlow
 import dev.omalauncher.pp.theme.ForkStyle
 import dev.omalauncher.pp.ui.ImagePicker
 import dev.omalauncher.pp.ui.MicPermission
+import dev.omalauncher.pp.widgets.runtime.WidgetPermissions
 import dev.omalauncher.pp.ui.Palette
 import dev.omalauncher.pp.theme.Style
 import dev.omalauncher.pp.ui.KeyIndicated
@@ -131,6 +132,7 @@ class MainActivity : ComponentActivity() {
         runtime.wm.focus(null)
         runtime.keyboard.imagePicker = imagePicker
         runtime.dictation.askMic = mic::ask
+        WidgetPermissions.ask = mic::ask
         removeStaleWindowTasks()
         // Made the default home app (or no longer it) while away: only then does Android show us pinned shortcuts.
         runtime.androidApps.checkShortcutAccess()
@@ -215,6 +217,7 @@ class MainActivity : ComponentActivity() {
         runtime.keyboard.releaseHeld()
         if (runtime.keyboard.imagePicker === imagePicker) runtime.keyboard.imagePicker = null
         runtime.dictation.askMic = null
+        WidgetPermissions.ask = null
     }
 
     override fun onStop() {

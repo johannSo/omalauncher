@@ -183,6 +183,9 @@ class Media(
                 "position" to (position?.let { Num(Math.floor(it)) } ?: Null),
                 "duration" to (duration?.let { Num(Math.floor(it)) } ?: Null),
                 "art" to (artSrc?.let(::Str) ?: Null),
+                "state" to Str(stateWord(s?.state)),
+                // A live stream or an ad can't be moved through; media("seek", ...) does nothing then.
+                "canSeek" to bool(duration != null && s != null && s.actions and PlaybackState.ACTION_SEEK_TO != 0L),
             ),
         )
     }
@@ -263,8 +266,26 @@ class Media(
             .map { withContext(worker) { value() } }
             .distinctUntilChanged()
 
-    /** media("toggle"), "play", "pause", "next", "previous"; without access, opens the setting that grants it. */
-    fun control(command: String) {
+    /** PlaybackState's state as a word, for `state`: what `playing` alone doesn't tell, like loading or stopped by an error. */
+    private fun stateWord(state: Int?) =
+        when (state) {
+            PlaybackState.STATE_PLAYING -> "playing"
+            PlaybackState.STATE_PAUSED -> "paused"
+            PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING -> "loading"
+            PlaybackState.STATE_FAST_FORWARDING, PlaybackState.STATE_REWINDING -> "seeking"
+            PlaybackState.STATE_SKIPPING_TO_NEXT, PlaybackState.STATE_SKIPPING_TO_PREVIOUS, PlaybackState.STATE_SKIPPING_TO_QUEUE_ITEM -> "skipping"
+            PlaybackState.STATE_ERROR -> "error"
+            else -> "stopped"
+        }
+
+    /**
+     * media("toggle"), "play", "pause", "next", "previous", "open", or "seek" with [seconds] from the start; without access,
+     * opens the setting that grants it.
+     */
+    fun control(
+        command: String,
+        seconds: Value? = null,
+    ) {
         if (!granted) {
             openAccessSettings()
             return
@@ -284,6 +305,7 @@ class Media(
             "next" -> t.skipToNext()
             "previous" -> t.skipToPrevious()
             "open" -> open(c)
+            "seek" -> (seconds as? Num)?.v?.takeIf { it.isFinite() }?.let { t.seekTo((it.coerceAtLeast(0.0) * 1000).toLong()) }
         }
     }
 

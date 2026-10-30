@@ -93,14 +93,17 @@ import dev.omalauncher.pp.ui.appIconOf
 import dev.omalauncher.pp.ui.open
 import dev.omalauncher.pp.ui.recentApps
 import dev.omalauncher.pp.widgets.runtime.Alarm
+import dev.omalauncher.pp.widgets.runtime.Location
 import dev.omalauncher.pp.widgets.runtime.Media
 import dev.omalauncher.pp.widgets.runtime.Modes
 import dev.omalauncher.pp.widgets.runtime.Notifications
 import dev.omalauncher.pp.widgets.runtime.Services
 import dev.omalauncher.pp.widgets.runtime.Sim
+import dev.omalauncher.pp.widgets.runtime.Steps
 import dev.omalauncher.pp.widgets.runtime.Streams
 import dev.omalauncher.pp.widgets.runtime.SystemPanels
 import dev.omalauncher.pp.widgets.runtime.Volume
+import dev.omalauncher.pp.widgets.runtime.WidgetPermissions
 import dev.omalauncher.pp.widgets.runtime.watchFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -184,6 +187,8 @@ class WidgetServices(
     private val modes = Modes(context)
     private val sim = Sim(context)
     private val panels = SystemPanels(context)
+    private val location = Location(context)
+    private val steps = Steps(context)
 
     /** Opens launcher screens ("style" or "themes", "agents", "drawer"); set by the UI. */
     var launcherAction: ((String) -> Unit)? = null
@@ -234,6 +239,8 @@ class WidgetServices(
             "recent" -> recent()
             "drawer" -> drawer()
             "modifiers" -> modifiers()
+            "location" -> location.value()
+            "steps" -> steps.value()
             else -> throw WidgetError("unknown android source $name")
         }
 
@@ -251,6 +258,8 @@ class WidgetServices(
             "alarm" -> alarm.updates()
             "modes" -> modes.updates()
             "sim" -> sim.updates()
+            "location" -> location.updates()
+            "steps" -> steps.updates()
             // Both read Compose state: the app list and its usage, the installed agents and the one picked.
             "apps" -> snapshotFlow { apps() }
             "agents" -> snapshotFlow { agents() }
@@ -687,7 +696,7 @@ class WidgetServices(
             // Any scheme an app handles: tel:, geo:, mailto:, ... One nothing handles mustn't crash the launcher.
             "url" -> if (!context.openUrl(arg)) Toast.makeText(context, context.getString(R.string.widgets_no_app_opens, arg), Toast.LENGTH_SHORT).show()
             "launcher" -> launcherAction?.invoke(arg)
-            "media" -> media.control(arg)
+            "media" -> media.control(arg, args.getOrNull(1))
             "volume" -> volume.control(args[0], args.getOrNull(1).textOrNull())
             "notification" -> notifications.control(arg, args.getOrNull(1).textOrNull(), args.getOrNull(2))
             "settings" -> panels.open(arg, media.playingPackage())
@@ -712,6 +721,7 @@ class WidgetServices(
             "appAction" -> args.getOrNull(1).textOrNull()?.let { appAction(arg, it) }
             "workApps" -> workApps(arg)
             "privateSpace" -> privateSpace(arg)
+            "permission" -> WidgetPermissions.request(context, arg)
         }
         // Anything the action changed should show up without waiting for the next interval.
         scope.launch {

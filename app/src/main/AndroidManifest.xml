@@ -23,6 +23,17 @@
          locked. -->
     <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES" />
 
+    <!-- Widgets' android.location and android.steps, each asked for only from a tap on a widget that
+         uses it (permission(...) in owl, WidgetPermissions.kt). Coarse only: a city for the weather. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-feature
+        android:name="android.hardware.location"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.sensor.stepcounter"
+        android:required="false" />
+
     <uses-feature
         android:name="android.software.live_wallpaper"
         android:required="false" />
