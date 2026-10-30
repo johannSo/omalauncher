@@ -105,6 +105,9 @@ class Runtime(
     private val audio = AudioBridge(proot)
     private val openBridge = OpenBridge(context, proot, onOpenFiles = ::openFiles, onEdit = ::edit)
     val agents = AgentStore(proot, onChanged = ::syncGuest)
+
+    /** Linux apps' notifications, from the guest's session bus. */
+    val notifications = LinuxNotifications(context, proot, linuxApps, ::focusApp)
     val pacman = Pacman(context, proot)
     val widgets = WidgetEngine(context, proot, this)
 
@@ -125,6 +128,7 @@ class Runtime(
                 { defaultApps(proot.applications) },
                 { bundledIcons(context, proot.home) },
                 openBridge::managed,
+                notifications::managed,
                 proot::managed,
                 pacman::managed,
                 agents::managed,
@@ -299,6 +303,7 @@ class Runtime(
                 linux = false
                 widgets.linuxChanged(false)
                 audio.stop()
+                notifications.stop()
                 bootstrap.shutDown(proot::killAll)
                 linuxApps.clear()
                 setService(false)
@@ -338,6 +343,7 @@ class Runtime(
                 launcherFont.forget()
                 widgets.linuxChanged(false)
                 audio.stop()
+                notifications.stop()
                 withContext(Dispatchers.IO) { proot.killAll() }
                 bootstrap.remove()
                 withContext(Dispatchers.IO) {
@@ -398,6 +404,7 @@ class Runtime(
         withContext(Dispatchers.IO) {
             provisioner.sync()
             audio.start()
+            notifications.start()
             synchronized(server) { server.input.setKeymap(proot.keymap.path) }
             agents.load()
         }
@@ -627,6 +634,14 @@ class Runtime(
             .firstOrNull { (it.appId.isNotEmpty() && app.matches(it.appId)) || it.title.equals(app.name, ignoreCase = true) }
             ?.let { if (bringToFront(it)) return }
         launch(app.exec)
+    }
+
+    /** A Linux notification was tapped: its app's window comes to the front, a terminal app's too, or the app opens. */
+    private fun focusApp(app: LinuxApp) {
+        wm.appWindows
+            .firstOrNull { (it.appId.isNotEmpty() && app.matches(it.appId)) || displayName(it.appId, it.title) == app.name }
+            ?.let { if (bringToFront(it)) return }
+        launch(app)
     }
 
     /** Moves [window]'s Android task to the front; false if it has none (yet). */

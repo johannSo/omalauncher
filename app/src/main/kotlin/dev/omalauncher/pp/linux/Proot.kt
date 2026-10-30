@@ -178,6 +178,8 @@ class Proot(
                 "EDITOR=$EDIT_COMMAND",
                 "VISUAL=$EDIT_COMMAND",
                 "XDG_RUNTIME_DIR=$GUEST_RUNTIME_DIR",
+                // The session bus NotificationServer runs; apps reach the launcher's notifications through it.
+                "DBUS_SESSION_BUS_ADDRESS=unix:path=$GUEST_RUNTIME_DIR/bus",
                 "WAYLAND_DISPLAY=${waylandSocket.name}",
                 "XDG_SESSION_TYPE=wayland",
                 "GDK_BACKEND=wayland",
