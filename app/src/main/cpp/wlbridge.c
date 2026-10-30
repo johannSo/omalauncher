@@ -311,6 +311,27 @@ JNIEXPORT jboolean JNICALL FN(windowBegin)(JNIEnv *env, jclass cls, jlong ptr, j
 // Draws a store at (dx, dy), scaled to dw x dh window pixels (nearest
 // neighbour when the client's buffer scale differs from ours), clipped to the
 // locked rect. Premultiplied source-over unless the store is opaque.
+/**
+ * The average of the k x k block of store pixels from (sx, sy). A window drawn at a whole fraction of its client's
+ * scale (the desktop on a monitor) would otherwise take every k-th pixel, and its text would come out ragged.
+ * Premultiplied, so each channel averages as it is.
+ */
+static uint32_t box_average(const Store *st, int sx, int sy, int k) {
+    uint32_t a = 0, r = 0, g = 0, b = 0;
+    for (int j = 0; j < k; j++) {
+        const uint32_t *row = st->px + (size_t) (sy + j) * st->width + sx;
+        for (int i = 0; i < k; i++) {
+            uint32_t p = row[i];
+            a += p >> 24;
+            r += (p >> 16) & 0xff;
+            g += (p >> 8) & 0xff;
+            b += p & 0xff;
+        }
+    }
+    uint32_t n = (uint32_t) (k * k);
+    return (a / n) << 24 | (r / n) << 16 | (g / n) << 8 | (b / n);
+}
+
 JNIEXPORT void JNICALL FN(windowBlit)(JNIEnv *env, jclass cls, jlong ptr, jlong store, jint dx, jint dy, jint dw, jint dh,
                                       jboolean opaque) {
     Window *win = (Window *) (intptr_t) ptr;
@@ -325,6 +346,9 @@ JNIEXPORT void JNICALL FN(windowBlit)(JNIEnv *env, jclass cls, jlong ptr, jlong 
     // 16.16 fixed-point steps from window to store pixels.
     uint32_t sx = ((uint32_t) st->width << 16) / (uint32_t) dw;
     uint32_t sy = ((uint32_t) st->height << 16) / (uint32_t) dh;
+    // Exactly 2, 3 or 4 store pixels to a window pixel each way: averaged rather than picked.
+    int k = scaled && dw < st->width ? st->width / dw : 0;
+    int box = k >= 2 && k <= 4 && st->width == dw * k && st->height == dh * k ? k : 0;
     for (int y = y0; y < y1; y++) {
         int srcY = scaled ? (int) (((uint32_t) (y - dy) * sy) >> 16) : y - dy;
         const uint32_t *src = st->px + (size_t) srcY * st->width;
@@ -344,7 +368,8 @@ JNIEXPORT void JNICALL FN(windowBlit)(JNIEnv *env, jclass cls, jlong ptr, jlong 
                     continue;
                 }
             }
-            uint32_t s = src[scaled ? (int) (((uint32_t) (x - dx) * sx) >> 16) : x - dx];
+            uint32_t s = box ? box_average(st, (x - dx) * box, (y - dy) * box, box)
+                             : src[scaled ? (int) (((uint32_t) (x - dx) * sx) >> 16) : x - dx];
             uint32_t a = s >> 24;
             if (opaque || a == 255) {
                 dst[x] = s;

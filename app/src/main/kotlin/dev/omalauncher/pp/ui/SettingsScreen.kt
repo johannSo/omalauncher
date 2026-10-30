@@ -41,6 +41,7 @@ import dev.omalauncher.pp.Backup
 import dev.omalauncher.pp.LocalNetwork
 import dev.omalauncher.pp.R
 import dev.omalauncher.pp.Runtime
+import dev.omalauncher.pp.desktop.desktopSubtitle
 import dev.omalauncher.pp.linux.JobState
 import dev.omalauncher.pp.linux.LinuxState
 import dev.omalauncher.pp.widgets.Market
@@ -62,6 +63,7 @@ fun SettingsScreen(
     onLinux: () -> Unit,
     onLicenses: () -> Unit,
     onGestures: () -> Unit,
+    onDesktop: () -> Unit,
 ) {
     val context = LocalContext.current
     val linux by runtime.bootstrap.state.collectAsState()
@@ -104,6 +106,7 @@ fun SettingsScreen(
                 languageRow(),
                 backupRow(runtime),
                 SettingsRow(R.string.settings_linux, linuxStatus, onLinux),
+                SettingsRow(R.string.desktop_settings, desktopSubtitle(runtime), onDesktop),
                 if (installed) {
                     SettingsRow(
                         R.string.settings_agents,

@@ -19,6 +19,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import dev.omalauncher.pp.Runtime
+import dev.omalauncher.pp.desktop.DesktopSettingsScreen
 import dev.omalauncher.pp.linux.LinuxState
 
 /** The screens of the settings activity; each can also be opened on its own, from home or a widget. */
@@ -42,6 +43,9 @@ enum class SettingsPage {
     Linux,
     Licenses,
     Gestures,
+
+    /** The tiling desktop for Linux windows (desktop/). */
+    Desktop,
 }
 
 /** Opens [page] over the ones in [stack]; one that's already open comes back to the top, closing what's over it. */
@@ -115,6 +119,7 @@ private fun SettingsPage(
                 onLinux = { stack.push(SettingsPage.Linux) },
                 onLicenses = { stack.push(SettingsPage.Licenses) },
                 onGestures = { stack.push(SettingsPage.Gestures) },
+                onDesktop = { stack.push(SettingsPage.Desktop) },
             )
         SettingsPage.Style -> StyleScreen(runtime, onDismiss = close, onBrowse = { stack.push(SettingsPage.Themes) }, onAgent = ::agent)
         SettingsPage.Pages -> {
@@ -162,5 +167,6 @@ private fun SettingsPage(
         SettingsPage.Linux -> LinuxScreen(runtime, onDismiss = close)
         SettingsPage.Licenses -> LicensesScreen(onDismiss = close)
         SettingsPage.Gestures -> GesturesScreen(runtime, onDismiss = close, onAgent = ::agent)
+        SettingsPage.Desktop -> DesktopSettingsScreen(runtime, onDismiss = close)
     }
 }

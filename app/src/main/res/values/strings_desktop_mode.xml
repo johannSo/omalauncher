@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The tiling desktop for Linux windows, on a monitor or a large screen (desktop/). -->
+<resources>
+    <string name="desktop_title">desktop</string>
+    <string name="desktop_notification_channel">monitor</string>
+    <string name="desktop_notification_title">%1$s plugged in</string>
+    <string name="desktop_notification_text">tap to open the Omarchy desktop on it</string>
+    <string name="desktop_terminal">terminal</string>
+    <string name="desktop_keys">super+enter terminal · super+1–9 workspace · super+shift+1–9 move there · super+arrows focus · super+shift+arrows swap · super+f fullscreen · super+v float (super+drag moves it, right button resizes) · super+w close</string>
+    <string name="desktop_settings_title">desktop</string>
+    <string name="desktop_settings">desktop</string>
+    <string name="desktop_settings_subtitle">tiling Linux windows on a monitor or tablet</string>
+    <string name="desktop_on_monitor">open on a monitor</string>
+    <string name="desktop_on_screen">open on this screen</string>
+    <string name="desktop_external">monitor plugged in</string>
+    <string name="desktop_external_ask">ask</string>
+    <string name="desktop_external_auto">open the desktop</string>
+    <string name="desktop_external_off">nothing</string>
+    <string name="desktop_large_screens">this screen</string>
+    <string name="desktop_on">desktop</string>
+    <string name="desktop_off">a task per window</string>
+    <string name="desktop_large_screens_hint">On a tablet or unfolded foldable, Linux windows open side by side in the desktop instead of each in its own task.</string>
+    <string name="desktop_large_screens_small">For tablets and unfolded foldables: this screen is narrower than 600dp, so windows keep a task each here.</string>
+    <string name="desktop_no_monitor">no monitor plugged in</string>
+    <string name="desktop_open">open</string>
+    <string name="desktop_open_there">desktop open</string>
+    <string name="desktop_not_allowed">Android keeps it to mirroring</string>
+    <string name="desktop_open_here">open on this screen</string>
+    <string name="desktop_style_hint">Gaps, borders, the bar and the monitor\'s scale: [desktop] in ~/.config/omalauncher/style/style.toml.</string>
+</resources>

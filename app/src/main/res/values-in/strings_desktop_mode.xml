@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The tiling desktop for Linux windows, on a monitor or a large screen (desktop/). -->
+<resources>
+    <string name="desktop_title">desktop</string>
+    <string name="desktop_notification_channel">monitor</string>
+    <string name="desktop_notification_title">%1$s tersambung</string>
+    <string name="desktop_notification_text">ketuk untuk membuka desktop Omarchy di sana</string>
+    <string name="desktop_terminal">terminal</string>
+    <string name="desktop_keys">super+enter terminal · super+1–9 ruang kerja · super+shift+1–9 pindahkan ke sana · super+panah fokus · super+shift+panah tukar · super+f layar penuh · super+v mengambang (super+seret memindahkannya, tombol kanan mengubah ukurannya) · super+w tutup</string>
+    <string name="desktop_settings_title">desktop</string>
+    <string name="desktop_settings">desktop</string>
+    <string name="desktop_settings_subtitle">jendela Linux bersusun di monitor atau tablet</string>
+    <string name="desktop_on_monitor">terbuka di monitor</string>
+    <string name="desktop_on_screen">terbuka di layar ini</string>
+    <string name="desktop_external">saat monitor tersambung</string>
+    <string name="desktop_external_ask">tanya</string>
+    <string name="desktop_external_auto">buka desktop</string>
+    <string name="desktop_external_off">tidak ada</string>
+    <string name="desktop_large_screens">layar ini</string>
+    <string name="desktop_on">desktop</string>
+    <string name="desktop_off">satu tugas per jendela</string>
+    <string name="desktop_large_screens_hint">Di tablet atau ponsel lipat yang terbuka, jendela Linux terbuka berdampingan di desktop, bukan masing-masing di tugasnya sendiri.</string>
+    <string name="desktop_large_screens_small">Untuk tablet dan ponsel lipat yang terbuka: layar ini lebih sempit dari 600dp, jadi di sini setiap jendela tetap punya tugasnya sendiri.</string>
+    <string name="desktop_no_monitor">tidak ada monitor tersambung</string>
+    <string name="desktop_open">buka</string>
+    <string name="desktop_open_there">desktop terbuka</string>
+    <string name="desktop_not_allowed">Android hanya mencerminkannya</string>
+    <string name="desktop_open_here">buka di layar ini</string>
+    <string name="desktop_style_hint">Celah, bingkai, bilah, dan skala monitor: [desktop] di ~/.config/omalauncher/style/style.toml.</string>
+</resources>
