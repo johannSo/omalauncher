@@ -4,7 +4,7 @@ The most important changes in each release. From 1.0.0 on they're OmaLauncher++'
 dated when they were released on GitHub. The ones before are Omalauncher's, dated
 when they were uploaded to Play.
 
-## Unreleased
+## 2.0.0-pre.1 (versionCode 29) – 2026-10-30
 
 - The bar searches everything: sums and unit conversions, Android's settings pages, apps' shortcuts, contacts
   (opt-in), files in Linux's home, pacman and AUR packages, and the web, each kind switched in settings › search.
