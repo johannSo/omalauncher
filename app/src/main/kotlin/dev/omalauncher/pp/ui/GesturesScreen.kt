@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.omalauncher.pp.AppTweakStore
 import dev.omalauncher.pp.GestureAccessibility
 import dev.omalauncher.pp.R
 import dev.omalauncher.pp.Runtime
@@ -247,12 +248,17 @@ private fun AppPicker(
     var query by remember { mutableStateOf("") }
     val android = stringResource(R.string.gesture_app_android)
     val linux = stringResource(R.string.gesture_app_linux)
-    // The launcher's own profile only: an action names no other.
+    // The launcher's own profile only: an action names no other. Apps hidden in apps.toml stay out, as in the drawer.
+    val tweaks = AppTweakStore.current
     val apps =
-        remember(runtime.androidApps.apps.toList(), runtime.linuxApps.apps.toList()) {
+        remember(runtime.androidApps.apps.toList(), runtime.linuxApps.apps.toList(), tweaks) {
             (
-                runtime.androidApps.apps.filter { it.profile == null && !it.privateSpace }.map { Triple(it.label, android, GestureAction.OpenApp(it.component.flattenToShortString())) } +
-                    runtime.linuxApps.apps.map { Triple(it.name, linux, GestureAction.OpenLinuxApp(it.id)) }
+                runtime.androidApps.apps
+                    .filter { it.profile == null && !it.privateSpace && !tweaks.hidden("a:" + it.key) }
+                    .map { Triple(tweaks.label("a:" + it.key, it.label), android, GestureAction.OpenApp(it.component.flattenToShortString())) } +
+                    runtime.linuxApps.apps
+                        .filterNot { tweaks.hidden("l:" + it.id) }
+                        .map { Triple(tweaks.label("l:" + it.id, it.name), linux, GestureAction.OpenLinuxApp(it.id)) }
             ).sortedBy { it.first.lowercase() }
         }
     val shown = apps.filter { query.isBlank() || it.first.contains(query.trim(), ignoreCase = true) }
