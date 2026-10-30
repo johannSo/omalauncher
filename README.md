@@ -65,6 +65,68 @@ has the themes, wallpapers, Android apps and the widgets that don't run commands
   until you start it again
 - **Mali on the Pixel 6 and 6a**: the pinned PanVK-kbase is RC3, which knows
   the Mali-G78
+- **The bar searches everything**: besides apps, it does sums and unit
+  conversions ("15% of 80", "5 km in mi"; Enter copies), and finds Android's
+  settings pages, apps' shortcuts, contacts (opt-in), files in Linux's home,
+  pacman and AUR packages ("install btop") and the web. An app the text names
+  still opens on Enter; settings › search, or `[search]` in `style.toml`,
+  turns each kind on or off
+- **Hidden and renamed apps**: hide any app from the drawer, recent apps and
+  search, or give it another name everywhere, from its long-press menu or
+  settings › hidden apps. Typing a hidden app's full name still finds it unless
+  you turn that off. Both live in `~/.config/omalauncher/apps/apps.toml`
+- **More gestures**: double tap, two-finger swipes up and down, and pinches in
+  and out, besides swiping up and down. Each opens the drawer, a panel, the
+  shade or quick settings, locks the screen, shows recent apps, launches an
+  Android or Linux app, runs a command or asks your agent (settings › gestures,
+  or `double-tap = "lock"` in `style.toml`). Locking and recents use an opt-in
+  accessibility service that reads nothing on screen
+- **Focus mode and app timers** (settings › focus): profiles like "work" hide
+  the apps they leave out from the drawer, search, recent apps and home, can
+  turn on Do Not Disturb, and switch on by schedule or by typing
+  `focus work 25m` in the bar. An app timer gives an app a daily limit, after
+  which it opens to a "time's up" screen. Widgets get today's screen time
+- **Quick settings tiles**: Linux (running or off, a tap starts or shuts it
+  down), Terminal and Ask agent, added from settings › quick settings tiles
+- **Tiling desktop**: plug the phone into a monitor and Linux windows open side
+  by side on it in Hyprland's dwindle layout, with Omarchy's gaps, borders and
+  a bar, while the phone keeps working. Super+1–9, Super+arrows, Super+F and
+  Super+V work as in Hyprland, and unplugging gives every window its own task
+  again. On tablets and foldables, `desktop.large-screens` opens windows in
+  the desktop on the device's own screen
+- **Linux notifications**: `notify-send`, GTK apps and build tools post Android
+  notifications with their app's name and icon, formatted text, images and
+  buttons; a tap brings the app's window back. The launcher runs the guest's
+  D-Bus session bus for this
+- **Snapshots of Linux** (settings › linux › snapshots): one is taken before
+  every system update, and restoring it rolls back an update that broke
+  something. Snapshots share unchanged files, and a restore swaps the whole
+  system at once, keeping /root and /home unless you roll them back too
+- **SSH into Linux** (settings › linux › ssh): an OpenSSH server on port 8022,
+  keys only by default, with the `ssh` command and a QR code for each of the
+  phone's addresses. The same page lists the servers Linux listens on, to open
+  in the phone's browser or share on the LAN
+- **Coding agent status**: Claude Code and Codex sessions each get a
+  notification showing whether they're working, waiting for you or asking
+  permission; Allow and Deny answer from the notification, and a tap opens the
+  session's terminal
+- **Scheduled agent jobs** (settings › agents › jobs, or
+  `~/.config/omalauncher/jobs/jobs.toml`): a prompt, an agent and a schedule
+  (`daily at 07:00`, `weekdays at 9`, a cron line). Jobs run headless on time
+  through Doze, Linux starts for them, and their output shows in the jobs
+  screen, a notification and the jobs widget
+- **MCP server**: `omalauncher-mcp` lets coding agents change home, widgets,
+  the theme and the style through tools that check each change first, list
+  and open apps, and preview widgets. It's added to Claude Code, Codex,
+  OpenCode, Copilot, Crush and Cursor's configs by itself
+- **Widgets that talk to other apps**: `intent(...)` and `broadcast(...)` reach
+  Tasker, Home Assistant or KDE Connect, a `broadcast("…")` source hears them,
+  and with settings › values from other apps on, they can set values a widget
+  reads from `source ext = external`
+- **Location, steps and seeking for widgets**: `android.location` (rough, with
+  the place's name) and `android.steps`, each asked for from a tap on a widget
+  that says why, and `media("seek", seconds)`. The today tile can show the
+  weather where you are
 
 The icon options, the letter rail and swipe-down come from
 [Omalauncher+](https://github.com/adrianratajczak/Omalauncher-Plus) by

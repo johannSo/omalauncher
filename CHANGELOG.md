@@ -4,6 +4,34 @@ The most important changes in each release. From 1.0.0 on they're OmaLauncher++'
 dated when they were released on GitHub. The ones before are Omalauncher's, dated
 when they were uploaded to Play.
 
+## Unreleased
+
+- The bar searches everything: sums and unit conversions, Android's settings pages, apps' shortcuts, contacts
+  (opt-in), files in Linux's home, pacman and AUR packages, and the web, each kind switched in settings › search.
+- Any app can be hidden from the drawer, recent apps and search, or renamed everywhere (settings › hidden apps,
+  `apps.toml`).
+- Home has double tap, two-finger swipes and pinches, and every gesture can open a panel, an app, the shade, quick
+  settings or recent apps, lock the screen, run a command or ask the agent.
+- Focus mode hides what a profile leaves out and can turn on Do Not Disturb, by hand, by schedule or with
+  `focus work` in the bar; app timers give apps a daily limit; widgets get `android.usage` and `android.focus`.
+- Quick settings tiles: Linux, Terminal and Ask agent.
+- A tiling desktop for Linux windows on a monitor, Hyprland's dwindle layout with its keys, and on tablets and
+  foldables if `desktop.large-screens` is on.
+- Linux apps' notifications are Android notifications, with their icon, text, images and buttons; the guest has a
+  D-Bus session bus for it.
+- Snapshots of Linux before each system update, and restoring one to roll back (settings › linux › snapshots).
+- An SSH server into Linux on port 8022, keys only by default, and the servers Linux listens on, to open or share
+  on the LAN (settings › linux › ssh).
+- Claude Code and Codex sessions each have a notification with their status, and Allow and Deny for permission
+  requests.
+- Scheduled agent jobs: a prompt, an agent and a schedule in `jobs.toml` or settings › agents › jobs, run headless
+  on time, with their output in the jobs screen, a notification and the jobs widget.
+- `omalauncher-mcp`, an MCP server that lets coding agents change home, widgets, the theme and the style through
+  tools that check each change first, added to the agents' configs by itself.
+- Widgets reach other apps with `intent(...)` and `broadcast(...)`, hear their broadcasts, and take values they
+  set; they also get `android.location`, `android.steps` and `media("seek", seconds)`. These are this fork's owl 17
+  additions.
+
 ## 1.0.1 (versionCode 28) – 2026-10-30
 
 - OmaLauncher++ has an icon of its own: a terminal window in Hyprland's border with a prompt
