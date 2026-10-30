@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Android 17+: widgets and Linux reaching 192.168.x and other local addresses. Asked for
@@ -22,6 +23,14 @@
          the default home app, which must keep its apps out of sight, search included, while it's
          locked. -->
     <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES" />
+
+    <!-- Focus mode and app timers (focus/): today's screen time per app, a special access the user grants in
+         Android's settings, asked for only by a timer or a widget that shows it; and Do Not Disturb while a focus
+         profile asks for it, once the user lets the launcher switch it. -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
 
     <uses-feature
         android:name="android.software.live_wallpaper"
@@ -364,6 +373,30 @@
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
+        </service>
+
+        <!-- Focus mode's time's-up screen, in place of an app it leaves out or one whose time is up; out of Recents. -->
+        <activity
+            android:name=".focus.TimesUpActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|density|uiMode"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="${applicationId}.timesup"
+            android:theme="@style/Theme.Omalauncher.Window" />
+
+        <!-- Opt-in, from settings › focus: focus mode and app timers for apps opened outside the launcher. -->
+        <service
+            android:name=".focus.FocusGuard"
+            android:exported="true"
+            android:label="@string/focus_guard_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/focus_guard" />
         </service>
 
         <service

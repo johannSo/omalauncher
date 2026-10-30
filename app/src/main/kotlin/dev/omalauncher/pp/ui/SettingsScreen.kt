@@ -62,6 +62,7 @@ fun SettingsScreen(
     onLinux: () -> Unit,
     onLicenses: () -> Unit,
     onGestures: () -> Unit,
+    onFocus: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val linux by runtime.bootstrap.state.collectAsState()
@@ -101,6 +102,7 @@ fun SettingsScreen(
                     stringResource(R.string.settings_gestures_subtitle, runtime.gestureLabel(runtime.gestures.swipeUp), runtime.gestureLabel(runtime.gestures.swipeDown)),
                     onGestures,
                 ),
+                SettingsRow(R.string.focus_title, dev.omalauncher.pp.focus.focusSubtitle(runtime), onFocus),
                 languageRow(),
                 backupRow(runtime),
                 SettingsRow(R.string.settings_linux, linuxStatus, onLinux),

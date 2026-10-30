@@ -101,6 +101,9 @@ class Runtime(
     val androidApps = AndroidAppCatalog(context, iconPacks)
     val appWidgets = AppWidgetCatalog(context)
     val usage = AppUsage(context)
+
+    /** Focus mode and app timers: which apps show and open now; see [dev.omalauncher.pp.focus.Focus]. */
+    val focus = dev.omalauncher.pp.focus.Focus(context, androidApps)
     val themes = ThemeStore(context, proot, style, isLinux = { linux }, onConfigChanged = ::syncGuest)
     private val audio = AudioBridge(proot)
     private val openBridge = OpenBridge(context, proot, onOpenFiles = ::openFiles, onEdit = ::edit)

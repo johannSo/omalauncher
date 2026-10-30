@@ -74,6 +74,8 @@ class SystemPanels(
                 "dark" to listOf("android.settings.DARK_THEME_SETTINGS", Settings.ACTION_DISPLAY_SETTINGS),
                 "battery" to listOf(Settings.ACTION_BATTERY_SAVER_SETTINGS),
                 "notifications" to listOf("android.settings.NOTIFICATION_SETTINGS", Settings.ACTION_SETTINGS),
+                // Usage access, which android.usage needs (focus/ScreenTime.kt).
+                "usage" to listOf(Settings.ACTION_USAGE_ACCESS_SETTINGS),
             )
     }
 }

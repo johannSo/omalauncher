@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="focus_title">fokus</string>
+    <string name="focus_subtitle_on">aktif: %1$s</string>
+    <plurals name="focus_timers_count">
+        <item quantity="other">%1$d timer aplikasi</item>
+    </plurals>
+
+    <string name="focus_profiles">mode fokus</string>
+    <string name="focus_profiles_hint">Selama profil aktif, aplikasi yang tidak termasuk di dalamnya disembunyikan dari laci, pencarian, aplikasi terbaru, dan layar utama. Ketik juga focus dan nama profil, atau focus off, di bilah; focus kerja 25m membuatnya aktif selama 25 menit.</string>
+    <string name="focus_new_profile">profil baru</string>
+    <string name="focus_create">buat</string>
+    <string name="focus_name_taken">profil lain sudah memakai nama itu, atau itu kata yang dipakai bilah (off)</string>
+    <string name="focus_turn_on">aktifkan</string>
+    <string name="focus_turn_off">nonaktifkan</string>
+    <string name="focus_edit">edit</string>
+    <string name="focus_delete">hapus</string>
+    <string name="focus_delete_title">hapus %1$s?</string>
+    <string name="focus_delete_message">Profil dihapus, beserta aplikasi dan jadwalnya. Aplikasi Anda tetap seperti semula.</string>
+    <string name="focus_until_off">sampai dinonaktifkan</string>
+    <string name="focus_for">selama %1$s</string>
+    <string name="focus_status_off">nonaktif</string>
+    <string name="focus_status_on">aktif</string>
+    <string name="focus_status_until">aktif sampai %1$s</string>
+    <string name="focus_status_scheduled">aktif sesuai jadwal sampai %1$s</string>
+    <plurals name="focus_allows_apps">
+        <item quantity="other">mengizinkan %1$d aplikasi</item>
+    </plurals>
+    <plurals name="focus_blocks_apps">
+        <item quantity="other">menyembunyikan %1$d aplikasi</item>
+    </plurals>
+
+    <string name="focus_rename">ganti nama</string>
+    <string name="focus_apps_mode">aplikasi</string>
+    <string name="focus_apps_only">hanya ini</string>
+    <string name="focus_apps_except">semua kecuali ini</string>
+    <string name="focus_dnd">jangan ganggu</string>
+    <string name="focus_yes">aktif</string>
+    <string name="focus_no">nonaktif</string>
+    <string name="focus_dnd_needed">Android harus mengizinkan launcher mengubah Jangan Ganggu terlebih dahulu.</string>
+    <string name="focus_schedule">jadwal</string>
+    <string name="focus_schedule_none">tidak ada</string>
+    <string name="focus_schedule_weekly">mingguan</string>
+    <string name="focus_schedule_from">dari</string>
+    <string name="focus_schedule_to">sampai</string>
+    <string name="focus_schedule_no_days">Pilih hari saat profil aktif.</string>
+    <string name="focus_apps">aplikasi</string>
+    <string name="focus_search_apps">cari aplikasi</string>
+    <string name="focus_kind_linux">linux</string>
+    <string name="focus_kind_owl">owl</string>
+    <string name="focus_kind_shortcut">pintasan</string>
+
+    <string name="focus_timers">timer aplikasi</string>
+    <string name="focus_timers_hint">Batas harian per aplikasi Android. Setelah habis, membuka aplikasi dari launcher menampilkan layar waktu habis terlebih dahulu. Tekan lama aplikasi untuk timernya juga.</string>
+    <string name="focus_add_timer">tambah timer</string>
+    <string name="focus_pick_app">pilih aplikasi</string>
+    <string name="focus_limit_title">%1$s per hari</string>
+    <string name="focus_no_limit">tanpa batas</string>
+    <string name="focus_remove">hapus</string>
+    <string name="focus_timer_used">%1$s dari %2$s hari ini</string>
+    <string name="focus_usage_needed">Timer menghitung waktu layar setiap aplikasi, yang hanya dibagikan Android dengan akses penggunaan.</string>
+    <string name="focus_allow">izinkan</string>
+    <string name="focus_action_timer">timer aplikasi</string>
+
+    <string name="focus_outside">di luar launcher</string>
+    <string name="focus_guard_explain">Timer dan mode fokus menghentikan aplikasi yang dibuka dari OmaLauncher++. Untuk menghentikannya di mana pun dibuka, dari notifikasi, aplikasi lain, atau Terbaru, aktifkan OmaLauncher++ focus di setelan aksesibilitas Android. Fitur ini hanya membaca aplikasi mana yang ada di depan, tidak pernah isi layar atau yang Anda ketik, dan tidak pernah menghentikan Setelan, aplikasi telepon, atau keyboard. Android mungkin meminta Anda mengizinkan setelan terbatas di info aplikasi launcher terlebih dahulu, seperti untuk aplikasi yang bukan dari toko. Nonaktif kecuali Anda mengaktifkannya.</string>
+    <string name="focus_guard_on">aktif</string>
+    <string name="focus_guard_off">nonaktif</string>
+    <string name="focus_guard_open">setelan aksesibilitas</string>
+    <string name="focus_file_hint">Agen dapat mengedit semua ini di ~/.config/omalauncher/focus/focus.toml.</string>
+
+    <string name="focus_guard_label">OmaLauncher++ focus</string>
+    <string name="focus_guard_summary">Mode fokus dan timer aplikasi untuk aplikasi yang dibuka di luar launcher</string>
+    <string name="focus_guard_description">Memungkinkan mode fokus dan timer aplikasi OmaLauncher++ menghentikan aplikasi yang dibuka di luar launcher: dari notifikasi, aplikasi lain, atau Terbaru. Hanya membaca aplikasi mana yang ada di depan, tidak pernah isi layar atau yang Anda ketik, dan tidak ada yang keluar dari ponsel. Setelan, aplikasi telepon, dan keyboard tidak pernah dihentikan.</string>
+
+    <string name="focus_times_up_title">waktu habis</string>
+    <string name="focus_times_up_message">%1$s: %2$s hari ini, dari %3$s per hari</string>
+    <string name="focus_times_up_hint">tetap buka membiarkannya selama sisa hari ini</string>
+    <string name="focus_hidden_title">tidak sekarang</string>
+    <string name="focus_hidden_message">%1$s tidak ada di profil fokus %2$s</string>
+    <string name="focus_one_more_minute">1 menit lagi</string>
+    <string name="focus_open_anyway">tetap buka</string>
+    <string name="focus_close">tutup</string>
+    <string name="focus_duration_hours">%1$d j %2$d mnt</string>
+    <string name="focus_duration_minutes">%1$d mnt</string>
+
+    <string name="focus_toast_on">fokus: %1$s</string>
+    <string name="focus_toast_until">fokus: %1$s sampai %2$s</string>
+    <string name="focus_toast_off">fokus nonaktif</string>
+</resources>

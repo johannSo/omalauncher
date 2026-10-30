@@ -18,6 +18,7 @@ panel "app drawer" {
       private: "private"; privateApps: "private apps"; privateLocked: "private space locked"; privateSpace: "private space"
       widgets: "widgets"; install: "install"; lock: "lock"; unlock: "unlock"; unlockPrivate: "unlock private space"; hideWhileLocked: "hide while locked"
       shownOn: "on"; shownOff: "off"; startLinux: "start linux"
+      timer: "app timer"
     }
     id {
       personal: "pribadi"; work: "kerja"; apps: "aplikasi"; linux: "linux"; shortcuts: "pintasan"; android: "android"
@@ -29,6 +30,7 @@ panel "app drawer" {
       private: "privat"; privateApps: "aplikasi privat"; privateLocked: "ruang privat terkunci"; privateSpace: "ruang privat"
       widgets: "widget"; install: "instal"; lock: "kunci"; unlock: "buka kunci"; unlockPrivate: "buka kunci ruang privat"; hideWhileLocked: "sembunyikan saat terkunci"
       shownOn: "aktif"; shownOff: "nonaktif"; startLinux: "mulai linux"
+      timer: "timer aplikasi"
     }
     es {
       personal: "personal"; work: "trabajo"; apps: "apps"; linux: "linux"; shortcuts: "accesos directos"; android: "android"
@@ -40,6 +42,7 @@ panel "app drawer" {
       private: "privado"; privateApps: "apps privadas"; privateLocked: "espacio privado bloqueado"; privateSpace: "espacio privado"
       widgets: "widgets"; install: "instalar"; lock: "bloquear"; unlock: "desbloquear"; unlockPrivate: "desbloquear espacio privado"; hideWhileLocked: "ocultar al bloquear"
       shownOn: "sí"; shownOff: "no"; startLinux: "iniciar linux"
+      timer: "temporizador"
     }
     pt {
       personal: "pessoal"; work: "trabalho"; apps: "apps"; linux: "linux"; shortcuts: "atalhos"; android: "android"
@@ -51,6 +54,7 @@ panel "app drawer" {
       private: "privado"; privateApps: "apps privados"; privateLocked: "espaço privado bloqueado"; privateSpace: "espaço privado"
       widgets: "widgets"; install: "instalar"; lock: "bloquear"; unlock: "desbloquear"; unlockPrivate: "desbloquear espaço privado"; hideWhileLocked: "ocultar quando bloqueado"
       shownOn: "ativado"; shownOff: "desativado"; startLinux: "iniciar linux"
+      timer: "timer do app"
     }
   }
   source d = android.drawer

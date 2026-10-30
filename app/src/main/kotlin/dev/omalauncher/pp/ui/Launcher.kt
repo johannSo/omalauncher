@@ -184,6 +184,11 @@ private fun DesktopScreen(
                     state.closeNow()
                     state.pickingWidget = WidgetPick(app.component.packageName)
                 },
+                timer = { app ->
+                    state.closeNow()
+                    runtime.focus.pickingTimer = app.component.packageName
+                    state.show(SettingsPage.Focus)
+                },
             )
         }
 

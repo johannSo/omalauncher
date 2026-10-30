@@ -167,7 +167,10 @@ internal val SINCE =
         // owl 17: a list pulled down past its top, to fetch again.
         mapOf("onPull" to 17) +
         // owl 17: servers with a certificate of their own, pinned; WebSockets, and a trigger for each of their messages.
-        listOf(HTTP_PIN, "ws", "send", ON_EACH).associateWith { 17 }
+        listOf(HTTP_PIN, "ws", "send", ON_EACH).associateWith { 17 } +
+        // Today's screen time per app, and focus mode: which profile is on, switched with focus(...); usage access's
+        // settings. Owl 18 once the language level is bumped past 17.
+        listOf("android.usage", "android.focus", "focus", "settings(\"usage\")", "appAction(\"timer\")").associateWith { 17 }
 
 /** `strings { ... }`, named like this in [SINCE]. */
 internal const val STRINGS_DECL = "strings { }"
@@ -278,7 +281,7 @@ internal val TRIGGER_PARAMS = mapOf("on" to listOf("value", "old"))
 val SPEECH_ANYWHERE = setOf("stop", "cancel")
 
 /** Data from the phone and the launcher; device is fixed, system, network and power are polled, the rest update as they change. */
-internal val ANDROID = setOf("battery", "device", "media", "notifications", "volume", "system", "network", "power", "sim", "alarm", "modes", "apps", "agents", "recent", "drawer", "modifiers", "speech")
+internal val ANDROID = setOf("battery", "device", "media", "notifications", "volume", "system", "network", "power", "sim", "alarm", "modes", "apps", "agents", "recent", "drawer", "modifiers", "speech", "usage", "focus")
 
 /**
  * The words an action's first value may be, when it's written out; [numbers] also allows a number. [forms] are the
@@ -292,7 +295,7 @@ internal class Words(
 )
 
 /** settings("...")'s pages. */
-internal val SETTINGS_PAGES = setOf("internet", "wifi", "bluetooth", "airplane", "data", "location", "cast", "nfc", "volume", "output", "sound", "dnd", "display", "dark", "battery", "notifications")
+internal val SETTINGS_PAGES = setOf("internet", "wifi", "bluetooth", "airplane", "data", "location", "cast", "nfc", "volume", "output", "sound", "dnd", "display", "dark", "battery", "notifications", "usage")
 
 internal val ACTION_WORDS =
     mapOf(
@@ -323,7 +326,7 @@ internal val ACTION_WORDS =
             ),
         // Android's panel (a sheet over home) where it has one, else its settings screen.
         "settings" to SETTINGS_PAGES.let { Words(it, "settings takes ${it.joinToString()}") },
-        "appAction" to setOf("pin", "info", "uninstall", "remove", "edit", "share", "widgets").let { Words(it, "appAction takes ${it.joinToString()} and an app's key") },
+        "appAction" to setOf("pin", "info", "uninstall", "remove", "edit", "share", "widgets", "timer").let { Words(it, "appAction takes ${it.joinToString()} and an app's key") },
         "workApps" to setOf("pause", "resume", "toggle").let { Words(it, "workApps takes ${it.joinToString()}") },
         "speech" to setOf("start", "stop", "toggle", "cancel").let { Words(it, "speech takes ${it.joinToString()}; what's heard is in source x = android.speech") },
         "latch" to KeyNames.latches.toSet().let { Words(it, "latch takes ${it.joinToString()}, and optionally once, locked or off") },

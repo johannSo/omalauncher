@@ -211,6 +211,12 @@ class AndroidAppCatalog(
     internal val byKey by derivedStateOf { apps.associateBy { it.key } }
 
     /**
+     * Asked before an app or shortcut opens, with its package and what opens it: true when it handled the launch
+     * itself, as focus mode and app timers do with their time's-up screen ([dev.omalauncher.pp.focus.Focus]).
+     */
+    var gate: ((pkg: String, open: () -> Unit) -> Boolean)? = null
+
+    /**
      * The app a home tile pinned as [component] in [profile] opens now. Apps that let you pick another icon (Duolingo,
      * X) do it by switching to another launcher activity, and an update may rename theirs, so a tile whose activity is
      * gone goes to its app's current one. Null while neither is listed.
@@ -358,6 +364,14 @@ class AndroidAppCatalog(
         user: UserHandle,
     ) {
         if (resume(user)) return
+        if (gate?.invoke(component.packageName) { start(component, user) } == true) return
+        start(component, user)
+    }
+
+    private fun start(
+        component: ComponentName,
+        user: UserHandle,
+    ) {
         // Uninstalled or disabled since the list was loaded.
         runCatching {
             if (user == Process.myUserHandle()) {
@@ -395,6 +409,14 @@ class AndroidAppCatalog(
         user: UserHandle,
     ) {
         if (resume(user)) return
+        if (gate?.invoke(ref.packageName) { start(ref, user) } == true) return
+        start(ref, user)
+    }
+
+    private fun start(
+        ref: ShortcutRef,
+        user: UserHandle,
+    ) {
         // Removed or turned off by its app since the list was loaded, or this isn't the default home app anymore.
         runCatching { launcherApps.startShortcut(ref.packageName, ref.id, null, null, user) }
             .onFailure { Log.w(TAG, "cannot open shortcut $ref in $user", it) }

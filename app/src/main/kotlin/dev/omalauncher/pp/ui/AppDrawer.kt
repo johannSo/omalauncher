@@ -150,6 +150,8 @@ internal class AppHandlers(
     val removeOwl: (WidgetSpec) -> Unit,
     /** Lists an Android app's widgets, to put one on home. */
     val widgets: (AndroidApp) -> Unit,
+    /** Sets an Android app's daily limit, in settings › focus. */
+    val timer: (AndroidApp) -> Unit = {},
 )
 
 /** The shortcuts an Android app offers above its menu's actions; null for anything else. */
@@ -196,7 +198,7 @@ internal fun AppHit.actionWords(): List<String> =
     when (this) {
         is AppHit.Linux -> listOf("pin")
         is AppHit.Owl -> listOf("pin", "edit", "share", "remove")
-        is AppHit.Android -> listOfNotNull(if (app.privateSpace) null else "pin", if (widgets) "widgets" else null, "info", if (app.system) null else "uninstall")
+        is AppHit.Android -> listOfNotNull(if (app.privateSpace) null else "pin", if (widgets) "widgets" else null, "info", if (app.privateSpace) null else "timer", if (app.system) null else "uninstall")
         is AppHit.Shortcut -> listOfNotNull(if (shortcut.privateSpace) null else "pin", "remove")
     }
 
@@ -209,6 +211,7 @@ private val ACTION_LABELS =
         "share" to R.string.home_share,
         "remove" to R.string.home_remove,
         "widgets" to R.string.fork_home_widgets,
+        "timer" to R.string.focus_action_timer,
     )
 
 /** Runs the menu entry [word], from the menu or a widget's `appAction(...)`; one the app's menu doesn't offer does nothing. */
@@ -221,6 +224,7 @@ internal fun AppHit.act(
         "pin" -> handlers.pin(this)
         "info" -> (this as? AppHit.Android)?.let { handlers.info(it.app) }
         "widgets" -> (this as? AppHit.Android)?.let { handlers.widgets(it.app) }
+        "timer" -> (this as? AppHit.Android)?.let { handlers.timer(it.app) }
         "uninstall" -> (this as? AppHit.Android)?.let { handlers.uninstall(it.app) }
         "remove" ->
             when (this) {
@@ -402,6 +406,7 @@ internal fun recentApps(
     // By kind, as appIconOf does, rather than through allApps: the strip asks on each recomposition, for a handful of keys.
     val android = runtime.androidApps
     val owl by lazy { runtime.widgets.apps() }
+    val focus = runtime.focus.active?.profile
     return runtime.usage.recent
         .asSequence()
         .mapNotNull { key ->
@@ -413,7 +418,8 @@ internal fun recentApps(
                 "o" -> owl.lastOrNull { it.file.name == id }?.let(AppHit::Owl)
                 else -> null
             }
-        }.take(limit)
+        }.filter { runtime.focus.allows(it, focus) }
+        .take(limit)
         .toList()
 }
 

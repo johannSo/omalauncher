@@ -92,6 +92,10 @@ import dev.omalauncher.pp.ui.allApps
 import dev.omalauncher.pp.ui.appIconOf
 import dev.omalauncher.pp.ui.open
 import dev.omalauncher.pp.ui.recentApps
+import dev.omalauncher.pp.focus.act
+import dev.omalauncher.pp.focus.focusValue
+import dev.omalauncher.pp.focus.usageUpdates
+import dev.omalauncher.pp.focus.usageValue
 import dev.omalauncher.pp.widgets.runtime.Alarm
 import dev.omalauncher.pp.widgets.runtime.Media
 import dev.omalauncher.pp.widgets.runtime.Modes
@@ -234,6 +238,8 @@ class WidgetServices(
             "recent" -> recent()
             "drawer" -> drawer()
             "modifiers" -> modifiers()
+            "usage" -> runtime.focus.usageValue()
+            "focus" -> runtime.focus.focusValue()
             else -> throw WidgetError("unknown android source $name")
         }
 
@@ -256,6 +262,8 @@ class WidgetServices(
             "agents" -> snapshotFlow { agents() }
             "recent" -> snapshotFlow { recent() }
             "modifiers" -> snapshotFlow { modifiers() }
+            "usage" -> runtime.focus.usageUpdates()
+            "focus" -> snapshotFlow { runtime.focus.focusValue() }
             // Linux's state is a flow of its own, not Compose state: a change of its word starts the drawer's anew.
             "drawer" -> runtime.bootstrap.state.map(::linuxWord).distinctUntilChanged().flatMapLatest { snapshotFlow { drawer() } }
                 // The first at once, then the latest at most every DRAWER_EVERY_MS.
@@ -542,8 +550,10 @@ class WidgetServices(
                 apps.shortcuts.filter { personal(it.profile) }.map { AppHit.Shortcut(it) } + apps.apps.filter { personal(it.profile) }.map { AppHit.Android(it, runtime.appWidgets.offers(it)) } +
                 apps.shortcuts.filter { it.work }.map { AppHit.Shortcut(it) } + apps.apps.filter { it.work }.map { AppHit.Android(it, runtime.appWidgets.offers(it)) } +
                 apps.shortcuts.filter { it.privateSpace }.map { AppHit.Shortcut(it) } + apps.apps.filter { it.privateSpace }.map { AppHit.Android(it, runtime.appWidgets.offers(it)) }
+        // Focus mode hides the apps the profile on leaves out, from the drawer and its search alike.
+        val focus = runtime.focus.active?.profile
         val list =
-            hits.take(Builtins.MAX_LIST).map { hit ->
+            hits.filter { runtime.focus.allows(it, focus) }.take(Builtins.MAX_LIST).map { hit ->
                 Obj(
                     mapOf(
                         "key" to Str(hit.key),
@@ -712,6 +722,7 @@ class WidgetServices(
             "appAction" -> args.getOrNull(1).textOrNull()?.let { appAction(arg, it) }
             "workApps" -> workApps(arg)
             "privateSpace" -> privateSpace(arg)
+            "focus" -> runtime.focus.act(arg, args.getOrNull(1))
         }
         // Anything the action changed should show up without waiting for the next interval.
         scope.launch {
