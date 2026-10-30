@@ -28,6 +28,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.ImageBitmap
+import dev.omalauncher.pp.AppTweakStore
 import dev.omalauncher.pp.BuildConfig
 import android.os.Process
 import android.net.TrafficStats
@@ -452,17 +453,19 @@ class WidgetServices(
      * `key` is [dev.omalauncher.pp.AndroidApp.key], unique across profiles, for `androidApp(a.key)`; `profile` is `work` or
      * `clone` as on notifications, else null; `icon` is the `app:` src for that copy. `score` and `last` are what the
      * search ranks by ([dev.omalauncher.pp.AppUsage]), so a widget can rank apps the same way. The private space's apps
-     * are left out: only the drawer lists them, and only while it's unlocked.
+     * are left out: only the drawer lists them, and only while it's unlocked. So are apps hidden in apps.toml, and
+     * `name` is the one it gives an app.
      */
     private fun apps(): Value =
         Lst(
-            runtime.androidApps.apps.filter { !it.privateSpace }.take(Builtins.MAX_LIST).map { app ->
+            runtime.androidApps.apps.asSequence().filter { !it.privateSpace }.map { AppHit.Android(it) }.filterNot { it.hidden }.take(Builtins.MAX_LIST).map { hit ->
+                val app = hit.app
                 val kind = profileKind(app.user)
-                val usage = "a:" + app.key
+                val usage = hit.key
                 Obj(
                     mapOf(
                         "key" to Str(app.key),
-                        "name" to Str(app.label),
+                        "name" to Str(hit.label),
                         "package" to Str(app.component.packageName),
                         "component" to Str(app.component.flattenToShortString()),
                         "profile" to (kind?.let(::Str) ?: Null),
@@ -472,7 +475,7 @@ class WidgetServices(
                         "last" to (runtime.usage.last(usage)?.let { Num((it / 1000).toDouble()) } ?: Null),
                     ),
                 )
-            },
+            }.toList(),
         )
 
     /**
@@ -522,9 +525,9 @@ class WidgetServices(
         )
 
     /**
-     * The drawer for `source d = android.drawer`: `{apps, linux, monochrome, work, private, updates, labels, iconSize}`. `apps` is every app in the drawer's
+     * The drawer for `source d = android.drawer`: `{apps, hidden, findHidden, linux, monochrome, work, private, updates, labels, iconSize}`. `apps` is every app in the drawer's
      * order (owl apps, Linux apps, shortcuts, Android apps, then the work profile's shortcuts and apps, then the private
-     * space's while it's unlocked), each `{key, kind, name, label, icon, hasIcon, initials, profile, alias, paused, actions, score, last}`:
+     * space's while it's unlocked), each `{key, kind, name, own, label, icon, hasIcon, initials, profile, alias, paused, actions, score, last}`:
      * - `label` what screen readers say for it ("WhatsApp work"), for an Image's `label`; `profile` as in `android.apps`, or `private`; `alias` what search matches besides the name ("WhatsApp work");
      * - `paused` for an app in a paused work profile; `actions` the words its long-press menu offers, for appAction(...);
      * - `hasIcon` whether `icon` draws anything yet; without, the drawer shows `initials` on a badge, as it does a
@@ -533,6 +536,8 @@ class WidgetServices(
      * `private` is `{locked, hidden, settings}` while there's a private space this launcher may see, else null;
      * `updates` counts the system updates waiting; `labels` whether names go under the icons and `iconSize` how big
      * icons draw, as a multiple of 1 (style.toml's icons.drawer-labels and icons.size, this fork's).
+     * Apps hidden in apps.toml aren't in `apps` but in `hidden`, the same way, for search to find by their full name
+     * while `findHidden`; `name` is the one apps.toml gives an app, `own` its own, which `alias` holds once renamed.
      */
     private fun drawer(): Value {
         val apps = runtime.androidApps
@@ -542,32 +547,34 @@ class WidgetServices(
                 apps.shortcuts.filter { personal(it.profile) }.map { AppHit.Shortcut(it) } + apps.apps.filter { personal(it.profile) }.map { AppHit.Android(it, runtime.appWidgets.offers(it)) } +
                 apps.shortcuts.filter { it.work }.map { AppHit.Shortcut(it) } + apps.apps.filter { it.work }.map { AppHit.Android(it, runtime.appWidgets.offers(it)) } +
                 apps.shortcuts.filter { it.privateSpace }.map { AppHit.Shortcut(it) } + apps.apps.filter { it.privateSpace }.map { AppHit.Android(it, runtime.appWidgets.offers(it)) }
-        val list =
-            hits.take(Builtins.MAX_LIST).map { hit ->
-                Obj(
-                    mapOf(
-                        "key" to Str(hit.key),
-                        "kind" to Str(hit.kind),
-                        "name" to Str(hit.label),
-                        "label" to Str(hit.spoken),
-                        "icon" to Str("icon:" + hit.key),
-                        "profile" to (hit.profileKind?.let(::Str) ?: Null),
-                        "alias" to (hit.alias?.let(::Str) ?: Null),
-                        "paused" to bool(hit.paused(runtime)),
-                        // Whether `icon` draws anything: its silhouette, with monochrome icons. Without one, the drawer shows the initials.
-                        "hasIcon" to bool(appIconOf(runtime, hit.key, LauncherStyle.monochromeIcons) != null),
-                        "initials" to Str(initials(hit.label)),
-                        "actions" to Lst(hit.actionWords().map(::Str)),
-                        "score" to Num(Math.round(runtime.usage.score(hit.key) * 10.0) / 10.0),
-                        "last" to (runtime.usage.last(hit.key)?.let { Num((it / 1000).toDouble()) } ?: Null),
-                    ),
-                )
-            }
+        fun entry(hit: AppHit) =
+            Obj(
+                mapOf(
+                    "key" to Str(hit.key),
+                    "kind" to Str(hit.kind),
+                    "name" to Str(hit.label),
+                    "own" to Str(hit.own),
+                    "label" to Str(hit.spoken),
+                    "icon" to Str("icon:" + hit.key),
+                    "profile" to (hit.profileKind?.let(::Str) ?: Null),
+                    "alias" to (hit.alias?.let(::Str) ?: Null),
+                    "paused" to bool(hit.paused(runtime)),
+                    // Whether `icon` draws anything: its silhouette, with monochrome icons. Without one, the drawer shows the initials.
+                    "hasIcon" to bool(appIconOf(runtime, hit.key, LauncherStyle.monochromeIcons) != null),
+                    "initials" to Str(initials(hit.label)),
+                    "actions" to Lst(hit.actionWords().map(::Str)),
+                    "score" to Num(Math.round(runtime.usage.score(hit.key) * 10.0) / 10.0),
+                    "last" to (runtime.usage.last(hit.key)?.let { Num((it / 1000).toDouble()) } ?: Null),
+                ),
+            )
+        val (hidden, shown) = hits.partition { it.hidden }
         val work = if (apps.workProfiles.isEmpty()) Null else Obj(mapOf("paused" to bool(apps.workProfiles.any { apps.paused(it) })))
         val space = apps.privateSpace?.let { Obj(mapOf("locked" to bool(it.locked), "hidden" to bool(it.hidden), "settings" to bool(apps.privateSettings))) } ?: Null
         return Obj(
             mapOf(
-                "apps" to Lst(list),
+                "apps" to Lst(shown.take(Builtins.MAX_LIST).map(::entry)),
+                "hidden" to Lst(hidden.take(Builtins.MAX_LIST).map(::entry)),
+                "findHidden" to bool(AppTweakStore.current.findHidden),
                 "linux" to Str(linuxWord(runtime.bootstrap.state.value)),
                 "monochrome" to bool(LauncherStyle.monochromeIcons),
                 "work" to work,

@@ -37,7 +37,7 @@ object Backup {
     private const val FORMAT = 1
 
     /** Directories in filesDir, taken whole and put back whole: one missing from a backup comes back empty. */
-    internal val DIRS = listOf("style", "widgets", "widget-state", "themes", "backgrounds")
+    internal val DIRS = listOf("style", "widgets", "widget-state", "themes", "backgrounds", "apps")
 
     /** Single files in filesDir: the record of which defaults are still as the launcher wrote them. */
     internal val SINGLE_FILES = listOf(LauncherData.LAUNCHER_MANIFEST)

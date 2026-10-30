@@ -18,6 +18,7 @@ panel "app drawer" {
       private: "private"; privateApps: "private apps"; privateLocked: "private space locked"; privateSpace: "private space"
       widgets: "widgets"; install: "install"; lock: "lock"; unlock: "unlock"; unlockPrivate: "unlock private space"; hideWhileLocked: "hide while locked"
       shownOn: "on"; shownOff: "off"; startLinux: "start linux"
+      rename: "rename"; hide: "hide"; unhide: "unhide"
     }
     id {
       personal: "pribadi"; work: "kerja"; apps: "aplikasi"; linux: "linux"; shortcuts: "pintasan"; android: "android"
@@ -29,6 +30,7 @@ panel "app drawer" {
       private: "privat"; privateApps: "aplikasi privat"; privateLocked: "ruang privat terkunci"; privateSpace: "ruang privat"
       widgets: "widget"; install: "instal"; lock: "kunci"; unlock: "buka kunci"; unlockPrivate: "buka kunci ruang privat"; hideWhileLocked: "sembunyikan saat terkunci"
       shownOn: "aktif"; shownOff: "nonaktif"; startLinux: "mulai linux"
+      rename: "ganti nama"; hide: "sembunyikan"; unhide: "tampilkan"
     }
     es {
       personal: "personal"; work: "trabajo"; apps: "apps"; linux: "linux"; shortcuts: "accesos directos"; android: "android"
@@ -40,6 +42,7 @@ panel "app drawer" {
       private: "privado"; privateApps: "apps privadas"; privateLocked: "espacio privado bloqueado"; privateSpace: "espacio privado"
       widgets: "widgets"; install: "instalar"; lock: "bloquear"; unlock: "desbloquear"; unlockPrivate: "desbloquear espacio privado"; hideWhileLocked: "ocultar al bloquear"
       shownOn: "sí"; shownOff: "no"; startLinux: "iniciar linux"
+      rename: "renombrar"; hide: "ocultar"; unhide: "mostrar"
     }
     pt {
       personal: "pessoal"; work: "trabalho"; apps: "apps"; linux: "linux"; shortcuts: "atalhos"; android: "android"
@@ -51,6 +54,7 @@ panel "app drawer" {
       private: "privado"; privateApps: "apps privados"; privateLocked: "espaço privado bloqueado"; privateSpace: "espaço privado"
       widgets: "widgets"; install: "instalar"; lock: "bloquear"; unlock: "desbloquear"; unlockPrivate: "desbloquear espaço privado"; hideWhileLocked: "ocultar quando bloqueado"
       shownOn: "ativado"; shownOff: "desativado"; startLinux: "iniciar linux"
+      rename: "renomear"; hide: "ocultar"; unhide: "mostrar"
     }
   }
   source d = android.drawer
@@ -110,8 +114,11 @@ panel "app drawer" {
       [{key: "h:" + s.id, title: s.linux && !linux ? str.linuxApps : s.title, work: s.work, private: s.private, offer: s.linux && !linux}],
       chunk(s.apps, cols).map((cells, r) => {key: s.id + ":" + r, cells: cells})
     ])))
+  // Apps hidden in settings › hidden apps aren't in d.apps: typing one's full name, the one it was given or its own,
+  // still finds it, as on stock launchers, unless that's turned off there too.
+  let found = searching && d.findHidden == true ? (d.hidden ?? []).filter(a => lower(trim(a.name)) == lower(typed) || lower(trim(a.own)) == lower(typed)) : []
   // Every profile's apps match while typing, best first; the list runs up from the bar, so the best sits right above it.
-  let hits = searching ? rank(d.apps, typed) : []
+  let hits = searching ? flatten([found, rank(d.apps, typed)]) : []
   // Typing "private" while the private space is locked offers to unlock it, as stock launchers do when it's hidden.
   let offersPrivate = searching && d.private != null && d.private.locked && len(typed) >= 3 && (startsWith("private space", lower(typed)) || startsWith(lower(str.privateSpace), lower(typed)))
   let hitRows = chunk(hits, cols).map((cells, r) => {key: "q:" + r, start: r * cols, cells: cells})

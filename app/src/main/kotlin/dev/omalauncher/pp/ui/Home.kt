@@ -430,6 +430,13 @@ fun HomeScreen(
                         // A widget's own file, or the owl app a pinned shortcut opens.
                         val spec = if (item is WidgetItem) item.spec else (item as? Shortcut)?.owl?.let(engine.specs::app)
                         if (spec != null) EditAction(stringResource(R.string.home_edit)) { edit(spec) }
+                        // A pinned app's name, as its menu in the drawer renames it: everywhere.
+                        appHitOf(runtime, item)?.let { hit ->
+                            EditAction(stringResource(R.string.app_tweaks_rename)) {
+                                state.editing = null
+                                state.renaming = hit
+                            }
+                        }
                         // A pinned app's own widgets, as its menu in the drawer offers them.
                         if (app != null && runtime.appWidgets.offers(app)) {
                             EditAction(stringResource(R.string.fork_home_widgets)) {
