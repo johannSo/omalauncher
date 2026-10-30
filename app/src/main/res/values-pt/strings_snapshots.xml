@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="snapshots_title">snapshots</string>
+    <string name="snapshots_row_none">nenhum ainda · desfaça uma atualização que quebrou algo</string>
+    <plurals name="snapshots_row">
+        <item quantity="one">%d snapshot para voltar</item>
+        <item quantity="many">%d snapshots para voltar</item>
+        <item quantity="other">%d snapshots para voltar</item>
+    </plurals>
+    <string name="snapshots_body">Um snapshot guarda o sistema Linux como ele está: seus pacotes e tudo em /etc, /usr, /var e /opt. Restaurar um desfaz uma atualização que quebrou algo. /root e /home, seus próprios arquivos, ficam como estão, a menos que você escolha o contrário. Os snapshots compartilham o que não mudou entre eles, então um feito depois de uma atualização só ocupa o que ela mudou.</string>
+    <string name="snapshots_storage">%1$s livres · os snapshots usam %2$s</string>
+    <string name="snapshots_take">snapshot agora</string>
+    <string name="snapshots_low_space">pouco armazenamento: o snapshot antes de uma atualização é pulado quando não cabe</string>
+    <string name="snapshots_list">snapshots</string>
+    <string name="snapshots_none">nenhum ainda</string>
+    <string name="snapshots_options">opções</string>
+    <string name="snapshots_option_before_update">antes de atualizar</string>
+    <string name="snapshots_option_on">snapshot</string>
+    <string name="snapshots_option_off">não</string>
+    <string name="snapshots_option_keep">manter</string>
+    <string name="snapshots_option_keep_hint">os mais recentes; o próximo snapshot apaga os mais antigos</string>
+    <string name="snapshots_option_home">/root, /home</string>
+    <string name="snapshots_option_home_in">incluídos</string>
+    <string name="snapshots_option_home_out">de fora</string>
+    <string name="snapshots_reason_update">antes de uma atualização</string>
+    <string name="snapshots_reason_manual">feito à mão</string>
+    <string name="snapshots_details">%1$s · %2$s só dele · sistema de %3$s</string>
+    <string name="snapshots_restore">restaurar</string>
+    <string name="snapshots_delete">apagar</string>
+    <string name="snapshots_restore_ask">voltar o Linux para este snapshot?</string>
+    <string name="snapshots_restore_body">O Linux desliga, volta a como estava naquele momento e liga de novo: pacotes instalados ou atualizados desde então também voltam. /root e /home ficam como estão.</string>
+    <string name="snapshots_restore_body_home">O Linux desliga, volta a como estava naquele momento e liga de novo: pacotes instalados ou atualizados desde então também voltam, assim como /root e /home. Arquivos alterados ali desde então se perdem.</string>
+    <string name="snapshots_restore_home">/root, /home</string>
+    <string name="snapshots_restore_home_keep">manter</string>
+    <string name="snapshots_restore_home_back">voltar</string>
+    <string name="snapshots_delete_ask">apagar este snapshot?</string>
+    <string name="snapshots_job_taking">fazendo um snapshot</string>
+    <string name="snapshots_job_restoring">restaurando um snapshot</string>
+    <string name="snapshots_step_scanning">lendo o sistema…</string>
+    <string name="snapshots_step_storing">%1$s de %2$s guardados</string>
+    <string name="snapshots_step_saving">salvando…</string>
+    <string name="snapshots_step_unpacking">%1$d de %2$d arquivos</string>
+    <string name="snapshots_step_swapping">colocando no lugar…</string>
+    <string name="snapshots_no_room">sem snapshot: precisa de %1$s livres, e há %2$s</string>
+    <string name="snapshots_no_room_restore">sem armazenamento para restaurar: precisa de %1$s livres, e há %2$s</string>
+    <string name="snapshots_ran_out">o armazenamento acabou, então o snapshot parou</string>
+    <string name="snapshots_gone">este snapshot não existe mais</string>
+    <string name="snapshots_damaged">um arquivo do snapshot está danificado (%1$s); nada foi alterado</string>
+</resources>

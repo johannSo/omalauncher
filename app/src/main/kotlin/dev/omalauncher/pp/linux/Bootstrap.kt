@@ -35,6 +35,9 @@ private const val TAG = "bootstrap"
 private const val ROOTFS_URL = "http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz"
 private const val TARBALL = "ArchLinuxARM-aarch64-latest.tar.gz"
 
+/** Which rootfs steps ran, in filesDir; see [StepJournal]. */
+internal const val ROOTFS_JOURNAL = "rootfs-steps.json"
+
 /** Attempts per network step before setup (or an update) reports a failure. */
 private const val NETWORK_TRIES = 3
 
@@ -179,7 +182,12 @@ class Bootstrap(
     val updates = _updates.asStateFlow()
 
     private val log = OutputTail(200)
-    private val journal = StepJournal(File(proot.filesDir, "rootfs-steps.json"))
+    private var journal = StepJournal(File(proot.filesDir, ROOTFS_JOURNAL))
+
+    /** The rootfs was rolled back to a snapshot along with this record of its steps ([Snapshots]): reads it again. */
+    fun reloadJournal() {
+        journal = StepJournal(File(proot.filesDir, ROOTFS_JOURNAL))
+    }
 
     /** The agents picked when installing Linux, one bin per line; its existence means an install was started. */
     private val choiceFile get() = File(proot.filesDir, "setup-agents")

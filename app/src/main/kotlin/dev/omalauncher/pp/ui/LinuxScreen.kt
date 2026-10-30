@@ -58,6 +58,8 @@ fun LinuxScreen(
     onDismiss: () -> Unit,
     /** Opens settings › linux › ssh; null where Linux is only offered (the agents screen without it). */
     onSsh: (() -> Unit)? = null,
+    /** Opens settings › linux › snapshots; without it, the row isn't there. */
+    onSnapshots: (() -> Unit)? = null,
 ) {
     val state by runtime.bootstrap.state.collectAsState()
     OverlayPanel(stringResource(R.string.linux_title), onDismiss, contentWidth = ReadingWidth) {
@@ -66,8 +68,8 @@ fun LinuxScreen(
                 LinuxState.Checking -> {}
                 LinuxState.NotInstalled -> InstallOffer(runtime)
                 is LinuxState.Installing, is LinuxState.Failed -> LinuxProgress(s, runtime.bootstrap.chosenAgents, runtime::retryLinux, runtime::cancelLinux.takeIf { runtime.bootstrap.cancellable })
-                LinuxState.Installed -> Installed(runtime, running = true, onSsh)
-                LinuxState.Off -> Installed(runtime, running = false)
+                LinuxState.Installed -> Installed(runtime, running = true, onSsh = onSsh, onSnapshots = onSnapshots)
+                LinuxState.Off -> Installed(runtime, running = false, onSnapshots = onSnapshots)
                 LinuxState.Removing -> BasicText(stringResource(R.string.linux_removing), style = Mono.copy(color = Palette.accent))
             }
         }
@@ -119,6 +121,7 @@ private fun Installed(
     runtime: Runtime,
     running: Boolean,
     onSsh: (() -> Unit)? = null,
+    onSnapshots: (() -> Unit)? = null,
 ) {
     var size by remember { mutableStateOf<Long?>(null) }
     LaunchedEffect(Unit) { size = withContext(Dispatchers.IO) { diskUsage(runtime.proot.rootfs) } }
@@ -135,6 +138,10 @@ private fun Installed(
     if (running && onSsh != null) {
         Spacer(Modifier.height(8.dp))
         SshRow(runtime, onSsh)
+    }
+    if (onSnapshots != null) {
+        Spacer(Modifier.height(8.dp))
+        SnapshotsRow(runtime, onSnapshots)
     }
     Spacer(Modifier.height(16.dp))
     // Keys go between remove linux and its cancel as they swap, and wait out the removal for the install it ends with.

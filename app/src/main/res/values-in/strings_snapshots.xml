@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="snapshots_title">snapshot</string>
+    <string name="snapshots_row_none">belum ada · batalkan pembaruan yang merusak sesuatu</string>
+    <plurals name="snapshots_row">
+        <item quantity="other">%d snapshot untuk kembali</item>
+    </plurals>
+    <string name="snapshots_body">Snapshot menyimpan sistem Linux apa adanya: paketnya dan semua isi /etc, /usr, /var, dan /opt. Memulihkan satu snapshot membatalkan pembaruan yang merusak sesuatu. /root dan /home, file milikmu sendiri, tetap seperti sekarang kecuali kamu memilih lain. Snapshot berbagi apa yang tidak berubah di antara mereka, jadi snapshot setelah pembaruan hanya memakai ruang untuk yang diubahnya.</string>
+    <string name="snapshots_storage">%1$s kosong · snapshot memakai %2$s</string>
+    <string name="snapshots_take">snapshot sekarang</string>
+    <string name="snapshots_low_space">penyimpanan hampir penuh: snapshot sebelum pembaruan dilewati jika tidak muat</string>
+    <string name="snapshots_list">snapshot</string>
+    <string name="snapshots_none">belum ada</string>
+    <string name="snapshots_options">opsi</string>
+    <string name="snapshots_option_before_update">sebelum pembaruan</string>
+    <string name="snapshots_option_on">snapshot</string>
+    <string name="snapshots_option_off">tidak</string>
+    <string name="snapshots_option_keep">simpan</string>
+    <string name="snapshots_option_keep_hint">yang terbaru; snapshot berikutnya menghapus yang lebih lama</string>
+    <string name="snapshots_option_home">/root, /home</string>
+    <string name="snapshots_option_home_in">ikut</string>
+    <string name="snapshots_option_home_out">tidak ikut</string>
+    <string name="snapshots_reason_update">sebelum pembaruan</string>
+    <string name="snapshots_reason_manual">dibuat manual</string>
+    <string name="snapshots_details">%1$s · %2$s miliknya sendiri · sistem %3$s</string>
+    <string name="snapshots_restore">pulihkan</string>
+    <string name="snapshots_delete">hapus</string>
+    <string name="snapshots_restore_ask">kembalikan Linux ke snapshot ini?</string>
+    <string name="snapshots_restore_body">Linux dimatikan, kembali seperti saat itu, lalu dinyalakan lagi: paket yang dipasang atau diperbarui sejak itu juga kembali. /root dan /home tetap seperti sekarang.</string>
+    <string name="snapshots_restore_body_home">Linux dimatikan, kembali seperti saat itu, lalu dinyalakan lagi: paket yang dipasang atau diperbarui sejak itu juga kembali, begitu juga /root dan /home. File yang diubah di sana sejak itu akan hilang.</string>
+    <string name="snapshots_restore_home">/root, /home</string>
+    <string name="snapshots_restore_home_keep">biarkan</string>
+    <string name="snapshots_restore_home_back">kembalikan</string>
+    <string name="snapshots_delete_ask">hapus snapshot ini?</string>
+    <string name="snapshots_job_taking">membuat snapshot</string>
+    <string name="snapshots_job_restoring">memulihkan snapshot</string>
+    <string name="snapshots_step_scanning">membaca sistem…</string>
+    <string name="snapshots_step_storing">%1$s dari %2$s tersimpan</string>
+    <string name="snapshots_step_saving">menyimpan…</string>
+    <string name="snapshots_step_unpacking">%1$d dari %2$d file</string>
+    <string name="snapshots_step_swapping">memasangnya…</string>
+    <string name="snapshots_no_room">tanpa snapshot: perlu %1$s kosong, tersedia %2$s</string>
+    <string name="snapshots_no_room_restore">penyimpanan tidak cukup untuk memulihkan: perlu %1$s kosong, tersedia %2$s</string>
+    <string name="snapshots_ran_out">penyimpanan hampir habis, jadi snapshot dihentikan</string>
+    <string name="snapshots_gone">snapshot ini sudah tidak ada</string>
+    <string name="snapshots_damaged">file snapshot rusak (%1$s); tidak ada yang diubah</string>
+</resources>

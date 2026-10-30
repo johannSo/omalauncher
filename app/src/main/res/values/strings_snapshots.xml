@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings › linux › snapshots: snapshots of the Linux system to roll back to. -->
+<resources>
+    <string name="snapshots_title">snapshots</string>
+    <string name="snapshots_row_none">none yet · roll back an update that broke something</string>
+    <plurals name="snapshots_row">
+        <item quantity="one">%d snapshot to roll back to</item>
+        <item quantity="other">%d snapshots to roll back to</item>
+    </plurals>
+    <string name="snapshots_body">A snapshot keeps the Linux system as it is: its packages and everything in /etc, /usr, /var and /opt. Restoring one rolls back an update that broke something. /root and /home, your own files, stay as they are unless you choose otherwise. Snapshots share what didn\'t change between them, so one after an update only takes the room of what it changed.</string>
+    <string name="snapshots_storage">%1$s free · snapshots use %2$s</string>
+    <string name="snapshots_take">snapshot now</string>
+    <string name="snapshots_low_space">storage is low: a snapshot before an update is skipped when there\'s no room for it</string>
+    <string name="snapshots_list">snapshots</string>
+    <string name="snapshots_none">none yet</string>
+    <string name="snapshots_options">options</string>
+    <string name="snapshots_option_before_update">before updates</string>
+    <string name="snapshots_option_on">snapshot</string>
+    <string name="snapshots_option_off">don\'t</string>
+    <string name="snapshots_option_keep">keep</string>
+    <string name="snapshots_option_keep_hint">the newest ones; the next snapshot deletes older ones</string>
+    <string name="snapshots_option_home">/root, /home</string>
+    <string name="snapshots_option_home_in">in snapshots</string>
+    <string name="snapshots_option_home_out">left out</string>
+    <string name="snapshots_reason_update">before an update</string>
+    <string name="snapshots_reason_manual">taken by hand</string>
+    <!-- Why it was taken, what deleting it frees, how big the system it holds is. -->
+    <string name="snapshots_details">%1$s · %2$s of its own · %3$s system</string>
+    <string name="snapshots_restore">restore</string>
+    <string name="snapshots_delete">delete</string>
+    <string name="snapshots_restore_ask">roll Linux back to this snapshot?</string>
+    <string name="snapshots_restore_body">Linux shuts down, goes back to how it was then and starts again: packages installed or updated since go back too. /root and /home stay as they are.</string>
+    <string name="snapshots_restore_body_home">Linux shuts down, goes back to how it was then and starts again: packages installed or updated since go back too, and so do /root and /home. Files changed there since are lost.</string>
+    <string name="snapshots_restore_home">/root, /home</string>
+    <string name="snapshots_restore_home_keep">keep</string>
+    <string name="snapshots_restore_home_back">roll back</string>
+    <string name="snapshots_delete_ask">delete this snapshot?</string>
+    <string name="snapshots_job_taking">taking a snapshot</string>
+    <string name="snapshots_job_restoring">restoring a snapshot</string>
+    <string name="snapshots_step_scanning">reading the system…</string>
+    <string name="snapshots_step_storing">%1$s of %2$s stored</string>
+    <string name="snapshots_step_saving">saving…</string>
+    <string name="snapshots_step_unpacking">%1$d of %2$d files</string>
+    <string name="snapshots_step_swapping">putting it in place…</string>
+    <string name="snapshots_no_room">no snapshot: it needs %1$s free, and %2$s are</string>
+    <string name="snapshots_no_room_restore">not enough storage to restore: it needs %1$s free, and %2$s are</string>
+    <string name="snapshots_ran_out">storage ran low, so the snapshot stopped</string>
+    <string name="snapshots_gone">this snapshot is gone</string>
+    <string name="snapshots_damaged">a snapshot file is damaged (%1$s); nothing was changed</string>
+</resources>

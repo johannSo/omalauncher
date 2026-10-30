@@ -57,6 +57,8 @@ enum class SettingsPage {
     QuickTiles,
     /** Focus mode's profiles and the app timers. */
     Focus,
+    /** Snapshots of Linux to roll back to, from settings › linux. */
+    Snapshots,
 }
 
 /** Opens [page] over the ones in [stack]; one that's already open comes back to the top, closing what's over it. */
@@ -179,7 +181,7 @@ private fun SettingsPage(
         SettingsPage.Store -> StoreScreen(runtime.widgets, runtime.agents.installed, homePage, runtime.themes.picked, onDismiss = close, onOpenApp = runtime::openOwlApp)
         SettingsPage.FaceStore -> StoreScreen(runtime.widgets, runtime.agents.installed, homePage, runtime.themes.picked, onDismiss = close, initialKind = OwlKind.Face, onOpenApp = runtime::openOwlApp)
         SettingsPage.Packages -> PackagesScreen(runtime, onDismiss = close)
-        SettingsPage.Linux -> LinuxScreen(runtime, onDismiss = close, onSsh = { stack.push(SettingsPage.Ssh) })
+        SettingsPage.Linux -> LinuxScreen(runtime, onDismiss = close, onSsh = { stack.push(SettingsPage.Ssh) }, onSnapshots = { stack.push(SettingsPage.Snapshots) })
         SettingsPage.Ssh -> SshScreen(runtime, onDismiss = close)
         SettingsPage.Licenses -> LicensesScreen(onDismiss = close)
         SettingsPage.Gestures -> GesturesScreen(runtime, onDismiss = close, onAgent = ::agent)
@@ -188,5 +190,6 @@ private fun SettingsPage(
         SettingsPage.HiddenApps -> HiddenAppsScreen(runtime, onDismiss = close)
         SettingsPage.QuickTiles -> QuickTilesScreen(runtime, onDismiss = close)
         SettingsPage.Focus -> dev.omalauncher.pp.focus.FocusScreen(runtime, onDismiss = close)
+        SettingsPage.Snapshots -> SnapshotsScreen(runtime, onDismiss = close)
     }
 }

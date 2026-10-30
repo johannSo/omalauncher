@@ -10,6 +10,7 @@ import dev.omalauncher.pp.upgrade.Versioned
 import dev.omalauncher.pp.upgrade.mapObjects
 import dev.omalauncher.pp.upgrade.strings
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -51,6 +52,8 @@ class SystemUpdates(
     private val proot: Proot,
     private val pacman: Pacman,
     private val agents: AgentStore,
+    /** Runs with pacman's lock held, before the update: the snapshot to roll back to ([Snapshots.beforeUpdate]). */
+    private val beforeUpdate: suspend (publish: (JobState) -> Unit) -> Unit = {},
 ) {
     private val file = File(proot.filesDir, "updates.json")
 
@@ -146,7 +149,12 @@ class SystemUpdates(
     /** Upgrades everything: a full pacman sync, then mise's tools. Returns whether it worked. */
     suspend fun updateAll(): Boolean {
         if (job is JobState.Working) return false
-        val (ok, _) = proot.trackedJob(R.string.linux_job_updating, UPDATE_SCRIPT, pacman.lock) { job = it }
+        job = JobState.Working(R.string.linux_job_waiting, emptyList())
+        val (ok, _) =
+            pacman.lock.withLock {
+                beforeUpdate { job = it }
+                proot.trackedJob(R.string.linux_job_updating, UPDATE_SCRIPT) { job = it }
+            }
         // Agents may have changed, and what's left to update is worth knowing either way.
         withContext(Dispatchers.IO) { agents.load() }
         check(force = true)

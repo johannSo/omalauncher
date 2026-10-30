@@ -131,6 +131,24 @@ untouched, plus `mise outdated`. When updates are pending, a dot shows on the
 app list's settings gear. "update all" in settings runs `pacman -Syyu` and then
 `mise upgrade` as one job. Nothing updates automatically.
 
+**Snapshots** (`linux/Snapshots.kt`) roll Linux back: one is taken before
+"update all" runs pacman (style.toml's `snapshots.before-update`, skipped when
+storage has no room for it plus the update), or from settings › linux ›
+snapshots, which keeps the newest `snapshots.keep`. Android forbids hard links
+in app storage and its ext4 and f2fs have no reflinks, so a `cp -al` copy isn't
+possible; it wouldn't be safe either, since pacman's database, its log and files
+edited in /etc are written in place. A snapshot is instead a manifest of the
+rootfs plus file contents in a store shared by all snapshots, kept once by
+sha256 and deflated. A file with the inode, ctime and mtime the last snapshot
+saw isn't read again, so one after an update costs only what changed. It lives in
+`files/snapshots`, outside the rootfs and proot's binds and not in backups.
+Restoring shuts Linux down, unpacks to `files/arch.restore`, then renames
+`arch` → `arch.old` and `arch.restore` → `arch`; /root and /home move over from
+the old rootfs unless the user rolls them back too. A marker file lets the next
+start finish or drop a restore the app was killed during (`restoreSteps`), and
+the launcher's records of the rootfs (`rootfs-steps.json`, `managed.json`) go
+back with it, so setup steps newer than the snapshot run again.
+
 Pinned versions: `ThemeStore.OMARCHY_REF` (the Omarchy commit) and
 `CLIAMP_VERSION` in `Bootstrap.kt`. Changing the first makes every install
 download the new themes on its next start (`ThemeStore.ensureRelease`, with or
