@@ -496,7 +496,14 @@ class WidgetServices(
             )
         }
         val store = runtime.agents
-        return Obj(mapOf("default" to (store.default?.let(::agent) ?: Null), "installed" to Lst(store.installed.map(::agent))))
+        return Obj(
+            mapOf(
+                "default" to (store.default?.let(::agent) ?: Null),
+                "installed" to Lst(store.installed.map(::agent)),
+                // Their sessions in terminals, as their hooks report them (AgentStatus).
+                "sessions" to runtime.agentStatus.value(),
+            ),
+        )
     }
 
     /**
@@ -988,6 +995,7 @@ class WidgetServices(
      */
     private fun openApp(key: String) {
         offered[key]?.let { (menu, s) -> return menu.open(s) }
+        if (runtime.agentStatus.open(key)) return
         val hit = hitOf(key) ?: return
         appHandlers?.launch?.invoke(hit) ?: hit.open(runtime)
     }

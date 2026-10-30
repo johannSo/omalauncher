@@ -14,6 +14,9 @@ object Native {
 
     @JvmStatic external fun accept(fd: Int): Int
 
+    /** The pid of the process connected to unix socket [fd]; 0 if it can't be read. */
+    @JvmStatic external fun peerPid(fd: Int): Int
+
     /** Reads into direct [buf] from [off]; [fds] gets the count, then the fds received. */
     @JvmStatic external fun recv(fd: Int, buf: ByteBuffer, off: Int, fds: IntArray): Int
 

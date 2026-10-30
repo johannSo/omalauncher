@@ -54,6 +54,13 @@ JNIEXPORT jint JNICALL FN(accept)(JNIEnv *env, jclass cls, jint fd) {
     return c < 0 ? -errno : c;
 }
 
+// The pid of the process on the other end of a unix socket, 0 if unknown.
+JNIEXPORT jint JNICALL FN(peerPid)(JNIEnv *env, jclass cls, jint fd) {
+    struct ucred cred;
+    socklen_t len = sizeof(cred);
+    return getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &cred, &len) == 0 ? cred.pid : 0;
+}
+
 // Reads into the direct buffer at [off, capacity) and received fds into
 // fds[1..], fds[0] = fd count. Returns bytes read, 0 on EOF, -errno on failure.
 JNIEXPORT jint JNICALL FN(recv)(JNIEnv *env, jclass cls, jint fd, jobject jbuf, jint off, jintArray jfds) {

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Coding agents reporting to Android (AgentStatus.kt): their notifications, and the switch in settings › agents. -->
+<resources>
+    <string name="agent_status_channel">Coding agents</string>
+    <string name="agent_status_channel_description">What each coding agent in a terminal is doing: done, waiting for you, or asking permission</string>
+    <!-- A notification's title: the agent, then the folder it works in. -->
+    <string name="agent_status_title">%1$s · %2$s</string>
+    <!-- A notification's text: the status, then what it's about (the prompt, the tool, the last message). -->
+    <string name="agent_status_line">%1$s · %2$s</string>
+    <string name="agent_status_running">Working</string>
+    <string name="agent_status_input">Waiting for you</string>
+    <string name="agent_status_permission">Asks permission</string>
+    <string name="agent_status_permission_terminal">Asks permission in the terminal</string>
+    <string name="agent_status_done">Done</string>
+    <string name="agent_status_allow">Allow</string>
+    <string name="agent_status_deny">Deny</string>
+    <string name="agent_status_setting">notifications</string>
+    <string name="agent_status_setting_description">Each session in a terminal gets a notification saying when it\'s done or waiting for you; a permission request can be answered there. Your notification settings decide how they sound.</string>
+    <string name="agent_status_on">on</string>
+    <string name="agent_status_off">off</string>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="agent_status_channel">Agentes de programação</string>
+    <string name="agent_status_channel_description">O que cada agente de programação em um terminal está fazendo: concluído, esperando por você ou pedindo permissão</string>
+    <string name="agent_status_title">%1$s · %2$s</string>
+    <string name="agent_status_line">%1$s · %2$s</string>
+    <string name="agent_status_running">Trabalhando</string>
+    <string name="agent_status_input">Esperando por você</string>
+    <string name="agent_status_permission">Pede permissão</string>
+    <string name="agent_status_permission_terminal">Pede permissão no terminal</string>
+    <string name="agent_status_done">Concluído</string>
+    <string name="agent_status_allow">Permitir</string>
+    <string name="agent_status_deny">Negar</string>
+    <string name="agent_status_setting">notificações</string>
+    <string name="agent_status_setting_description">Cada sessão em um terminal recebe uma notificação avisando quando termina ou espera por você; um pedido de permissão pode ser respondido ali. Suas configurações de notificação decidem como elas soam.</string>
+    <string name="agent_status_on">ligado</string>
+    <string name="agent_status_off">desligado</string>
+</resources>

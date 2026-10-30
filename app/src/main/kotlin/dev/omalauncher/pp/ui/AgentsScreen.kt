@@ -33,7 +33,8 @@ fun AgentsScreen(
             Modifier.padding(vertical = 8.dp),
             style = Mono.copy(color = Palette.muted, fontSize = TextSize.Small),
         )
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        AgentStatusSetting(runtime)
+        LazyColumn(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(AGENTS, key = { it.bin }) { agent ->
                 AgentRow(
                     agent = agent,
