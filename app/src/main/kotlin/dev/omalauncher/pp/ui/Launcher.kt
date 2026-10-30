@@ -188,6 +188,7 @@ private fun DesktopScreen(
         }
 
     LaunchedEffect(handlers) { runtime.widgets.appHandlers = handlers }
+    LaunchedEffect(state) { runtime.search.bind(state) }
 
     // The drawer is a panel: the one picked for swiping up, drawer.owl, or the stock one, whichever runs first.
     val drawer = runtime.widgets.drawerPanel()

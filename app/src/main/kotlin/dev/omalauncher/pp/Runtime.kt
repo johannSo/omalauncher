@@ -137,6 +137,9 @@ class Runtime(
     /** Its jobs write files and start the guest; one that fails (storage full) mustn't take the home screen down. */
     private val scope =
         CoroutineScope(SupervisorJob() + Dispatchers.Main + CoroutineExceptionHandler { _, e -> Log.e(TAG, "background job failed", e) })
+
+    /** What the bar finds besides apps: the drawer lists it as `android.drawer`'s `search`. */
+    val search = dev.omalauncher.pp.search.BarSearch(context, this, scope)
     private var started = false
     private var prepared = false
 

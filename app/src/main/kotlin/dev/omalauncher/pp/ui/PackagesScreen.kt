@@ -37,7 +37,8 @@ fun PackagesScreen(
 ) {
     val pacman = runtime.pacman
     val scope = rememberCoroutineScope()
-    var query by remember { mutableStateOf("") }
+    // Opened from a package the bar found, on that package.
+    var query by remember { mutableStateOf(runtime.search.takePackageQuery().orEmpty()) }
     val revision = pacman.revision.intValue
     // (query, results): a result for an older query means a search is still running.
     val loaded by produceState<Pair<String, List<Package>>?>(null, query, revision) {

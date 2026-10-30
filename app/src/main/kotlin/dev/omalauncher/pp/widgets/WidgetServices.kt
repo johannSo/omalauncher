@@ -111,6 +111,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -266,6 +267,8 @@ class WidgetServices(
                 }
                 // Hundreds of apps, made into values on each change: not on the main thread. All it reads is Compose state.
                 .flowOn(Dispatchers.Default)
+                // What the bar finds besides apps, ranked against them as the bar's text changes.
+                .let { apps -> combine(apps, runtime.search.found(), runtime.search::into) }
             "battery" ->
                 callbackFlow {
                     // The broadcast is sticky: registering delivers the current state at once.
@@ -533,6 +536,7 @@ class WidgetServices(
      * `private` is `{locked, hidden, settings}` while there's a private space this launcher may see, else null;
      * `updates` counts the system updates waiting; `labels` whether names go under the icons and `iconSize` how big
      * icons draw, as a multiple of 1 (style.toml's icons.drawer-labels and icons.size, this fork's).
+     * Its updates add `search`, what the bar finds besides apps ([dev.omalauncher.pp.search.BarSearch.into]).
      */
     private fun drawer(): Value {
         val apps = runtime.androidApps
@@ -984,9 +988,11 @@ class WidgetServices(
 
     /**
      * open(key): an app from `android.recent` or `android.agents`, or an `android.apps` key, opened as from the drawer: the
-     * drawer, or a panel open in its place or from the top, closes, and the bar's text goes.
+     * drawer, or a panel open in its place or from the top, closes, and the bar's text goes. A result from the drawer's
+     * `search` (calculator, settings page, contact, ...) does what it says the same way.
      */
     private fun openApp(key: String) {
+        if (runtime.search.open(key)) return
         offered[key]?.let { (menu, s) -> return menu.open(s) }
         val hit = hitOf(key) ?: return
         appHandlers?.launch?.invoke(hit) ?: hit.open(runtime)
