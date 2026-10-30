@@ -7,6 +7,7 @@ import android.os.SystemClock
 import android.util.Log
 import dev.omalauncher.pp.AndroidApp
 import dev.omalauncher.pp.AndroidAppCatalog
+import dev.omalauncher.pp.AppTweakStore
 import dev.omalauncher.pp.ShortcutRef
 import dev.omalauncher.pp.shortcutLabel
 import dev.omalauncher.pp.widgets.lang.matchScore
@@ -71,7 +72,9 @@ class ShortcutIndex(
     /** The shortcuts [query] names, scored as apps' names are: by their label, or the longer one. */
     fun search(query: String): List<Pair<OfferedEntry, Int>> {
         if (query.trim().length < 2) return emptyList()
-        return entries.mapNotNull { e ->
+        val tweaks = AppTweakStore.current
+        // A hidden app's shortcuts stay out too: search would otherwise show the app it hides.
+        return entries.filterNot { tweaks.hidden("a:" + it.app.key) }.mapNotNull { e ->
             val score = maxOf(matchScore(e.label, query), e.long?.let { matchScore(it, query) } ?: 0)
             if (score >= MIN_SCORE) e to score else null
         }
