@@ -23,6 +23,9 @@ import dev.omalauncher.pp.linux.Proot
 import dev.omalauncher.pp.linux.pacmanInstall
 import dev.omalauncher.pp.linux.runJob
 import dev.omalauncher.pp.ui.Palette
+import dev.omalauncher.pp.theme.GestureAction
+import dev.omalauncher.pp.theme.GestureStyle
+import dev.omalauncher.pp.theme.panel
 import dev.omalauncher.pp.theme.Style
 import dev.omalauncher.pp.theme.StyleStore
 import dev.omalauncher.pp.ui.LauncherStyle
@@ -276,7 +279,7 @@ class WidgetEngine(
      * The panel the drawer shows above the prompt bar: the one picked for swiping up, else drawer.owl, else the stock
      * drawer, so a drawer that's gone or broken never leaves the apps out of reach. Null until one runs.
      */
-    fun drawerPanel(): String? = listOf(LauncherStyle.style[Style.SWIPE_UP], DRAWER, STOCK_DRAWER).firstOrNull { panelInstance(it) != null }
+    fun drawerPanel(): String? = listOfNotNull(GestureAction.parseOrNull(LauncherStyle.style[Style.SWIPE_UP])?.panel, DRAWER, STOCK_DRAWER).firstOrNull { panelInstance(it) != null }
 
     /** The running panel [name] with its spec, for home to show; null if it's gone, doesn't compile or can't run here. */
     fun panelInstance(name: String): Pair<WidgetSpec, WidgetInstance>? {
@@ -292,7 +295,7 @@ class WidgetEngine(
     val panelCloses = MutableSharedFlow<String>(extraBufferCapacity = 4)
 
     /** The panels gestures open: kept live while home shows, so one is ready the moment a swipe starts. */
-    private fun gesturePanels() = setOfNotNull(drawerPanel(), LauncherStyle.style[Style.SWIPE_DOWN])
+    private fun gesturePanels() = setOfNotNull(drawerPanel()) + GestureStyle.panels(LauncherStyle.style)
 
     /**
      * The extra keys over the soft keyboard: keybar.owl, else the stock ones, so keys that are gone or broken never leave a

@@ -6,13 +6,29 @@ A panel is a file of its own that a swipe on home opens: swiping up opens the ap
 swiping down brings one from the top. The app drawer is a panel too, `drawer.owl`: edit it to change the drawer, or
 read it to see how a whole drawer is put together. The launcher ships one more, `controls.owl`, for swiping down: the
 phone's switches, the volume, what's playing, the next alarm and the notifications. Which panel each swipe opens
-is picked in settings › gestures, or in style.toml as the panel's file name (see `defaults.toml`):
+is picked in settings › gestures, or in style.toml as `panel:` and the panel's file name (see `defaults.toml`; a bare
+file name, as older files have it, works too):
 
 ```toml
 [gestures]
-swipe-up = "my-drawer.owl"     # drawer.owl by default; "none" leaves the swipe to tapping the bar
-swipe-down = "controls.owl"    # "none" nothing, "notification-shade" Android's own
+swipe-up = "panel:my-drawer.owl"     # panel:drawer.owl by default; "none" leaves the drawer to tapping the bar
+swipe-down = "panel:controls.owl"    # "none" by default
+double-tap = "lock"                  # on empty space
+two-finger-up = "app:org.mozilla.firefox"
+two-finger-down = "quick-settings"
+pinch-in = "pages"
+pinch-out = "agent:what's on my calendar today?"
 ```
+
+Every gesture takes the same actions: `none`; `drawer`; `notification-shade`; `quick-settings`; `pages` (settings ›
+pages); `lock` and `recents` (the screen off, and Android's recent apps: both need the launcher's accessibility
+service, which settings › gestures explains and turns on); `panel:<file>.owl`; `app:<package>` or
+`app:<package>/<activity>` for an Android app (`app:com.android.settings/.Settings`); `linux-app:<desktop id>` for a
+Linux app (`linux-app:firefox`, from firefox.desktop); `linux:<command>`, run in Linux without a window; `terminal:<command>`,
+in a terminal of its own; and `agent:<prompt>`, sent to the default coding agent as the bar sends one. A panel opened by
+any gesture but swiping up comes down from the top, as swiping down brings one; a value that's none of these is
+reported in errors.txt and leaves the gesture as it was. Double tap counts on empty space only; two-finger swipes and
+pinches anywhere on home's pages, and once two fingers land together the gesture is home's, not the widgets' under them.
 
 The drawer is the panel picked for swiping up, else `drawer.owl`, else `.stock-drawer.owl`: the drawer as this
 launcher ships it, which it keeps that way. So a drawer that's removed or stops compiling never locks anyone out of

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gesture_double_tap">ketuk dua kali</string>
+    <string name="gesture_two_finger_up">dua jari ke atas</string>
+    <string name="gesture_two_finger_down">dua jari ke bawah</string>
+    <string name="gesture_pinch_in">cubit masuk</string>
+    <string name="gesture_pinch_out">cubit keluar</string>
+    <string name="gesture_opens_nothing">%1$s tidak membuka apa pun</string>
+
+    <string name="gesture_action_drawer">laci aplikasi</string>
+    <string name="gesture_action_quick_settings">setelan cepat</string>
+    <string name="gesture_action_pages">halaman</string>
+    <string name="gesture_action_lock">kunci layar</string>
+    <string name="gesture_action_recents">aplikasi terbaru</string>
+    <string name="gesture_action_linux_label">jalankan: %1$s</string>
+    <string name="gesture_action_terminal_label">terminal: %1$s</string>
+    <string name="gesture_action_agent_label">tanya: %1$s</string>
+
+    <string name="gesture_ask_app">sebuah aplikasi…</string>
+    <string name="gesture_ask_linux">perintah Linux…</string>
+    <string name="gesture_ask_terminal">perintah di terminal…</string>
+    <string name="gesture_ask_agent">prompt untuk agen…</string>
+    <string name="gesture_linux_title">perintah untuk %1$s</string>
+    <string name="gesture_linux_hint">berjalan di Linux tanpa jendela sendiri; aplikasi GUI yang dimulainya terbuka seperti biasa</string>
+    <string name="gesture_terminal_title">perintah terminal untuk %1$s</string>
+    <string name="gesture_terminal_hint">terbuka di terminalnya sendiri, yang tertutup saat perintah selesai: tambahkan ; exec bash agar tetap terbuka</string>
+    <string name="gesture_agent_title">prompt untuk %1$s</string>
+    <string name="gesture_agent_hint">dikirim ke agen coding default, seperti yang dikirim bar</string>
+    <string name="gesture_save">simpan</string>
+    <string name="gesture_pick_app_title">aplikasi untuk %1$s</string>
+    <string name="gesture_search_apps">cari aplikasi</string>
+    <string name="gesture_app_android">android</string>
+    <string name="gesture_app_linux">linux</string>
+    <string name="gesture_no_apps">tidak ada aplikasi yang cocok</string>
+    <string name="gesture_hint_more">ketuk dua kali berfungsi di ruang kosong; geser dua jari dan cubit di mana saja di halaman beranda. style.toml menerima hal yang sama di [gestures], juga untuk agen: defaults.toml mencantumkan setiap aksi</string>
+
+    <string name="gesture_panel_missing">%1$s bukan panel yang berjalan</string>
+    <string name="gesture_app_missing">%1$s tidak terpasang</string>
+    <string name="gesture_needs_accessibility">aktifkan layanan aksesibilitas untuk ini</string>
+
+    <string name="gesture_accessibility_off">kunci layar dan aplikasi terbaru memerlukan layanan aksesibilitas, yang sedang nonaktif</string>
+    <string name="gesture_accessibility_turn_on">aktifkan</string>
+    <string name="gesture_accessibility_title">layanan aksesibilitas</string>
+    <string name="gesture_accessibility_on">● aktif: kunci layar dan aplikasi terbaru berfungsi</string>
+    <string name="gesture_accessibility_is_off">○ nonaktif</string>
+    <string name="gesture_accessibility_what">Android hanya mengizinkan aplikasi mengunci layar atau menampilkan aplikasi terbaru melalui layanan aksesibilitas. OmaLauncher++ punya satu yang hanya melakukan itu: saat kamu membuat gestur yang diatur untuk mengunci layar atau aplikasi terbaru, ia meminta Android melakukannya, seperti tombol daya atau tombol terbaru.</string>
+    <string name="gesture_accessibility_not">Ia tidak meminta event apa pun dari Android dan tidak bisa membaca isi layar atau apa yang kamu ketik. Android akan memperingatkan bahwa layanan aksesibilitas bisa melihat dan mengendalikan layarmu: itu yang bisa diminta sebuah layanan, bukan yang dilakukan layanan ini. Ia tetap nonaktif sampai kamu mengaktifkannya, dan bisa kamu nonaktifkan di sana kapan saja.</string>
+    <string name="gesture_accessibility_steps">Untuk mengaktifkannya, buka setelan aksesibilitas, cari OmaLauncher++ gestures di antara aplikasi terpasang, lalu aktifkan. Jika Android bilang itu setelan terbatas, buka info aplikasi, ketuk ⋮, izinkan setelan terbatas, lalu coba lagi.</string>
+    <string name="gesture_accessibility_open">buka setelan aksesibilitas</string>
+    <string name="gesture_accessibility_app_info">info aplikasi</string>
+    <string name="gesture_accessibility_done">selesai</string>
+    <string name="gesture_accessibility_label">OmaLauncher++ gestures</string>
+    <string name="gesture_accessibility_description">Memungkinkan gestur beranda mengunci layar dan menampilkan aplikasi terbaru, dan tidak lebih. Ia tidak membaca apa pun di layar dan tidak melihat apa pun yang kamu ketik.</string>
+</resources>

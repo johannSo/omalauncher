@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gesture_double_tap">toque duplo</string>
+    <string name="gesture_two_finger_up">dois dedos para cima</string>
+    <string name="gesture_two_finger_down">dois dedos para baixo</string>
+    <string name="gesture_pinch_in">pinçar</string>
+    <string name="gesture_pinch_out">afastar dedos</string>
+    <string name="gesture_opens_nothing">%1$s não abre nada</string>
+
+    <string name="gesture_action_drawer">gaveta de apps</string>
+    <string name="gesture_action_quick_settings">configurações rápidas</string>
+    <string name="gesture_action_pages">páginas</string>
+    <string name="gesture_action_lock">bloquear tela</string>
+    <string name="gesture_action_recents">apps recentes</string>
+    <string name="gesture_action_linux_label">executar: %1$s</string>
+    <string name="gesture_action_terminal_label">terminal: %1$s</string>
+    <string name="gesture_action_agent_label">perguntar: %1$s</string>
+
+    <string name="gesture_ask_app">um app…</string>
+    <string name="gesture_ask_linux">um comando do Linux…</string>
+    <string name="gesture_ask_terminal">um comando em um terminal…</string>
+    <string name="gesture_ask_agent">um prompt para o agente…</string>
+    <string name="gesture_linux_title">comando para %1$s</string>
+    <string name="gesture_linux_hint">roda no Linux sem janela própria; um app gráfico que ele iniciar abre como sempre</string>
+    <string name="gesture_terminal_title">comando de terminal para %1$s</string>
+    <string name="gesture_terminal_hint">abre em um terminal próprio, que fecha quando o comando termina: adicione ; exec bash para mantê-lo aberto</string>
+    <string name="gesture_agent_title">prompt para %1$s</string>
+    <string name="gesture_agent_hint">enviado ao agente de programação padrão, como a barra envia</string>
+    <string name="gesture_save">salvar</string>
+    <string name="gesture_pick_app_title">app para %1$s</string>
+    <string name="gesture_search_apps">buscar apps</string>
+    <string name="gesture_app_android">android</string>
+    <string name="gesture_app_linux">linux</string>
+    <string name="gesture_no_apps">nenhum app corresponde</string>
+    <string name="gesture_hint_more">o toque duplo funciona em espaço vazio; os deslizes com dois dedos e as pinças, em qualquer lugar das páginas da tela inicial. style.toml aceita o mesmo em [gestures], também para agentes: defaults.toml lista todas as ações</string>
+
+    <string name="gesture_panel_missing">%1$s não é um painel que funcione</string>
+    <string name="gesture_app_missing">%1$s não está instalado</string>
+    <string name="gesture_needs_accessibility">ative o serviço de acessibilidade para isso</string>
+
+    <string name="gesture_accessibility_off">bloquear tela e apps recentes precisam do serviço de acessibilidade, que está desativado</string>
+    <string name="gesture_accessibility_turn_on">ativar</string>
+    <string name="gesture_accessibility_title">serviço de acessibilidade</string>
+    <string name="gesture_accessibility_on">● ativado: bloquear tela e apps recentes funcionam</string>
+    <string name="gesture_accessibility_is_off">○ desativado</string>
+    <string name="gesture_accessibility_what">O Android só deixa um app bloquear a tela ou mostrar os apps recentes por meio de um serviço de acessibilidade. O OmaLauncher++ tem um que faz só isso: quando você faz um gesto configurado para bloquear a tela ou para apps recentes, ele pede ao Android, como o botão liga/desliga ou o de recentes fariam.</string>
+    <string name="gesture_accessibility_not">Ele não pede nenhum evento ao Android e não consegue ler o que está na tela nem o que você digita. O Android vai avisar que serviços de acessibilidade podem ver e controlar sua tela: isso é o que um serviço poderia pedir, não o que este faz. Ele fica desativado até você ativá-lo, e você pode desativá-lo lá quando quiser.</string>
+    <string name="gesture_accessibility_steps">Para ativá-lo, abra as configurações de acessibilidade, encontre OmaLauncher++ gestures entre os apps instalados e ative. Se o Android disser que é uma configuração restrita, abra as informações do app, toque em ⋮, permita configurações restritas e tente de novo.</string>
+    <string name="gesture_accessibility_open">abrir configurações de acessibilidade</string>
+    <string name="gesture_accessibility_app_info">informações do app</string>
+    <string name="gesture_accessibility_done">pronto</string>
+    <string name="gesture_accessibility_label">OmaLauncher++ gestures</string>
+    <string name="gesture_accessibility_description">Permite que os gestos da tela inicial bloqueiem a tela e mostrem os apps recentes, e nada mais. Não lê nada na tela e não vê nada do que você digita.</string>
+</resources>

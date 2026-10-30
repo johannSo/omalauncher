@@ -329,6 +329,8 @@ internal fun HomeGrid(
     render: @Composable (HomeItem, Modifier, Boolean) -> Unit,
     actions: @Composable (HomeItem) -> Unit,
     onLongPressEmpty: () -> Unit,
+    /** A finger went down on empty space, not on a tile, for home's double tap to tell; with no folder open or tile selected. */
+    onPressEmpty: (PointerId) -> Unit = {},
     /** What a page left of the first ([isFacePage]) shows while no face is there; it gets the page's number. */
     feed: @Composable (Int) -> Unit,
     /** What an empty tile page shows while no tile is carried. */
@@ -599,7 +601,8 @@ internal fun HomeGrid(
                     ) = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
                         while (true) {
                             val c = awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull { it.id == downId } ?: return@withTimeoutOrNull
-                            if (!c.pressed || (c.position - start).getDistance() > viewConfiguration.touchSlop) return@withTimeoutOrNull
+                            // Taken first (home's two-finger gestures): no long press either.
+                            if (!c.pressed || c.isConsumed || (c.position - start).getDistance() > viewConfiguration.touchSlop) return@withTimeoutOrNull
                         }
                     } == null
 
@@ -720,6 +723,7 @@ internal fun HomeGrid(
                         }
 
                         val hit = placed.lastOrNull { (i, c) -> g.rect(i, c).has(at) }
+                        if (hit == null) onPressEmpty(down.id)
                         // A face's long presses are its own nodes' (onLongPress), which it's not lifted by (it's
                         // arranged in settings › pages). One that none of them takes opens the menu, as empty space does:
                         // they take it as the press times out, so give them a moment to say so.
