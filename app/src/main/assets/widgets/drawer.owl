@@ -22,6 +22,7 @@ panel "app drawer" {
       groupCalc: "calculator"; groupSettings: "android settings"; groupShortcuts: "app shortcuts"; groupContacts: "contacts"
       groupFiles: "files"; groupPackages: "packages"; groupWeb: "web"
       rename: "rename"; hide: "hide"; unhide: "unhide"
+      timer: "app timer"
     }
     id {
       personal: "pribadi"; work: "kerja"; apps: "aplikasi"; linux: "linux"; shortcuts: "pintasan"; android: "android"
@@ -37,6 +38,7 @@ panel "app drawer" {
       groupCalc: "kalkulator"; groupSettings: "setelan android"; groupShortcuts: "pintasan aplikasi"; groupContacts: "kontak"
       groupFiles: "file"; groupPackages: "paket"; groupWeb: "web"
       rename: "ganti nama"; hide: "sembunyikan"; unhide: "tampilkan"
+      timer: "timer aplikasi"
     }
     es {
       personal: "personal"; work: "trabajo"; apps: "apps"; linux: "linux"; shortcuts: "accesos directos"; android: "android"
@@ -52,6 +54,7 @@ panel "app drawer" {
       groupCalc: "calculadora"; groupSettings: "configuración de android"; groupShortcuts: "accesos directos"; groupContacts: "contactos"
       groupFiles: "archivos"; groupPackages: "paquetes"; groupWeb: "web"
       rename: "renombrar"; hide: "ocultar"; unhide: "mostrar"
+      timer: "temporizador"
     }
     pt {
       personal: "pessoal"; work: "trabalho"; apps: "apps"; linux: "linux"; shortcuts: "atalhos"; android: "android"
@@ -67,6 +70,7 @@ panel "app drawer" {
       groupCalc: "calculadora"; groupSettings: "configurações do android"; groupShortcuts: "atalhos de apps"; groupContacts: "contatos"
       groupFiles: "arquivos"; groupPackages: "pacotes"; groupWeb: "web"
       rename: "renomear"; hide: "ocultar"; unhide: "mostrar"
+      timer: "timer do app"
     }
   }
   source d = android.drawer

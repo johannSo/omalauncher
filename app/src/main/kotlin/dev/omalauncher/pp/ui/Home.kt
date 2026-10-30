@@ -164,6 +164,7 @@ fun HomeScreen(
                 "agents" -> state.show(SettingsPage.Agents)
                 "store" -> state.show(SettingsPage.Store)
                 "linux" -> state.show(SettingsPage.Linux)
+                "focus" -> state.show(SettingsPage.Focus)
                 "drawer" -> state.open()
                 "settings" -> state.show()
                 // "page:0": turns home to that page, a face left of page 1 too, as Super+1…9 does. What covers home
@@ -663,6 +664,8 @@ private fun HomeTile(
     turned: Boolean,
     linuxState: LinuxState,
 ) {
+    // An app focus mode leaves out leaves its cell empty while the profile is on.
+    if (item is Shortcut && !runtime.focus.allows(item)) return
     val engine = runtime.widgets
     val terminals = runtime.terminals
     val density = LocalDensity.current

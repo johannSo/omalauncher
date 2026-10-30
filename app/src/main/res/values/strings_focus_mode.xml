@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Focus mode and app timers (focus/): settings › focus, the time's-up screen, the bar's "focus …" and FocusGuard. -->
+<resources>
+    <string name="focus_title">focus</string>
+    <!-- Settings' row: the profile that's on. -->
+    <string name="focus_subtitle_on">on: %1$s</string>
+    <plurals name="focus_timers_count">
+        <item quantity="one">%1$d app timer</item>
+        <item quantity="other">%1$d app timers</item>
+    </plurals>
+
+    <string name="focus_profiles">focus mode</string>
+    <string name="focus_profiles_hint">While a profile is on, the apps it leaves out are hidden from the drawer, search, the recent apps and home. Type focus and a profile\'s name, or focus off, in the bar too; focus work 25m keeps it on for 25 minutes.</string>
+    <string name="focus_new_profile">new profile</string>
+    <string name="focus_create">create</string>
+    <string name="focus_name_taken">another profile has that name, or it\'s a word the bar keeps (off)</string>
+    <string name="focus_turn_on">turn on</string>
+    <string name="focus_turn_off">turn off</string>
+    <string name="focus_edit">edit</string>
+    <string name="focus_delete">delete</string>
+    <string name="focus_delete_title">delete %1$s?</string>
+    <string name="focus_delete_message">The profile goes, with its apps and its schedule. Your apps stay as they are.</string>
+    <string name="focus_until_off">until turned off</string>
+    <!-- How long a profile is turned on for: "for 25m". -->
+    <string name="focus_for">for %1$s</string>
+    <string name="focus_status_off">off</string>
+    <string name="focus_status_on">on</string>
+    <string name="focus_status_until">on until %1$s</string>
+    <string name="focus_status_scheduled">on by its schedule until %1$s</string>
+    <plurals name="focus_allows_apps">
+        <item quantity="one">lets %1$d app through</item>
+        <item quantity="other">lets %1$d apps through</item>
+    </plurals>
+    <plurals name="focus_blocks_apps">
+        <item quantity="one">hides %1$d app</item>
+        <item quantity="other">hides %1$d apps</item>
+    </plurals>
+
+    <string name="focus_rename">rename</string>
+    <string name="focus_apps_mode">apps</string>
+    <string name="focus_apps_only">only these</string>
+    <string name="focus_apps_except">all but these</string>
+    <string name="focus_dnd">do not disturb</string>
+    <string name="focus_yes">on</string>
+    <string name="focus_no">off</string>
+    <string name="focus_dnd_needed">Android has to let the launcher switch Do Not Disturb first.</string>
+    <string name="focus_schedule">schedule</string>
+    <string name="focus_schedule_none">none</string>
+    <string name="focus_schedule_weekly">weekly</string>
+    <string name="focus_schedule_from">from</string>
+    <string name="focus_schedule_to">to</string>
+    <string name="focus_schedule_no_days">Pick the days it turns on.</string>
+    <string name="focus_apps">apps</string>
+    <string name="focus_search_apps">find an app</string>
+    <string name="focus_kind_linux">linux</string>
+    <string name="focus_kind_owl">owl</string>
+    <string name="focus_kind_shortcut">shortcut</string>
+
+    <string name="focus_timers">app timers</string>
+    <string name="focus_timers_hint">A daily limit per Android app. Once it\'s used up, opening the app from the launcher shows a time\'s-up screen first. Long-press an app for its timer, too.</string>
+    <string name="focus_add_timer">add timer</string>
+    <string name="focus_pick_app">pick an app</string>
+    <string name="focus_limit_title">%1$s a day</string>
+    <string name="focus_no_limit">no limit</string>
+    <string name="focus_remove">remove</string>
+    <!-- Used today, of the app's limit: "12m of 30m today". -->
+    <string name="focus_timer_used">%1$s of %2$s today</string>
+    <string name="focus_usage_needed">Timers count each app\'s screen time, which Android shares only with usage access.</string>
+    <string name="focus_allow">allow</string>
+    <string name="focus_action_timer">app timer</string>
+
+    <string name="focus_outside">outside the launcher</string>
+    <string name="focus_guard_explain">Timers and focus mode stop apps opened from OmaLauncher++. To stop them wherever they\'re opened, from a notification, another app or Recents, turn on OmaLauncher++ focus in Android\'s accessibility settings. It reads only which app comes to the front, never what\'s on screen or what you type, and Settings, the phone app and the keyboard are never stopped. Android may ask you first to allow restricted settings in the launcher\'s app info, as it does for apps not from a store. It\'s off unless you turn it on.</string>
+    <string name="focus_guard_on">on</string>
+    <string name="focus_guard_off">off</string>
+    <string name="focus_guard_open">accessibility settings</string>
+    <string name="focus_file_hint">Agents can edit all of this in ~/.config/omalauncher/focus/focus.toml.</string>
+
+    <string name="focus_guard_label">OmaLauncher++ focus</string>
+    <string name="focus_guard_summary">Focus mode and app timers for apps opened outside the launcher</string>
+    <string name="focus_guard_description">Lets OmaLauncher++\'s focus mode and app timers stop apps opened outside the launcher: from a notification, another app or Recents. It reads only which app comes to the front, never what\'s on screen or what you type, and nothing leaves the phone. Settings, the phone app and the keyboard are never stopped.</string>
+
+    <string name="focus_times_up_title">time\'s up</string>
+    <!-- The app, how long it was used today, its daily limit. -->
+    <string name="focus_times_up_message">%1$s: %2$s today, of %3$s a day</string>
+    <string name="focus_times_up_hint">open anyway leaves it be for the rest of today</string>
+    <string name="focus_hidden_title">not now</string>
+    <string name="focus_hidden_message">%1$s isn\'t in focus profile %2$s</string>
+    <string name="focus_one_more_minute">1 more minute</string>
+    <string name="focus_open_anyway">open anyway</string>
+    <string name="focus_close">close</string>
+    <string name="focus_duration_hours">%1$dh %2$dm</string>
+    <string name="focus_duration_minutes">%1$dm</string>
+
+    <string name="focus_toast_on">focus: %1$s</string>
+    <string name="focus_toast_until">focus: %1$s until %2$s</string>
+    <string name="focus_toast_off">focus off</string>
+</resources>

@@ -67,6 +67,7 @@ fun SettingsScreen(
     onSearch: () -> Unit,
     onHiddenApps: () -> Unit = {},
     onQuickTiles: () -> Unit,
+    onFocus: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val linux by runtime.bootstrap.state.collectAsState()
@@ -109,6 +110,7 @@ fun SettingsScreen(
                 SettingsRow(R.string.settings_search, stringResource(R.string.settings_search_subtitle), onSearch),
                 SettingsRow(R.string.app_tweaks_settings, hiddenAppsSubtitle(runtime), onHiddenApps),
                 SettingsRow(R.string.qs_tiles_title, stringResource(R.string.qs_tiles_subtitle), onQuickTiles),
+                SettingsRow(R.string.focus_title, dev.omalauncher.pp.focus.focusSubtitle(runtime), onFocus),
                 languageRow(),
                 otherAppsRow(),
                 backupRow(runtime),

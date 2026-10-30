@@ -1,0 +1,118 @@
+widget "screen time" {
+  page: 3
+  order: 5
+  size: 4x4
+  minSize: 3x3
+
+  meta { owl: 17; description: "Today's screen time per app, with each app timer's limit, and focus mode: the profile that's on, switched with a tap."; version: "1.0"; license: "MIT"; category: "productivity" }
+
+  strings {
+    en {
+      today: "today"; opens: n => n == 1 ? "1 open" : "${n} opens"; focus: "focus"; off: "off"; on: name => "focus: ${name}"
+      until: t => "until ${t}"; noProfiles: "no profiles yet"; setUp: "set up"; needsAccess: "screen time needs usage access"
+      allow: "allow"; left: t => "${t} left"; up: "time's up"; nothing: "nothing used yet today"
+    }
+    es {
+      today: "hoy"; opens: n => n == 1 ? "1 apertura" : "${n} aperturas"; focus: "enfoque"; off: "desactivar"; on: name => "enfoque: ${name}"
+      until: t => "hasta las ${t}"; noProfiles: "aún no hay perfiles"; setUp: "configurar"; needsAccess: "el tiempo de pantalla necesita acceso a datos de uso"
+      allow: "permitir"; left: t => "quedan ${t}"; up: "se acabó el tiempo"; nothing: "nada usado hoy"
+    }
+    id {
+      today: "hari ini"; opens: n => "${n} kali dibuka"; focus: "fokus"; off: "nonaktifkan"; on: name => "fokus: ${name}"
+      until: t => "sampai ${t}"; noProfiles: "belum ada profil"; setUp: "atur"; needsAccess: "waktu layar perlu akses penggunaan"
+      allow: "izinkan"; left: t => "sisa ${t}"; up: "waktu habis"; nothing: "belum ada yang dipakai hari ini"
+    }
+    pt {
+      today: "hoje"; opens: n => n == 1 ? "1 abertura" : "${n} aberturas"; focus: "foco"; off: "desativar"; on: name => "foco: ${name}"
+      until: t => "até ${t}"; noProfiles: "nenhum perfil ainda"; setUp: "configurar"; needsAccess: "o tempo de tela precisa do acesso ao uso"
+      allow: "permitir"; left: t => "faltam ${t}"; up: "tempo esgotado"; nothing: "nada usado hoje"
+    }
+  }
+
+  // Both come from Android, so the widget works without Linux. The launcher reads usage again every minute.
+  source u = android.usage
+  source f = android.focus
+  state picking = false
+
+  let longest = len(u.apps) > 0 ? max(u.apps[0].time, 60) : 60
+
+  Column {
+    gap: 8
+    fill: true
+
+    // Focus mode: the profile that's on, or a tap to pick one.
+    Row {
+      Text {
+        text: f.active != null ? str.on(f.active) + (f.until != null ? " · " + str.until(fmtTime(f.until, "HH:mm")) : "") : str.focus
+        color: f.active != null ? accent : muted
+        weight: 1
+        maxLines: 1
+      }
+      Button {
+        text: f.active != null ? str.off : (picking ? "×" : "▾")
+        onTap: {
+          if f.active != null {
+            focus("off")
+          } else {
+            picking = !picking
+          }
+        }
+      }
+    }
+    if picking && f.active == null {
+      Flow {
+        gap: 6
+        for p in f.profiles key p.name {
+          Button { text: p.name; onTap: { focus(p.name); picking = false } }
+        }
+        if len(f.profiles) == 0 {
+          Text { text: str.noProfiles; style: small }
+          Button { text: str.setUp; onTap: launcher("focus") }
+        }
+      }
+    }
+
+    if !u.available {
+      Column {
+        weight: 1
+        justify: center
+        Text { text: str.needsAccess; style: small }
+        Button { text: str.allow; onTap: settings("usage") }
+      }
+    } else {
+      Row {
+        Text { text: str.today; style: muted; weight: 1 }
+        Text { text: fmtDuration(u.total); style: title }
+      }
+      Text { text: len(u.apps) == 0 ? str.nothing : str.opens(u.opens); style: small }
+      Column {
+        gap: 8
+        weight: 1
+        scroll: true
+        for a in u.apps key a.package {
+          Row {
+            gap: 8
+            Image { src: a.icon; size: 24 }
+            Column {
+              gap: 2
+              weight: 1
+              Row {
+                Text { text: a.name; weight: 1; maxLines: 1 }
+                Text { text: fmtDuration(a.time); style: small }
+              }
+              // An app timer's bar fills up to its limit, red once it's used up; the others are measured against the longest.
+              Progress {
+                value: a.time
+                max: a.limit ?? longest
+                color: a.limit != null && a.left == 0 ? red : accent
+              }
+              if a.limit != null {
+                Text { text: a.left == 0 ? str.up : str.left(fmtDuration(a.left)); style: label; color: a.left == 0 ? red : muted }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

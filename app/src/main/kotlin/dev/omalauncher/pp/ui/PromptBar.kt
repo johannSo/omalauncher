@@ -150,6 +150,10 @@ internal fun PromptBar(
 
     /** Enter: what the drawer does with it (open the app it picked), or, from a drawer without onSubmit, the agent. */
     fun submit() {
+        if (runtime.focus.command(text)) return run {
+            state.query = ""
+            state.closeNow()
+        }
         if (drawer()?.submit(text) == true) state.query = "" else send(text)
     }
 
@@ -339,7 +343,7 @@ internal fun PromptBar(
                     },
                 )
                 // The drawer says what its Enter does, with its `enter`.
-                val enter = drawer()?.enterHint() ?: stringResource(R.string.prompt_enter_ask)
+                val enter = runtime.focus.barHint(text) ?: drawer()?.enterHint() ?: stringResource(R.string.prompt_enter_ask)
                 if (text.isNotBlank() && !listening && enter.isNotEmpty()) {
                     // Says what Enter does, so opening an app instead of asking is never a surprise.
                     Box(

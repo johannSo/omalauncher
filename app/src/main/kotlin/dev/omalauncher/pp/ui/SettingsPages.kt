@@ -55,6 +55,8 @@ enum class SettingsPage {
     HiddenApps,
     /** The quick settings tiles, to add; a long press on the terminal or ask tile opens it too. */
     QuickTiles,
+    /** Focus mode's profiles and the app timers. */
+    Focus,
 }
 
 /** Opens [page] over the ones in [stack]; one that's already open comes back to the top, closing what's over it. */
@@ -132,6 +134,7 @@ private fun SettingsPage(
                 onSearch = { stack.push(SettingsPage.Search) },
                 onHiddenApps = { stack.push(SettingsPage.HiddenApps) },
                 onQuickTiles = { stack.push(SettingsPage.QuickTiles) },
+                onFocus = { stack.push(SettingsPage.Focus) },
             )
         SettingsPage.Style -> StyleScreen(runtime, onDismiss = close, onBrowse = { stack.push(SettingsPage.Themes) }, onAgent = ::agent)
         SettingsPage.Pages -> {
@@ -184,5 +187,6 @@ private fun SettingsPage(
         SettingsPage.Search -> SearchScreen(runtime, onDismiss = close)
         SettingsPage.HiddenApps -> HiddenAppsScreen(runtime, onDismiss = close)
         SettingsPage.QuickTiles -> QuickTilesScreen(runtime, onDismiss = close)
+        SettingsPage.Focus -> dev.omalauncher.pp.focus.FocusScreen(runtime, onDismiss = close)
     }
 }

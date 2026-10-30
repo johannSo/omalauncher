@@ -167,6 +167,8 @@ internal class AppHandlers(
     val hide: (AppHit, Boolean) -> Unit = { _, _ -> },
     /** Asks for a name to call the app by. */
     val rename: (AppHit) -> Unit = {},
+    /** Sets an Android app's daily limit, in settings › focus. */
+    val timer: (AndroidApp) -> Unit = {},
 )
 
 /** The shortcuts an Android app offers above its menu's actions; null for anything else. */
@@ -215,7 +217,7 @@ internal fun AppHit.actionWords(): List<String> {
     return when (this) {
         is AppHit.Linux -> listOf("pin") + tweaks
         is AppHit.Owl -> listOf("pin", "edit", "share") + tweaks + "remove"
-        is AppHit.Android -> listOfNotNull(if (app.privateSpace) null else "pin", if (widgets) "widgets" else null) + tweaks + listOfNotNull("info", if (app.system) null else "uninstall")
+        is AppHit.Android -> listOfNotNull(if (app.privateSpace) null else "pin", if (widgets) "widgets" else null) + tweaks + listOfNotNull("info", if (app.privateSpace) null else "timer", if (app.system) null else "uninstall")
         is AppHit.Shortcut -> listOfNotNull(if (shortcut.privateSpace) null else "pin") + tweaks + "remove"
     }
 }
@@ -232,6 +234,7 @@ private val ACTION_LABELS =
         "rename" to R.string.app_tweaks_rename,
         "hide" to R.string.app_tweaks_hide,
         "unhide" to R.string.app_tweaks_unhide,
+        "timer" to R.string.focus_action_timer,
     )
 
 /** Runs the menu entry [word], from the menu or a widget's `appAction(...)`; one the app's menu doesn't offer does nothing. */
@@ -244,6 +247,7 @@ internal fun AppHit.act(
         "pin" -> handlers.pin(this)
         "info" -> (this as? AppHit.Android)?.let { handlers.info(it.app) }
         "widgets" -> (this as? AppHit.Android)?.let { handlers.widgets(it.app) }
+        "timer" -> (this as? AppHit.Android)?.let { handlers.timer(it.app) }
         "uninstall" -> (this as? AppHit.Android)?.let { handlers.uninstall(it.app) }
         "remove" ->
             when (this) {
@@ -427,6 +431,7 @@ internal fun recentApps(
     // By kind, as appIconOf does, rather than through allApps: the strip asks on each recomposition, for a handful of keys.
     val android = runtime.androidApps
     val owl by lazy { runtime.widgets.apps() }
+    val focus = runtime.focus.active?.profile
     return runtime.usage.recent
         .asSequence()
         .mapNotNull { key ->
@@ -438,7 +443,7 @@ internal fun recentApps(
                 "o" -> owl.lastOrNull { it.file.name == id }?.let(AppHit::Owl)
                 else -> null
             }
-        }.filterNot { it.hidden }
+        }.filter { !it.hidden && runtime.focus.allows(it, focus) }
         .take(limit)
         .toList()
 }

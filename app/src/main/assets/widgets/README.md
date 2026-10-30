@@ -93,7 +93,7 @@ declarations.md, nodes.md, expressions.md and handlers.md; a face, an app, a pan
 | read | for |
 |---|---|
 | docs/declarations.md | sources (`cmd`, `http`, `ws`, `stream`, `file`, `broadcast`, `external`, `clock`), state, lets, triggers (`every`, `at`, `when`, `on`, `on … each`), putting values into commands and URLs, `requires` and working without Linux |
-| docs/android.md | the phone's data: battery, media, notifications, volume, the next alarm, modes, location, steps, apps, the drawer, agents, the private space |
+| docs/android.md | the phone's data: battery, media, notifications, volume, the next alarm, modes, location, steps, apps, the drawer, agents, the private space, screen time and focus mode |
 | docs/expressions.md | operators and every function, dates and times, numbers, changing lists and maps, chance |
 | docs/nodes.md | every node and its properties, the tile's size, text in pieces, fonts, gradients, frosted glass, images from the web, components, Terminal |
 | docs/handlers.md | handlers, every action, sending to web APIs with `post`, tokens and passwords, other Android apps (Tasker) with `intent` and `broadcast`, sounds |
@@ -145,6 +145,7 @@ docs say what's current.
 | the terminal key bar | `keybar.owl`, `examples/keybar-layers` (latch, layers), `examples/keybar-vim`, `examples/keybar-gamepad`, `examples/keybar-commands` (typeText) |
 | a live terminal | `45-terminal` |
 | other Android apps | `examples/77-tasker` (Tasker both ways: `broadcast`, a broadcast source, `external`, `intent`) |
+| screen time and focus mode | `examples/78-screen-time` (android.usage, android.focus, `focus(...)`, `settings("usage")`) |
 | an app that sends | `examples/ntfy` (two views with `back`, a source whose URL takes a state, `post` with a JSON body, and what it answers shown at once), `examples/github-inbox` (a token kept as a `secret`, `post` with `method: "PATCH"`) |
 
 ## Limits

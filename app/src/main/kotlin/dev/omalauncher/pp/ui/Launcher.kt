@@ -187,6 +187,11 @@ private fun DesktopScreen(
                 hide = { hit, hidden -> runtime.appTweaks.hide(hit.key, hidden) },
                 // Over the drawer, which then shows the new name.
                 rename = { state.renaming = it },
+                timer = { app ->
+                    state.closeNow()
+                    runtime.focus.pickingTimer = app.component.packageName
+                    state.show(SettingsPage.Focus)
+                },
             )
         }
 

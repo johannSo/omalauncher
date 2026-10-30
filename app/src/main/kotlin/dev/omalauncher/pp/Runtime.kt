@@ -108,6 +108,9 @@ class Runtime(
 
     /** Apps hidden and renamed, in apps.toml. */
     val appTweaks = AppTweakStore(context, androidApps)
+
+    /** Focus mode and app timers: which apps show and open now; see [dev.omalauncher.pp.focus.Focus]. */
+    val focus = dev.omalauncher.pp.focus.Focus(context, androidApps)
     val themes = ThemeStore(context, proot, style, isLinux = { linux }, onConfigChanged = ::syncGuest)
     private val audio = AudioBridge(proot)
     private val openBridge = OpenBridge(context, proot, onOpenFiles = ::openFiles, onEdit = ::edit, onMcp = { mcp.serve(it) })

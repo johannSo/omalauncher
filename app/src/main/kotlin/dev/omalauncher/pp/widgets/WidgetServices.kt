@@ -94,6 +94,10 @@ import dev.omalauncher.pp.ui.allApps
 import dev.omalauncher.pp.ui.appIconOf
 import dev.omalauncher.pp.ui.open
 import dev.omalauncher.pp.ui.recentApps
+import dev.omalauncher.pp.focus.act
+import dev.omalauncher.pp.focus.focusValue
+import dev.omalauncher.pp.focus.usageUpdates
+import dev.omalauncher.pp.focus.usageValue
 import dev.omalauncher.pp.widgets.runtime.Alarm
 import dev.omalauncher.pp.widgets.runtime.AppIntents
 import dev.omalauncher.pp.widgets.runtime.Location
@@ -245,6 +249,8 @@ class WidgetServices(
             "modifiers" -> modifiers()
             "location" -> location.value()
             "steps" -> steps.value()
+            "usage" -> runtime.focus.usageValue()
+            "focus" -> runtime.focus.focusValue()
             else -> throw WidgetError("unknown android source $name")
         }
 
@@ -269,6 +275,8 @@ class WidgetServices(
             "agents" -> snapshotFlow { agents() }
             "recent" -> snapshotFlow { recent() }
             "modifiers" -> snapshotFlow { modifiers() }
+            "usage" -> runtime.focus.usageUpdates()
+            "focus" -> snapshotFlow { runtime.focus.focusValue() }
             // Linux's state is a flow of its own, not Compose state: a change of its word starts the drawer's anew.
             "drawer" -> runtime.bootstrap.state.map(::linuxWord).distinctUntilChanged().flatMapLatest { snapshotFlow { drawer() } }
                 // The first at once, then the latest at most every DRAWER_EVERY_MS.
@@ -603,7 +611,9 @@ class WidgetServices(
                     "last" to (runtime.usage.last(hit.key)?.let { Num((it / 1000).toDouble()) } ?: Null),
                 ),
             )
-        val (hidden, shown) = hits.partition { it.hidden }
+        // Focus mode hides the apps the profile on leaves out, from the drawer and its search alike, hidden ones too.
+        val focus = runtime.focus.active?.profile
+        val (hidden, shown) = hits.filter { runtime.focus.allows(it, focus) }.partition { it.hidden }
         val work = if (apps.workProfiles.isEmpty()) Null else Obj(mapOf("paused" to bool(apps.workProfiles.any { apps.paused(it) })))
         val space = apps.privateSpace?.let { Obj(mapOf("locked" to bool(it.locked), "hidden" to bool(it.hidden), "settings" to bool(apps.privateSettings))) } ?: Null
         return Obj(
@@ -756,6 +766,7 @@ class WidgetServices(
             "workApps" -> workApps(arg)
             "privateSpace" -> privateSpace(arg)
             "permission" -> WidgetPermissions.request(context, arg)
+            "focus" -> runtime.focus.act(arg, args.getOrNull(1))
         }
         // Anything the action changed should show up without waiting for the next interval.
         scope.launch {
