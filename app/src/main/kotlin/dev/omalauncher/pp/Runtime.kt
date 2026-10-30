@@ -16,6 +16,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
+import dev.omalauncher.pp.jobs.Jobs
 import dev.omalauncher.pp.linux.AGENTS
 import dev.omalauncher.pp.linux.Agent
 import dev.omalauncher.pp.linux.AgentStore
@@ -114,7 +115,7 @@ class Runtime(
     val gpu = Gpu(context, proot, pacman)
 
     /** The launcher's own provided files (default widgets, their docs); see [Provisioner]. */
-    private val launcherFiles = Provisioner(proot.filesDir, LauncherData.LAUNCHER_MANIFEST, listOf(widgets::managed, style::managed))
+    private val launcherFiles = Provisioner(proot.filesDir, LauncherData.LAUNCHER_MANIFEST, listOf(widgets::managed, style::managed, { jobs.managed() }))
 
     /** Every launcher-provided file in the guest; synced only while Linux is installed. */
     private val provisioner: Provisioner =
@@ -133,6 +134,9 @@ class Runtime(
             ),
         )
     val bootstrap = Bootstrap(context, proot, agents, pacman, provisioner)
+
+    /** Scheduled agent jobs; they start the launcher, and with it Linux, when one is due. */
+    val jobs = Jobs(context, proot, agents, bootstrap.state, startLauncher = ::start)
 
     /** Its jobs write files and start the guest; one that fails (storage full) mustn't take the home screen down. */
     private val scope =
@@ -236,6 +240,7 @@ class Runtime(
             widgets.start()
             themes.load()
             style.start()
+            jobs.start()
             // On the first-run screen the download is the screen's job, with progress.
             if (launcherReady) scope.launch { themes.ensureRelease() }
             // Shut down, it stays down: no foreground service, nothing started.

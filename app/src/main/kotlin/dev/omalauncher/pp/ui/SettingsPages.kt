@@ -42,6 +42,9 @@ enum class SettingsPage {
     Linux,
     Licenses,
     Gestures,
+
+    /** Scheduled agent jobs, from the agents screen. */
+    Jobs,
 }
 
 /** Opens [page] over the ones in [stack]; one that's already open comes back to the top, closing what's over it. */
@@ -150,6 +153,7 @@ private fun SettingsPage(
                 AgentsScreen(
                     runtime,
                     onDismiss = close,
+                    onJobs = { stack.push(SettingsPage.Jobs) },
                     onOpen = { agent ->
                         close()
                         runtime.terminal(agent.command, agent.name, agent)
@@ -162,5 +166,6 @@ private fun SettingsPage(
         SettingsPage.Linux -> LinuxScreen(runtime, onDismiss = close)
         SettingsPage.Licenses -> LicensesScreen(onDismiss = close)
         SettingsPage.Gestures -> GesturesScreen(runtime, onDismiss = close, onAgent = ::agent)
+        SettingsPage.Jobs -> JobsScreen(runtime, onDismiss = close)
     }
 }

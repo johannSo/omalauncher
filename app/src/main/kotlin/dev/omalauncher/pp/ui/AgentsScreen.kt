@@ -24,10 +24,17 @@ fun AgentsScreen(
     runtime: Runtime,
     onDismiss: () -> Unit,
     onOpen: (Agent) -> Unit,
+    /** Opens the scheduled jobs, which run these agents. */
+    onJobs: () -> Unit = {},
 ) {
     val store = runtime.agents
     val scope = rememberCoroutineScope()
-    OverlayPanel(stringResource(R.string.agents_title), onDismiss, contentWidth = ReadingWidth) {
+    OverlayPanel(
+        stringResource(R.string.agents_title),
+        onDismiss,
+        actions = { BracketAction(stringResource(R.string.jobs_open), Palette.accent, onClick = onJobs) },
+        contentWidth = ReadingWidth,
+    ) {
         BasicText(
             stringResource(R.string.agents_intro),
             Modifier.padding(vertical = 8.dp),

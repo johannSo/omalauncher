@@ -1,0 +1,85 @@
+widget "jobs" {
+  page: 2
+  order: 3
+  size: 6x4
+  minSize: 3x2
+
+  meta { owl: 9; description: "Scheduled agent jobs and what each said last, like a morning summary. Tap a job for its whole output"; version: "1.0"; license: "MIT"; category: "productivity" }
+
+  // Written by the launcher whenever a job starts, waits or ends; see README.md in ~/.config/omalauncher/jobs.
+  source status = file("~/.config/omalauncher/jobs/status.json") json
+  source now = clock every 1m
+  let jobs = (status.jobs ?? []).filter(j => j.enabled)
+
+  // The job whose output the screen shows.
+  state open = null
+  let shown = jobs.find(j => j.id == open)
+
+  Column {
+    gap: 6
+    fill: true
+    Row {
+      Text { text: "jobs"; style: muted; weight: 1 }
+      Text { text: "manage"; style: small; color: muted; onTap: launcher("jobs") }
+    }
+    if len(jobs) == 0 {
+      Text { text: "no jobs yet: settings › agents › [ jobs ], or ask an agent to add one"; style: small; color: muted }
+    }
+    Column {
+      gap: 8
+      weight: 1
+      scroll: true
+      for j in jobs key j.id {
+        Column {
+          gap: 2
+          onTap: { open = j.id; screen() }
+          Row {
+            gap: 6
+            Text {
+              text: j.state == "running" ? "●" : j.state == "waiting" ? "◌" : j.result == "ok" ? "✓" : j.result == null ? "·" : "✗"
+              color: j.state == "running" ? accent : j.state == "waiting" ? yellow : j.result == "ok" ? green : j.result == null ? muted : red
+            }
+            Text { text: j.name; weight: 1; maxLines: 1 }
+            Text {
+              text: j.state == "running" ? "running" : j.state == "waiting" ? "waiting" : j.finished == null ? "never ran" : fmtAgo(j.finished, now)
+              style: small
+              color: muted
+            }
+          }
+          Text {
+            text: j.state == "waiting" ? j.reason : j.summary == "" ? (j.next == null ? "" : "next ${fmtTime(j.next, "EEE HH:mm")}") : j.summary
+            style: small
+            color: j.result == "failed" || j.result == "timeout" ? red : foreground
+            maxLines: 3
+          }
+        }
+      }
+    }
+  }
+
+  screen {
+    title: "jobs"
+    if shown == null {
+      Text { text: "this job is gone"; color: muted }
+    } else {
+      Column {
+        gap: 8
+        Text {
+          text: shown.finished == null ? "never ran" : "${shown.name}: ${shown.result}, ${fmtAgo(shown.finished, now)}, took ${fmtDuration(shown.duration)}"
+          style: small
+          color: shown.result == "ok" ? green : shown.result == null ? muted : red
+        }
+        Column {
+          scroll: true
+          weight: 1
+          Text { text: shown.output == "" ? "no output" : shown.output; font: mono; style: small }
+        }
+        Row {
+          gap: 8
+          Button { text: "all jobs"; onTap: launcher("jobs") }
+          Button { text: "close"; color: muted; onTap: close() }
+        }
+      }
+    }
+  }
+}

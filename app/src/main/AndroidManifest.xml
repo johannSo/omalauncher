@@ -23,6 +23,14 @@
          locked. -->
     <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES" />
 
+    <!-- Scheduled agent jobs (jobs/Jobs.kt): an alarm on time through Doze (Android 13+ asks the user, from the jobs
+         screen), set again after a reboot, the CPU kept awake while a job's agent runs, and whether it's on Wi-Fi for
+         jobs that wait for it. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <uses-feature
         android:name="android.software.live_wallpaper"
         android:required="false" />
@@ -365,6 +373,20 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
+
+        <!-- The jobs' alarm, and what makes Android drop it (a reboot, an update) or changes what its time means. Only the
+             system sends these; nothing else may start a job. -->
+        <receiver
+            android:name=".jobs.JobReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".LinuxService"

@@ -24,6 +24,8 @@ import dev.omalauncher.pp.linux.pacmanInstall
 import dev.omalauncher.pp.linux.runJob
 import dev.omalauncher.pp.ui.Palette
 import dev.omalauncher.pp.theme.Style
+import dev.omalauncher.pp.jobs.Jobs
+import dev.omalauncher.pp.jobs.JobsFile
 import dev.omalauncher.pp.theme.StyleStore
 import dev.omalauncher.pp.ui.LauncherStyle
 import dev.omalauncher.pp.upgrade.Managed
@@ -1112,6 +1114,9 @@ class WidgetEngine(
                 "setting with its default and range. Changes show within a second; ${StyleStore.ERRORS} there says what was ignored and why.\n\n" +
                 "Where everything on home is (pages in order, faces, widgets, pinned apps and folders, each tile's cell) is " +
                 "~/${HomeStore.GUEST_DIR}/${HomeStore.FILE}; edit it to move, resize or pin things or reorder pages. " +
-                "docs/home.md in the widgets folder explains it.\n"
+                "docs/home.md in the widgets folder explains it.\n\n" +
+                "Scheduled agent jobs (a prompt run by a coding agent, headless, daily at 07:00 or on any schedule) are " +
+                "~/${Jobs.GUEST_DIR}/${JobsFile.NAME}; README.md next to it explains the file, the permissions a job runs " +
+                "with, and where each job's output and status go (status.json there is what widgets read).\n"
     }
 }

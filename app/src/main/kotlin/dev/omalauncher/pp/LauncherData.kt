@@ -37,6 +37,9 @@ object LauncherData {
     /** layout.toml, where home's tiles and pages are; see [dev.omalauncher.pp.widgets.HomeStore]. The guest sees ~/.config/omalauncher/home. */
     fun homeDir(context: Context) = File(context.filesDir, "home")
 
+    /** Scheduled agent jobs: jobs.toml and each job's results; see [dev.omalauncher.pp.jobs.Jobs]. The guest sees ~/.config/omalauncher/jobs. */
+    fun jobsDir(context: Context) = File(context.filesDir, "jobs")
+
     /** Settings that belong to no one store: setup, gestures, the GPU, the home role. Keys carry their owner's prefix. */
     fun prefs(context: Context): SharedPreferences = context.getSharedPreferences("launcher", Context.MODE_PRIVATE)
 
