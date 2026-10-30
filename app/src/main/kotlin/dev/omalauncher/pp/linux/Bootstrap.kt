@@ -217,6 +217,11 @@ class Bootstrap(
             Step("packages-1", Stage.Packages, R.string.linux_step_packages, network = true) { guest(pacmanInstall(PACKAGES, refresh = true)) },
             Step("keymap-1", Stage.Packages, R.string.linux_step_keymap, network = false, isDone = { proot.keymap.exists() }) { compileKeymap() },
             Step("cliamp-$CLIAMP_VERSION", Stage.Packages, R.string.linux_step_cliamp, network = true) { installCliamp() },
+            // The session bus Linux apps send notifications on (NotificationServer). Images with dbus-broker as the system
+            // bus may lack dbus-daemon; installing it means a full upgrade, as Arch wants, so only then.
+            Step("dbus-1", Stage.Packages, R.string.linux_step_dbus, network = true, optional = true) {
+                guest("command -v dbus-daemon >/dev/null || { ${pacmanInstall(listOf("dbus"))}; }")
+            },
             // Omarchy's themes were a step here ("omarchy-<ref>") until Linux became optional; ThemeStore fetches them now.
         )
 

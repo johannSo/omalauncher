@@ -406,5 +406,20 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Runs a user-started Linux environment and its display server" />
         </service>
+
+        <!-- Linux apps' notifications (LinuxNotifications.kt): a swipe or a button goes back to the app on the
+             guest's session bus, a tap brings its window back. The tap is an activity of its own task that shows
+             nothing, since only an activity a notification opened may bring another task to the front. -->
+        <receiver
+            android:name=".LinuxNotifications$Receiver"
+            android:exported="false" />
+
+        <activity
+            android:name=".LinuxNotifications$TapActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Omalauncher.Dialog" />
     </application>
 </manifest>

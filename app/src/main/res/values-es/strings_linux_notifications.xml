@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="linux_notifications_channel">Apps de Linux</string>
+    <string name="linux_notifications_channel_urgent">Apps de Linux: urgentes</string>
+    <string name="linux_notifications_channel_quiet">Apps de Linux: prioridad baja</string>
+    <string name="linux_step_dbus">Instalando D-Bus</string>
+</resources>

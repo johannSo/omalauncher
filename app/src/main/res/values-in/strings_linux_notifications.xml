@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="linux_notifications_channel">Aplikasi Linux</string>
+    <string name="linux_notifications_channel_urgent">Aplikasi Linux: mendesak</string>
+    <string name="linux_notifications_channel_quiet">Aplikasi Linux: prioritas rendah</string>
+    <string name="linux_step_dbus">Menginstal D-Bus</string>
+</resources>
