@@ -32,6 +32,7 @@ import dev.omalauncher.pp.linux.Proot
 import dev.omalauncher.pp.linux.SystemUpdates
 import dev.omalauncher.pp.linux.LauncherFont
 import dev.omalauncher.pp.linux.TerminalFont
+import dev.omalauncher.pp.mcp.McpBridge
 import dev.omalauncher.pp.linux.bundledIcons
 import dev.omalauncher.pp.linux.defaultApps
 import dev.omalauncher.pp.linux.matches
@@ -103,8 +104,13 @@ class Runtime(
     val usage = AppUsage(context)
     val themes = ThemeStore(context, proot, style, isLinux = { linux }, onConfigChanged = ::syncGuest)
     private val audio = AudioBridge(proot)
-    private val openBridge = OpenBridge(context, proot, onOpenFiles = ::openFiles, onEdit = ::edit)
-    val agents = AgentStore(proot, onChanged = ::syncGuest)
+    private val openBridge = OpenBridge(context, proot, onOpenFiles = ::openFiles, onEdit = ::edit, onMcp = { mcp.serve(it) })
+    private val mcp = McpBridge(context, proot, this)
+    val agents: AgentStore =
+        AgentStore(proot) {
+            syncGuest()
+            if (linux) scope.launch(Dispatchers.IO) { mcp.register(agents.installed) }
+        }
     val pacman = Pacman(context, proot)
     val widgets = WidgetEngine(context, proot, this)
 
@@ -130,6 +136,7 @@ class Runtime(
                 agents::managed,
                 themes::managed,
                 widgets::guestManaged,
+                { mcp.managed(openBridge.guestFifo) },
             ),
         )
     val bootstrap = Bootstrap(context, proot, agents, pacman, provisioner)
@@ -400,6 +407,7 @@ class Runtime(
             audio.start()
             synchronized(server) { server.input.setKeymap(proot.keymap.path) }
             agents.load()
+            mcp.register(agents.installed)
         }
         widgets.linuxChanged(true)
         refreshApps()

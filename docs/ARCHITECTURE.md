@@ -39,6 +39,9 @@ touches it: `files/omarchy` is `~/.local/share/omarchy` and `files/widgets` is
   current page: a node drawn in Kotlin loses its `remember` state when its
   page is swiped away, and keeps anything lasting in the instance
 - `theme/`: Omarchy themes, applied to the launcher and the guest
+- `mcp/`: the MCP server coding agents in the guest reach the launcher through
+  (`omalauncher-mcp`, over FIFOs named on xdg-open's), with tools that check
+  a change to home, widgets, the theme or the style before applying it
 - `upgrade/`: how installs follow app updates (see below)
 
 ## Rendering

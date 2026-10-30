@@ -1112,6 +1112,11 @@ class WidgetEngine(
                 "setting with its default and range. Changes show within a second; ${StyleStore.ERRORS} there says what was ignored and why.\n\n" +
                 "Where everything on home is (pages in order, faces, widgets, pinned apps and folders, each tile's cell) is " +
                 "~/${HomeStore.GUEST_DIR}/${HomeStore.FILE}; edit it to move, resize or pin things or reorder pages. " +
-                "docs/home.md in the widgets folder explains it.\n"
+                "docs/home.md in the widgets folder explains it.\n\n" +
+                "The launcher is also an MCP server, `omalauncher-mcp` (already added to Claude Code, Codex, OpenCode, Copilot, " +
+                "Crush and Cursor's configs), with tools that check a change before applying it: get_home_layout, " +
+                "set_home_layout and list_pages; list_widgets, read_widget, write_widget and check_owl; list_themes, get_theme " +
+                "and set_theme; get_style and set_style_value; list_apps and open_app; show_toast. Prefer them to editing " +
+                "the files when they're available.\n"
     }
 }
