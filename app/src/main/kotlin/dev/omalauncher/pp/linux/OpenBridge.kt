@@ -3,6 +3,7 @@ package dev.omalauncher.pp.linux
 import android.content.Context
 import android.system.Os
 import android.util.Log
+import dev.omalauncher.pp.mcp.McpBridge
 import dev.omalauncher.pp.openUrl
 import dev.omalauncher.pp.upgrade.Managed
 import dev.omalauncher.pp.upgrade.Policy
@@ -23,9 +24,11 @@ class OpenBridge(
     private val onOpenFiles: (String) -> Unit,
     /** A guest path to edit, and the host path of the FIFO that gets the reply once it's closed. */
     private val onEdit: (String, String) -> Unit,
+    /** The host path of an omalauncher-mcp session's folder of FIFOs (see McpBridge). */
+    private val onMcp: (File) -> Unit = {},
 ) {
     private val fifo = File(proot.runtimeDir, "open.fifo")
-    private val guestFifo = "${Proot.GUEST_RUNTIME_DIR}/${fifo.name}"
+    val guestFifo = "${Proot.GUEST_RUNTIME_DIR}/${fifo.name}"
 
     private var started = false
 
@@ -57,6 +60,7 @@ class OpenBridge(
             val (reply, path) = url.removePrefix(EDIT_PREFIX).split(' ', limit = 2).takeIf { it.size == 2 } ?: return
             return onEdit(path, proot.guestFile(reply)?.path ?: return)
         }
+        if (url.startsWith(McpBridge.PREFIX)) return onMcp(proot.guestFile(url.removePrefix(McpBridge.PREFIX)) ?: return)
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             Log.i(TAG, "ignoring non-URL $url")
             return
