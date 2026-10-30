@@ -1,0 +1,51 @@
+widget "tasker" {
+  size: 3x3
+  minSize: 3x2
+
+  // Talks to Tasker (or any automation app) both ways, from Android: no Linux needed.
+  //
+  // Tasker → this widget, a value: a Send Intent action with
+  //   Action  dev.omalauncher.pp.action.SET
+  //   Extra   widget:77-tasker.owl     Extra key:battery     Extra value:%BATT
+  //   Package dev.omalauncher.pp       Target  Broadcast Receiver
+  // after settings › values from other apps is set to allow. ext.battery is then the value.
+  //
+  // Tasker → this widget, an event: a Send Intent with Action tasker.EVENT, an Extra what:%evtprm1 and Target
+  // Broadcast Receiver runs `on events each` once per intent.
+  //
+  // This widget → Tasker: a profile Event › System › Intent Received with Action tasker.LIGHTS runs its task;
+  // %room and %power are the extras sent with it.
+  meta { owl: 17 }
+  source ext = external
+  source events = broadcast("tasker.EVENT")
+  state log = []
+  state lights = false persist
+
+  on events each { log = take([value.extras.what ?? "?"] + log, 4) }
+
+  Column {
+    gap: 4
+    Row {
+      Text { text: "tasker"; style: muted; weight: 1 }
+      Text { text: ext.battery == null ? "🔋 …" : "🔋 ${ext.battery}%" }
+    }
+    Row {
+      gap: 8
+      Button {
+        text: lights ? "lights off" : "lights on"
+        onTap: {
+          lights = !lights
+          broadcast("tasker.LIGHTS", {room: "living", power: lights})
+        }
+      }
+      // Any app's activity, with typed extras: here a search in whatever app opens geo: links.
+      Button { text: "coffee"; color: muted; onTap: intent("android.intent.action.VIEW", null, data: "geo:0,0?q=coffee") }
+    }
+    if len(log) == 0 {
+      Text { text: "no events yet"; style: small; color: muted }
+    }
+    for e in log {
+      Text { text: e; style: small; maxLines: 1 }
+    }
+  }
+}

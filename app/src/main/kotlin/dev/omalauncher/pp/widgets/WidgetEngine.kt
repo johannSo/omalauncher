@@ -491,6 +491,7 @@ class WidgetEngine(
         layout.remove(fileName)
         File(stateDir, "$fileName.json").delete()
         File(stateDir, "$fileName.secret").delete()
+        ExternalValues.get(context).forget(fileName)
         hashes.remove(fileName)
         File(checkDir, "$fileName.txt").delete()
         File(previewDir, "$fileName.png").delete()
@@ -659,6 +660,7 @@ class WidgetEngine(
                     },
                     linux = { linux },
                     foreground = { (shownApps[name] ?: 0) > 0 || openScreen == name || name in shownPanels },
+                    external = ExternalValues.get(context).updates(name),
                 )
             prev?.let(inst::adopt)
             instances[spec.file.name] = inst

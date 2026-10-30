@@ -102,6 +102,7 @@ fun SettingsScreen(
                     onGestures,
                 ),
                 languageRow(),
+                otherAppsRow(),
                 backupRow(runtime),
                 SettingsRow(R.string.settings_linux, linuxStatus, onLinux),
                 if (installed) {
@@ -140,7 +141,7 @@ fun SettingsScreen(
  * A row of the settings hub: [title] is its string, which also keys it. With [menu], a tap opens that under the row's
  * end instead of calling [onClick]; it's given what closes it.
  */
-private class SettingsRow(
+internal class SettingsRow(
     @StringRes val title: Int,
     val subtitle: String,
     val onClick: () -> Unit,

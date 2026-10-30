@@ -167,7 +167,16 @@ internal val SINCE =
         // owl 17: a list pulled down past its top, to fetch again.
         mapOf("onPull" to 17) +
         // owl 17: servers with a certificate of their own, pinned; WebSockets, and a trigger for each of their messages.
-        listOf(HTTP_PIN, "ws", "send", ON_EACH).associateWith { 17 }
+        listOf(HTTP_PIN, "ws", "send", ON_EACH).associateWith { 17 } +
+        // Other Android apps (Tasker, Home Assistant, KDE Connect): activities started and broadcasts sent with extras,
+        // broadcasts heard, and values they set. Owl 18 once the language level is bumped past 17.
+        listOf("intent", "broadcast", BROADCAST_SOURCE, EXTERNAL).associateWith { 17 }
+
+/** `source x = broadcast("…")`, named like this in [SINCE]; `broadcast` alone is the action that sends one. */
+internal const val BROADCAST_SOURCE = "source … = broadcast(…)"
+
+/** `source x = external`, named like this in [SINCE]. */
+internal const val EXTERNAL = "external"
 
 /** `strings { ... }`, named like this in [SINCE]. */
 internal const val STRINGS_DECL = "strings { }"

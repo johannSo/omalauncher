@@ -366,6 +366,17 @@
             </intent-filter>
         </service>
 
+        <!-- Other apps (Tasker, Home Assistant) set values in widgets with a `source x = external`
+             (widgets/ExternalValues.kt). Disabled until the user allows it in settings, which enables it. -->
+        <receiver
+            android:name=".widgets.SetValueReceiver"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="dev.omalauncher.pp.action.SET" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".LinuxService"
             android:exported="false"

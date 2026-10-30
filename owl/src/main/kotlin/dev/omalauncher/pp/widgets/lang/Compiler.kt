@@ -834,6 +834,30 @@ class Compiler private constructor(
                 if (!d.optional) guest = true
                 Global.Source(d.name, "file", path, 0.0, d.json, 0, optional = d.optional)
             }
+            e is Expr.Call && e.name == "broadcast" -> {
+                if (e.args.size != 1 || e.named.isNotEmpty()) fail("broadcast(\"action\") hears the broadcasts other apps send with that action, or with any of a list of them", e.pos)
+                if (d.every != null || d.timeout != null || d.json) fail("broadcast(...) hears broadcasts as they come; it takes no every, timeout or json", d.pos)
+                since(BROADCAST_SOURCE, e.pos)
+                val actions =
+                    when (val v = constant(e.args[0], "broadcast's action")) {
+                        is Str -> listOf(v.v)
+                        is Lst -> v.items.map { (it as? Str)?.v ?: fail("broadcast's actions are text, like \"net.dinglisch.android.tasker.MY_EVENT\"", e.args[0].pos) }
+                        else -> fail("broadcast takes an action, like \"net.dinglisch.android.tasker.MY_EVENT\", or a list of them", e.args[0].pos)
+                    }
+                if (actions.isEmpty()) fail("broadcast takes at least one action", e.args[0].pos)
+                for (a in actions) {
+                    if (!Intents.ACTION.matches(a)) fail("'$a' isn't an intent action: dotted names, like net.dinglisch.android.tasker.MY_EVENT", e.args[0].pos)
+                    if (Intents.own(a)) fail("the launcher's own actions aren't for widgets to hear", e.args[0].pos)
+                    commands += "hear broadcasts any app sends: $a"
+                }
+                Global.Source(d.name, "broadcast", Ev.of(Lst(actions.map(::Str))), 0.0, false, 0)
+            }
+            e is Expr.Name && e.name == "external" -> {
+                if (d.every != null || d.timeout != null || d.json) fail("external is what other apps set, as they set it; it takes no every, timeout or json", d.pos)
+                since(EXTERNAL, e.pos)
+                commands += "take values other apps set, once you allow it in settings"
+                Global.Source(d.name, "external", null, 0.0, false, 0)
+            }
             e is Expr.Name && e.name == "clock" -> Global.Source(d.name, "clock", null, (every ?: 1.0).coerceAtLeast(0.1), false, 0)
             e is Expr.Member && (e.e as? Expr.Name)?.name == "android" -> {
                 if (e.name !in ANDROID) fail("unknown android source '${e.name}' (${ANDROID.joinToString()})", e.pos)
@@ -846,7 +870,7 @@ class Compiler private constructor(
                 if (e.name == "speech") commands += "listen through the microphone after a tap, and read what you say"
                 Global.Source(d.name, "android.${e.name}", null, (every ?: 60.0).coerceAtLeast(1.0), false, 0)
             }
-            else -> fail("a source is cmd(\"...\"), stream(\"...\"), http(\"...\"), file(\"...\"), clock, or android.${ANDROID.joinToString("/")}", e.pos)
+            else -> fail("a source is cmd(\"...\"), stream(\"...\"), http(\"...\"), ws(\"...\"), file(\"...\"), broadcast(\"...\"), clock, external, or android.${ANDROID.joinToString("/")}", e.pos)
         }
     }
 
@@ -955,7 +979,8 @@ class Compiler private constructor(
         val each =
             if (d.each) {
                 since(ON_EACH, d.pos)
-                wsSlot(d.expr, root) ?: fail("on … each runs for every message of a ws(...) source, by its name: on feed each { ... }", d.expr.pos)
+                wsSlot(d.expr, root, "broadcast")
+                    ?: fail("on … each runs for every message of a ws(...) source, or every broadcast a broadcast(...) source hears, by its name: on feed each { ... }", d.expr.pos)
             } else {
                 null
             }
@@ -1312,6 +1337,7 @@ class Compiler private constructor(
                 val call = s.call as Expr.Call
                 if (call.name == "post") return post(call, scope, null)
                 if (call.name == "send") return send(call, scope)
+                if (call.name == "intent" || call.name == "broadcast") return intent(call, scope)
                 if (call.name == "shortcuts") fail("shortcuts(...) puts an app's shortcuts into a state, when they've loaded: menuShortcuts = shortcuts(a.key)", call.pos)
                 val arity = Builtins.actions[call.name] ?: fail("'${call.name}' isn't an action (${Builtins.actions.keys.joinToString()})", call.pos)
                 if (call.args.size !in arity) fail("${call.name} takes ${arity.first}-${arity.last} values", call.pos)
@@ -1437,14 +1463,96 @@ class Compiler private constructor(
         return { env -> env.host.send(slot, message(env)) }
     }
 
-    /** The slot of the ws(...) source [e] names, or null when it isn't one. */
+    /**
+     * `intent(action, extras, package:, component:, data:, type:, category:)`, which starts another app's activity, or
+     * `broadcast(action, extras, package:, component:)`, which sends a broadcast: what Tasker, Home Assistant or KDE
+     * Connect take. The reviewer sees each, with where it goes and the extras' names, as it sees a command.
+     */
+    private fun intent(
+        call: Expr.Call,
+        scope: Scope,
+    ): (Env) -> Unit {
+        val broadcast = call.name == "broadcast"
+        val usage = if (broadcast) "broadcast(\"action\", {extras}, package: \"…\")" else "intent(\"action\", {extras}, package: \"…\", data: \"…\")"
+        if (call.args.size > 2) fail("${call.name} takes an action and a map of extras, then named values: $usage", call.pos)
+        if (broadcast) onlyNamed(call, "package", "component") else onlyNamed(call, "package", "component", "data", "type", "category")
+        since(call.name, call.pos)
+        val parts = linkedMapOf("action" to call.args.getOrNull(0))
+        for ((k, v) in call.named) parts[k] = v
+        val evs = parts.mapValues { (_, e) -> e?.let { whole { ex(it, scope) } } }
+        // What's written out is checked now, as the runtime would refuse it.
+        for ((k, ev) in evs) {
+            val c = ev?.const ?: continue
+            val texts = if (k == "category" && c is Lst) c.items else listOf(c)
+            for (t in texts) if (t != Null) Intents.problem(k, t.toString())?.let { fail("${call.name}'s $it", parts[k]!!.pos) }
+        }
+        if (broadcast && (evs["action"] == null || evs["action"]!!.const == Null)) fail("broadcast(...) takes an action: $usage", call.pos)
+        if (!broadcast && listOf("action", "package", "component", "data").all { evs[it] == null || evs[it]!!.const == Null }) {
+            fail("intent(...) needs an action, a package, a component or data: $usage", call.pos)
+        }
+        val extras = call.args.getOrNull(1)
+        val extrasEv = extras?.let { ex(it, scope) }
+        commands += intentLine(broadcast, parts, evs, extras, scope)
+        return { env ->
+            val values = evs.mapValues { (_, ev) -> ev?.invoke(env) ?: Null }
+            // Like any action whose value hasn't loaded: one still loading sends nothing. A written-out null is no value.
+            if (evs.none { (k, ev) -> ev != null && ev.const != Null && values[k] == Null }) {
+                try {
+                    val text = { k: String -> values[k].textOrNull() }
+                    val categories = (values["category"] as? Lst)?.items?.mapNotNull { it.textOrNull() } ?: listOfNotNull(text("category"))
+                    val spec = IntentSpec(broadcast, text("action"), text("package"), text("component"), text("data"), text("type"), categories, Intents.extras(extrasEv?.invoke(env) ?: Null))
+                    Intents.check(spec)?.let { throw WidgetError(it) }
+                    env.host.intent(spec)
+                } catch (e: WidgetError) {
+                    env.host.report("${call.name}: ${e.message}")
+                }
+            }
+        }
+    }
+
+    /** How the reviewer reads an intent(...) or broadcast(...): what it does, where it goes, and the extras it takes. */
+    private fun intentLine(
+        broadcast: Boolean,
+        parts: Map<String, Expr?>,
+        evs: Map<String, Ev?>,
+        extras: Expr?,
+        scope: Scope,
+    ): String {
+        // Written out as it is, values in it as ‹value› (by shape, like a URL's); left out, or a written-out null, as nothing.
+        fun part(k: String) =
+            evs[k]?.let { ev ->
+                when (val c = ev.const) {
+                    Null -> null
+                    null -> shapes(parts[k]!!, scope, "enc")?.takeIf { it.isNotEmpty() }?.joinToString(" or ") ?: VALUE
+                    else -> c.toString()
+                }
+            }
+        val target = part("component") ?: part("package")
+        val keys =
+            when {
+                extras == null || (extras is Expr.Lit && extras.value == Null) -> null
+                extras is Expr.MapLit -> extras.entries.map { it.first }.takeIf { it.isNotEmpty() }?.joinToString()
+                else -> "built from widget values"
+            }
+        return buildString {
+            append(if (broadcast) "send broadcast " else "start activity ")
+            append(part("action") ?: "(no action)")
+            append(target?.let { " to $it" } ?: if (broadcast) " to any app" else "")
+            part("data")?.let { append(" with data $it") }
+            part("type")?.let { append(" of type $it") }
+            keys?.let { append(" with extras $it") }
+        }
+    }
+
+    /** The slot of the ws(...) source [e] names (or one of the [also] kinds), or null when it isn't one. */
     private fun wsSlot(
         e: Expr,
         scope: Scope,
+        vararg also: String,
     ): Int? {
         val name = (e as? Expr.Name)?.name ?: return null
         val ref = lookup(name, scope) as? Ref.Slot ?: return null
-        return ref.index.takeIf { (globals[it] as? Global.Source)?.kind == "ws" }
+        return ref.index.takeIf { (globals[it] as? Global.Source)?.kind.let { k -> k == "ws" || k in also } }
     }
 
     /** The URL the ws(...) source in [slot] is declared with, which a secret sent on it is bound to. */

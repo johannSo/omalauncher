@@ -263,6 +263,9 @@ class Review(
                 Regex("""^read Android notifications""") to "sees every notification on the phone; check nothing sends them anywhere",
                 Regex("""^reply to notifications as you""") to "sends messages as you through other apps; check when it replies and what it says",
                 Regex("""^press the buttons on notifications""") to "presses buttons on other apps' notifications (delete, archive, call back); check which and when",
+                // The compiler's lines for intent(...) and broadcast(...) (Compiler's `intentLine`).
+                Regex("""^(start activity|send broadcast) (\S*${Compiler.VALUE}|\S+ to \S*${Compiler.VALUE})""") to "reaches an app or an action a widget value names, which can't be shown here",
+                Regex("""^send broadcast \S+ to any app""") to "sends a broadcast every app on the phone can hear; check nothing private goes in its extras",
             )
     }
 }
