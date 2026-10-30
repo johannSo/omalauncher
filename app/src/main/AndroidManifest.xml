@@ -374,5 +374,67 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Runs a user-started Linux environment and its display server" />
         </service>
+
+        <!-- Quick settings tiles (tiles/TileServices.kt). Active tiles: Android binds them when QuickTiles.watch asks, on
+             every change of Linux's state, rather than each time the shade opens. -->
+        <service
+            android:name=".tiles.LinuxTile"
+            android:exported="true"
+            android:icon="@drawable/qs_linux"
+            android:label="@string/qs_tiles_linux"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="true" />
+            <meta-data android:name="android.service.quicksettings.TOGGLEABLE_TILE" android:value="true" />
+        </service>
+
+        <service
+            android:name=".tiles.TerminalTile"
+            android:exported="true"
+            android:icon="@drawable/qs_terminal"
+            android:label="@string/qs_tiles_terminal"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="true" />
+        </service>
+
+        <service
+            android:name=".tiles.AgentTile"
+            android:exported="true"
+            android:icon="@drawable/qs_agent"
+            android:label="@string/qs_tiles_ask"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="true" />
+        </service>
+
+        <!-- The Linux tile's "shut down?" while Linux windows are open; only the dialog shows. -->
+        <activity
+            android:name=".tiles.LinuxPowerActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|density|uiMode"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Omalauncher.Dialog" />
+
+        <!-- A long press on a tile: its page in settings. Exported for System UI; it only opens settings. -->
+        <activity
+            android:name=".tiles.TileSettingsActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

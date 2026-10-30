@@ -41,6 +41,7 @@ import dev.omalauncher.pp.theme.ForkStyle
 import dev.omalauncher.pp.theme.Style
 import dev.omalauncher.pp.theme.StyleStore
 import dev.omalauncher.pp.theme.ThemeStore
+import dev.omalauncher.pp.tiles.QuickTiles
 import dev.omalauncher.pp.ui.Gestures
 import dev.omalauncher.pp.ui.IconLook
 import dev.omalauncher.pp.ui.IconPackStore
@@ -137,7 +138,10 @@ class Runtime(
     /** Its jobs write files and start the guest; one that fails (storage full) mustn't take the home screen down. */
     private val scope =
         CoroutineScope(SupervisorJob() + Dispatchers.Main + CoroutineExceptionHandler { _, e -> Log.e(TAG, "background job failed", e) })
-    private var started = false
+
+    /** [start] was called: the launcher is up in this process (a quick settings tile can bind before it is). */
+    var started by mutableStateOf(false)
+        private set
     private var prepared = false
 
     private val prefs = LauncherData.prefs(context)
@@ -150,7 +154,8 @@ class Runtime(
         private set
 
     /** Linux is installed and its services run: guest commands (like the update check) can go. */
-    private var linux = false
+    var linux by mutableStateOf(false)
+        private set
 
     /** The Linux install and removal; one at a time. */
     private var linuxJob: Job? = null
@@ -707,6 +712,11 @@ class Runtime(
             Log.i(TAG, "exited $code: $command")
             onExit()
         }
+    }
+
+    // Last, after every property it reads: the quick settings tiles follow Linux's state from here on.
+    init {
+        QuickTiles.watch(context, this)
     }
 
     companion object {

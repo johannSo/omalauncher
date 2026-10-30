@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="qs_tiles_linux">Linux</string>
+    <string name="qs_tiles_terminal">Terminal</string>
+    <string name="qs_tiles_ask">Tanya agen</string>
+    <string name="qs_tiles_not_installed">belum dipasang</string>
+    <string name="qs_tiles_installing">memasang…</string>
+    <string name="qs_tiles_failed">pemasangan gagal</string>
+    <string name="qs_tiles_removing">menghapus…</string>
+    <string name="qs_tiles_off">mati</string>
+    <string name="qs_tiles_starting">memulai…</string>
+    <string name="qs_tiles_running">berjalan</string>
+    <string name="qs_tiles_stopping">mematikan…</string>
+    <string name="qs_tiles_starts_linux">memulai Linux</string>
+    <string name="qs_tiles_needs_linux">pasang Linux</string>
+    <string name="qs_tiles_starting_linux">Memulai Linux…</string>
+    <string name="qs_tiles_shut_down_title">matikan linux?</string>
+    <string name="qs_tiles_shut_down_body">Menutup aplikasi dan terminal Linux serta menghentikan agen yang bekerja di dalamnya; file dan paket tetap ada. Linux tetap mati, juga setelah dimulai ulang, sampai kamu memulainya lagi.</string>
+    <string name="qs_tiles_title">ubin setelan cepat</string>
+    <string name="qs_tiles_subtitle">linux, terminal, dan tanya agen di setelan cepat android</string>
+    <string name="qs_tiles_linux_about">Menunjukkan apakah Linux berjalan. Ketuk untuk memulai atau mematikannya; tekan lama untuk membuka setelan › linux.</string>
+    <string name="qs_tiles_terminal_about">Membuka terminal, memulai Linux dulu jika mati.</string>
+    <string name="qs_tiles_ask_about">Membuka beranda dengan bilah siap untuk perintah ke agenmu.</string>
+    <string name="qs_tiles_add">tambah</string>
+    <string name="qs_tiles_added">ditambahkan ke setelan cepat</string>
+    <string name="qs_tiles_already_added">sudah ada di setelan cepat</string>
+    <string name="qs_tiles_add_failed">android tidak menambahkannya; tambahkan dari mode edit panel</string>
+    <string name="qs_tiles_ask_opens">tanya agen membuka</string>
+    <string name="qs_tiles_ask_type">keyboard</string>
+    <string name="qs_tiles_ask_voice">suara</string>
+    <string name="qs_tiles_ask_no_mic">mikrofon tidak diizinkan, jadi yang terbuka keyboard</string>
+    <string name="qs_tiles_hint">Atau tarik panel sepenuhnya ke bawah, ketuk pensil, lalu seret ubinnya masuk.</string>
+</resources>
