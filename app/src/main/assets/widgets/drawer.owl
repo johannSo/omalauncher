@@ -18,6 +18,9 @@ panel "app drawer" {
       private: "private"; privateApps: "private apps"; privateLocked: "private space locked"; privateSpace: "private space"
       widgets: "widgets"; install: "install"; lock: "lock"; unlock: "unlock"; unlockPrivate: "unlock private space"; hideWhileLocked: "hide while locked"
       shownOn: "on"; shownOff: "off"; startLinux: "start linux"
+      copy: "copy"; call: "call"; message: "message"; search: "search"; webFor: (text) => "search the web for ${text}"
+      groupCalc: "calculator"; groupSettings: "android settings"; groupShortcuts: "app shortcuts"; groupContacts: "contacts"
+      groupFiles: "files"; groupPackages: "packages"; groupWeb: "web"
     }
     id {
       personal: "pribadi"; work: "kerja"; apps: "aplikasi"; linux: "linux"; shortcuts: "pintasan"; android: "android"
@@ -29,6 +32,9 @@ panel "app drawer" {
       private: "privat"; privateApps: "aplikasi privat"; privateLocked: "ruang privat terkunci"; privateSpace: "ruang privat"
       widgets: "widget"; install: "instal"; lock: "kunci"; unlock: "buka kunci"; unlockPrivate: "buka kunci ruang privat"; hideWhileLocked: "sembunyikan saat terkunci"
       shownOn: "aktif"; shownOff: "nonaktif"; startLinux: "mulai linux"
+      copy: "salin"; call: "telepon"; message: "pesan"; search: "cari"; webFor: (text) => "cari di web: ${text}"
+      groupCalc: "kalkulator"; groupSettings: "setelan android"; groupShortcuts: "pintasan aplikasi"; groupContacts: "kontak"
+      groupFiles: "file"; groupPackages: "paket"; groupWeb: "web"
     }
     es {
       personal: "personal"; work: "trabajo"; apps: "apps"; linux: "linux"; shortcuts: "accesos directos"; android: "android"
@@ -40,6 +46,9 @@ panel "app drawer" {
       private: "privado"; privateApps: "apps privadas"; privateLocked: "espacio privado bloqueado"; privateSpace: "espacio privado"
       widgets: "widgets"; install: "instalar"; lock: "bloquear"; unlock: "desbloquear"; unlockPrivate: "desbloquear espacio privado"; hideWhileLocked: "ocultar al bloquear"
       shownOn: "sí"; shownOff: "no"; startLinux: "iniciar linux"
+      copy: "copiar"; call: "llamar"; message: "mensaje"; search: "buscar"; webFor: (text) => "buscar en la web: ${text}"
+      groupCalc: "calculadora"; groupSettings: "configuración de android"; groupShortcuts: "accesos directos"; groupContacts: "contactos"
+      groupFiles: "archivos"; groupPackages: "paquetes"; groupWeb: "web"
     }
     pt {
       personal: "pessoal"; work: "trabalho"; apps: "apps"; linux: "linux"; shortcuts: "atalhos"; android: "android"
@@ -51,6 +60,9 @@ panel "app drawer" {
       private: "privado"; privateApps: "apps privados"; privateLocked: "espaço privado bloqueado"; privateSpace: "espaço privado"
       widgets: "widgets"; install: "instalar"; lock: "bloquear"; unlock: "desbloquear"; unlockPrivate: "desbloquear espaço privado"; hideWhileLocked: "ocultar quando bloqueado"
       shownOn: "ativado"; shownOff: "desativado"; startLinux: "iniciar linux"
+      copy: "copiar"; call: "ligar"; message: "mensagem"; search: "buscar"; webFor: (text) => "buscar na web: ${text}"
+      groupCalc: "calculadora"; groupSettings: "configurações do android"; groupShortcuts: "atalhos de apps"; groupContacts: "contatos"
+      groupFiles: "arquivos"; groupPackages: "pacotes"; groupWeb: "web"
     }
   }
   source d = android.drawer
@@ -114,16 +126,32 @@ panel "app drawer" {
   let hits = searching ? rank(d.apps, typed) : []
   // Typing "private" while the private space is locked offers to unlock it, as stock launchers do when it's hidden.
   let offersPrivate = searching && d.private != null && d.private.locked && len(typed) >= 3 && (startsWith("private space", lower(typed)) || startsWith(lower(str.privateSpace), lower(typed)))
-  let hitRows = chunk(hits, cols).map((cells, r) => {key: "q:" + r, start: r * cols, cells: cells})
+  // What the bar finds besides apps (settings › search): a calculation, settings pages, shortcuts, contacts, files,
+  // packages and the web, ranked by the launcher. The first `lead` go before the apps, nearest the bar, and take Enter;
+  // the rest go after them, group by group. Results for an earlier text stay until the new ones come, without Enter.
+  let found = d.search ?? {query: "", lead: 0, results: []}
+  let fresh = found.query == typed
+  let results = searching ? found.results : []
+  let lead = min(found.lead, len(results))
+  let others = drop(results, lead)
+  // Everything Enter can pick, by place: the leading results, then the apps, then the other results.
+  let leadRows = take(results, lead).map((r, i) => {key: "r:" + r.key, result: r, at: i})
+  let hitRows = chunk(hits, cols).map((cells, r) => {key: "q:" + r, start: lead + r * cols, cells: cells})
+  let numbered = others.map((r, i) => {key: "r:" + r.key, result: r, at: lead + len(hits) + i})
+  // The list runs up from the bar, so each group's title comes after its results, to sit above them.
+  let otherRows = flatten(unique(others.map(r => r.group)).map(g => flatten([numbered.filter(x => x.result.group == g), [{key: "g:" + g, group: g}]])))
+  let searchRows = flatten([leadRows, hitRows, otherRows])
   // Enter opens the best match when it names an app well, as the bar does; anything else, a prompt of more lines among it, goes to the agent.
   let opens = len(hits) > 0 && strongMatch(hits[0], typed)
-  // What Enter acts on: a result by its place in hits, or -1 for the ask row.
-  let chosen = pick ?? (opens ? 0 : -1)
+  // What Enter acts on, by place among leading results, apps and the rest; -1 for the ask row.
+  let chosen = pick ?? (fresh && lead > 0 ? 0 : opens ? lead : -1)
+  let chosenResult = chosen >= 0 && chosen < lead ? results[chosen] : chosen >= lead + len(hits) && chosen < len(hits) + len(results) ? results[chosen - len(hits)] : null
+  let chosenApp = chosen >= lead && chosen < lead + len(hits) ? hits[chosen - lead] : null
   let agent = ag.default
   // With a keyboard: Up and Tab move the pick away from the bar, Down and Shift+Tab back; the ask row sits lowest.
   onKey: {
     if searching {
-      pick = clamp(chosen + (value == "up" || value == "tab" ? 1 : -1), -1, len(hits) - 1)
+      pick = clamp(chosen + (value == "up" || value == "tab" ? 1 : -1), -1, len(hits) + len(results) - 1)
     }
   }
 
@@ -136,12 +164,14 @@ panel "app drawer" {
   // How much the drawer covers home: near-opaque, as home's widgets showing through make the icons hard to read.
   opacity: 0.97
   // keyboard: false (with owl: 15 in meta) leaves the keyboard down as the drawer opens, until the bar is tapped.
-  enter: searching ? (chosen >= 0 ? "▸ " + str.open : "⏎ " + str.ask) : ""
+  enter: searching ? (chosenResult != null ? "▸ " + get(str, chosenResult.verb, chosenResult.verb) : chosen >= 0 ? "▸ " + str.open : "⏎ " + str.ask) : ""
   // An empty bar's Enter does nothing, as on home.
   onSubmit: {
     if searching {
-      if chosen >= 0 {
-        open(hits[chosen].key)
+      if chosenResult != null {
+        open(chosenResult.key)
+      } else if chosenApp != null {
+        open(chosenApp.key)
       } else if !linux {
         launcher("linux")
       } else {
@@ -213,6 +243,60 @@ panel "app drawer" {
         for w in a.actions {
           Text { text: get(str, w, w); fontSize: 15; fill: width; padding: [12, 12]; onTap: { menu = ""; appAction(w, a.key) } }
         }
+      }
+    }
+  }
+
+  // A result besides the apps: its icon or glyph, what it is, and its other actions at the end ("[call]").
+  component ResultRow(r, picked) {
+    Row {
+      fill: width
+      align: center
+      gap: 10
+      padding: [8, 12]
+      radius: 16 * corners
+      border: picked ? 2 : 0
+      borderColor: accent
+      onTap: open(r.key)
+      Box {
+        size: 36
+        align: center
+        radius: 18 * corners
+        background: r.icon != null && !d.monochrome ? transparent : surface
+        if r.icon != null {
+          Image { src: r.icon; size: d.monochrome ? 24 : 36; tint: d.monochrome ? accent : null; label: r.title }
+        } else {
+          Text { text: r.glyph; fontSize: 18; color: accent }
+        }
+      }
+      Column {
+        weight: 1
+        gap: 0
+        Text { text: r.group == "web" ? str.webFor(r.title) : r.title; fontSize: r.group == "calc" ? 18 : 15; color: r.group == "calc" ? accent : foreground; maxLines: 1 }
+        Text { visible: r.subtitle != ""; text: r.subtitle; fontSize: 12; color: muted; maxLines: 1 }
+      }
+      for a in r.actions key a.key {
+        Text { text: "[" + get(str, a.word, a.word) + "]"; color: accent; padding: [4, 8]; onTap: open(a.key) }
+      }
+    }
+  }
+
+  // A row of the search's list: a row of apps, a result, or a group's title above its results.
+  component SearchRow(row) {
+    Column {
+      fill: width
+      gap: 0
+      if row.cells != null {
+        Row {
+          fill: width
+          gap: 0
+          for a, i in row.cells { Cell { a: a; picked: row.start + i == chosen } }
+          for s in range(0, cols - len(row.cells)) { Spacer { weight: 1 } }
+        }
+      } else if row.result != null {
+        ResultRow { r: row.result; picked: row.at == chosen }
+      } else {
+        Text { text: get(str, "group" + capitalize(row.group), row.group); color: muted; padding: [8, 12, 0, 4] }
       }
     }
   }
@@ -329,14 +413,7 @@ panel "app drawer" {
           weight: 1
           fill: height
           gap: 0
-          for row in hitRows key row.key {
-            Row {
-              fill: width
-              gap: 0
-              for a, i in row.cells { Cell { a: a; picked: row.start + i == chosen } }
-              for s in range(0, cols - len(row.cells)) { Spacer { weight: 1 } }
-            }
-          }
+          for row in searchRows key row.key { SearchRow { row: row } }
         }
         // The letter rail, as Niagara's: a touch or a drag along it shows only the apps under the letter beneath the
         // finger, ★ all of them again. Its letters are letterHeight tall, so where the finger is says which.
