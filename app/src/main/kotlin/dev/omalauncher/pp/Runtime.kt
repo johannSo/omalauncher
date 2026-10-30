@@ -115,6 +115,9 @@ class Runtime(
 
     /** Linux apps' notifications, from the guest's session bus. */
     val notifications = LinuxNotifications(context, proot, linuxApps, ::focusApp)
+
+    /** Coding agents' sessions in terminals, reported by their hooks: notifications, and widgets' android.agents. */
+    val agentStatus = AgentStatus(context, this)
     val pacman = Pacman(context, proot)
     val widgets = WidgetEngine(context, proot, this)
 
@@ -142,6 +145,7 @@ class Runtime(
                 proot::managed,
                 pacman::managed,
                 agents::managed,
+                agentStatus::managed,
                 themes::managed,
                 widgets::guestManaged,
                 { mcp.managed(openBridge.guestFifo) },
@@ -380,6 +384,7 @@ class Runtime(
     /** Guest configs follow the theme and the installed agents; only while there is a guest. */
     private fun syncGuest() {
         if (linux) provisioner.sync()
+        agentStatus.syncHooks()
     }
 
     /** Whether the bridges and the Wayland server are up; they run until the process ends, even if Linux is removed. */
@@ -425,6 +430,7 @@ class Runtime(
             mcp.register(agents.installed)
         }
         widgets.linuxChanged(true)
+        agentStatus.start()
         refreshApps()
         withContext(Dispatchers.IO) { updates.load() }
         scope.launch {
@@ -661,7 +667,7 @@ class Runtime(
     }
 
     /** Moves [window]'s Android task to the front; false if it has none (yet). */
-    private fun bringToFront(window: XdgToplevel): Boolean {
+    fun bringToFront(window: XdgToplevel): Boolean {
         val handle = wm.handleOf(window) ?: return false
         val task =
             context.getSystemService(ActivityManager::class.java).appTasks.firstOrNull {

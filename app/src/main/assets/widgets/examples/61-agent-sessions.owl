@@ -1,0 +1,65 @@
+widget "agent sessions" {
+  page: 2
+  order: 3
+  size: 6x4
+  minSize: 3x2
+
+  meta { owl: 10; description: "Your coding agents' sessions in terminals and what each is doing: tap one to open its terminal, answer its permission requests here."; version: "1.0"; license: "MIT"; category: "productivity" }
+
+  // The sessions come from the agents' hooks (style.toml's agents.status), updated as they report. No shell involved.
+  source ag = android.agents
+  source now = clock every 1m
+
+  let sessions = ag.sessions ?? []
+
+  Column {
+    gap: 6
+    fill: true
+    Row {
+      Text { text: "agents"; style: muted; weight: 1 }
+      Text { text: len(sessions); style: muted; width: 40; align: end }
+    }
+    if len(sessions) == 0 {
+      Text { text: "no session running"; style: small }
+    }
+    Column {
+      gap: 8
+      weight: 1
+      scroll: true
+      for s in sessions key s.key {
+        Row {
+          gap: 8
+          align: top
+          Image { src: s.icon; size: 28; onTap: open(s.key) }
+          Column {
+            gap: 0
+            weight: 1
+            onTap: open(s.key)
+            Row {
+              gap: 6
+              Text { text: s.cwd == null ? s.name : last(split(s.cwd, "/")); bold: true; maxLines: 1; weight: 1 }
+              Text {
+                text: s.status
+                style: label
+                color: s.status == "permission" ? red : s.status == "done" ? green : s.status == "input" ? yellow : muted
+              }
+            }
+            if s.summary != null {
+              Text { text: s.summary; style: small; maxLines: 2 }
+            }
+            Text { text: fmtAgo(s.since, now); style: label }
+          }
+        }
+        // A question waiting for the phone: the same answer the notification's buttons give.
+        if s.request != null {
+          Row {
+            gap: 6
+            justify: end
+            Button { text: "allow"; color: green; onTap: run("omalauncher-agent-status answer ${s.request} allow") }
+            Button { text: "deny"; color: red; onTap: run("omalauncher-agent-status answer ${s.request} deny") }
+          }
+        }
+      }
+    }
+  }
+}

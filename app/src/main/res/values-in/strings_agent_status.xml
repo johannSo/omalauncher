@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="agent_status_channel">Agen coding</string>
+    <string name="agent_status_channel_description">Apa yang dikerjakan setiap agen coding di terminal: selesai, menunggu Anda, atau meminta izin</string>
+    <string name="agent_status_title">%1$s · %2$s</string>
+    <string name="agent_status_line">%1$s · %2$s</string>
+    <string name="agent_status_running">Bekerja</string>
+    <string name="agent_status_input">Menunggu Anda</string>
+    <string name="agent_status_permission">Meminta izin</string>
+    <string name="agent_status_permission_terminal">Meminta izin di terminal</string>
+    <string name="agent_status_done">Selesai</string>
+    <string name="agent_status_allow">Izinkan</string>
+    <string name="agent_status_deny">Tolak</string>
+    <string name="agent_status_setting">notifikasi</string>
+    <string name="agent_status_setting_description">Setiap sesi di terminal mendapat notifikasi saat selesai atau menunggu Anda; permintaan izin bisa dijawab di sana. Pengaturan notifikasi Anda menentukan suaranya.</string>
+    <string name="agent_status_on">aktif</string>
+    <string name="agent_status_off">mati</string>
+</resources>

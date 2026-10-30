@@ -196,7 +196,8 @@ class AgentStore(
      * before calling bwrap it looks up its socket directory in /proc/self/mountinfo, which is Android's
      * under proot, and fails every command ("cannot establish app-server socket mount isolation"). The
      * bwrap shim drops the sandbox anyway, so full access is what Codex already had. A system layer, so
-     * the user's ~/.codex/config.toml stays theirs and can change both.
+     * the user's ~/.codex/config.toml stays theirs and can change both. Its notify reports the end of each turn
+     * to the launcher (see AgentStatus), for Codex versions without hooks; a notify of the user's own replaces it.
      */
     private fun codexConfig() =
         if (installed.none { it.bin == "codex" }) {
@@ -204,7 +205,8 @@ class AgentStore(
         } else {
             listOf(
                 Managed.text(File(proot.rootfs, "etc/codex/config.toml"), Policy.Owned) {
-                    "# Written by the launcher.\nsandbox_mode = \"danger-full-access\"\n\n[features]\ndaemon_auto_start = false\n"
+                    "# Written by the launcher.\nsandbox_mode = \"danger-full-access\"\n" +
+                        "notify = [\"${AgentHooks.HELPER}\", \"codex\"]\n\n[features]\ndaemon_auto_start = false\n"
                 },
             )
         }

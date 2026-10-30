@@ -397,6 +397,18 @@
                 <action android:name="dev.omalauncher.pp.action.SET" />
             </intent-filter>
         </receiver>
+        <!-- A coding agent session's notification (AgentStatus.kt): tapping it opens the session's terminal, without a
+             window of its own; Allow, Deny and dismissing it go to the receiver. -->
+        <activity
+            android:name=".AgentSessionActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay" />
+        <receiver
+            android:name=".AgentStatusReceiver"
+            android:exported="false" />
 
         <service
             android:name=".LinuxService"

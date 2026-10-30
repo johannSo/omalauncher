@@ -61,6 +61,9 @@ class Client(
     val server: WaylandServer,
     private val fd: Int,
 ) {
+    /** The process on the other end: what tells which terminal a coding agent runs in (see AgentStatus). */
+    val pid = Native.peerPid(fd)
+
     val objects = HashMap<Int, Resource>()
     private val fds = ArrayDeque<Int>()
 
