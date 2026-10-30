@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- An O in Hyprland's cyan-to-green border, open at the corner where a block cursor sits.
+<!-- A terminal window in Hyprland's cyan-to-green border, its prompt a chevron and "++".
      Master copy: art/app-icon.svg. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
@@ -8,17 +8,24 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:pathData="M75,57V44a11,11 0,0 0,-11 -11H44a11,11 0,0 0,-11 11V64a11,11 0,0 0,11 11H57"
-        android:strokeWidth="6"
-        android:strokeLineCap="round">
+        android:pathData="M37,32H71a10,10 0,0 1,10 10V66a10,10 0,0 1,-10 10H37a10,10 0,0 1,-10 -10V42a10,10 0,0 1,10 -10z"
+        android:strokeWidth="5">
         <aapt:attr name="android:strokeColor">
-            <gradient android:type="linear" android:startX="30" android:startY="30" android:endX="78" android:endY="78">
+            <gradient android:type="linear" android:startX="28" android:startY="30" android:endX="80" android:endY="78">
                 <item android:offset="0" android:color="#FF33CCFF" />
                 <item android:offset="1" android:color="#FF00FF99" />
             </gradient>
         </aapt:attr>
     </path>
     <path
-        android:fillColor="#FFC0CAF5"
-        android:pathData="M67.5,65h5a2.5,2.5 0,0 1,2.5 2.5v5a2.5,2.5 0,0 1,-2.5 2.5h-5a2.5,2.5 0,0 1,-2.5 -2.5v-5a2.5,2.5 0,0 1,2.5 -2.5z" />
+        android:pathData="M36,47L43,54L36,61"
+        android:strokeColor="#FF7AA2F7"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M50,54H58M54,50V58M64,54H72M68,50V58"
+        android:strokeColor="#FFC0CAF5"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round" />
 </vector>

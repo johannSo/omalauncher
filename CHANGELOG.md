@@ -4,6 +4,12 @@ The most important changes in each release. From 1.0.0 on they're OmaLauncher++'
 dated when they were released on GitHub. The ones before are Omalauncher's, dated
 when they were uploaded to Play.
 
+## 1.0.1 (versionCode 28) – 2026-10-30
+
+- OmaLauncher++ has an icon of its own: a terminal window in Hyprland's border with a prompt
+  reading `>++`, so it no longer looks like Omalauncher on the same phone. Themed icons get
+  the same shape.
+
 ## 1.0.0 (versionCode 27) – 2026-10-30
 
 - The fork is OmaLauncher++ now, an app of its own (`dev.omalauncher.pp`) that installs
