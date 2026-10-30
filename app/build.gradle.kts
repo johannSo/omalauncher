@@ -13,7 +13,7 @@ val uploadKey = rootProject.file("keystore.properties").takeIf { it.exists() }
 val prootNdk = rootProject.file("scripts/fetch-proot.sh").readLines().first { it.startsWith("NDK_VERSION=") }.substringAfter('=')
 
 android {
-    namespace = "dev.omalauncher"
+    namespace = "dev.omalauncher.pp"
     compileSdk = 37
     ndkVersion = prootNdk
 

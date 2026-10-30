@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs the WebSocket client (app/src/main/kotlin/dev/omalauncher/WebSocket.kt) through the Autobahn
+# Runs the WebSocket client (app/src/main/kotlin/dev/omalauncher/pp/WebSocket.kt) through the Autobahn
 # TestSuite's fuzzing server in Docker and lists the cases it didn't pass. The permessage-deflate cases
 # (12.*, 13.*) are left out: the client doesn't offer compression. The full report ends up in
 # build/autobahn/clients/index.html.
@@ -33,7 +33,7 @@ for _ in $(seq 60); do
 done
 
 AUTOBAHN="ws://127.0.0.1:$PORT" "$ROOT/gradlew" -p "$ROOT" :app:testDebugUnitTest \
-  --tests dev.omalauncher.WebSocketAutobahnTest --rerun -q
+  --tests dev.omalauncher.pp.WebSocketAutobahnTest --rerun -q
 
 python3 - "$OUT/clients/index.json" <<'PY'
 import json, sys

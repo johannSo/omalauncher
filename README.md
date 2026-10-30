@@ -10,7 +10,7 @@ OmaLauncher++ is an independent fork of
 with the features [below](#what-omalauncher-adds) on top. It's its own app
 (`dev.omalauncher.pp`), so it installs next to Omalauncher rather than over it.
 Download the APK from the
-[releases](https://github.com/johannSo/omalauncher-pp/releases).
+[releases](https://github.com/johannSo/omalauncher.pp/releases).
 
 ![The home screen in twelve Omarchy themes, each with different widgets](art/collage.png)
 
@@ -133,7 +133,7 @@ Tests: `./gradlew :owl:test :app:testDebugUnitTest`. `./gradlew :owl:owlJar`
 builds `owl/build/cli/owl.jar`, the checker the widget store's CI runs.
 
 In debug builds you can launch guest commands with
-`adb shell am start -n dev.omalauncher.pp/dev.omalauncher.MainActivity --es exec foot`.
+`adb shell am start -n dev.omalauncher.pp/.MainActivity --es exec foot`.
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): the compositor, rendering, GPU
   acceleration, and how updates reach existing installs

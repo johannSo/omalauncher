@@ -14,15 +14,15 @@ update, so never change it.
    ```sh
    ./scripts/fetch-proot.sh
    ./gradlew :owl:test :app:testDebugUnitTest :app:assembleRelease
-   cp app/build/outputs/apk/release/app-release.apk omalauncher-pp-v1.0.0.apk
-   sha256sum omalauncher-pp-v1.0.0.apk > SHA256SUMS
+   cp app/build/outputs/apk/release/app-release.apk omalauncher.pp-v1.0.0.apk
+   sha256sum omalauncher.pp-v1.0.0.apk > SHA256SUMS
    ```
 
 3. Tag and publish:
 
    ```sh
    git tag v1.0.0 && git push origin main v1.0.0
-   gh release create v1.0.0 omalauncher-pp-v1.0.0.apk SHA256SUMS --title "OmaLauncher++ 1.0.0"
+   gh release create v1.0.0 omalauncher.pp-v1.0.0.apk SHA256SUMS --title "OmaLauncher++ 1.0.0"
    ```
 
 `.github/workflows/release.yml` is Omalauncher's: it needs the Play upload key

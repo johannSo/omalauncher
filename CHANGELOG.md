@@ -4,7 +4,7 @@ The most important changes in each release. The Play Store notes for a release
 are in `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`.
 Dates are when the build was uploaded to Play.
 
-## OmaLauncher++ 1.0.0 (versionCode 27) – unreleased
+## 1.0.0 (versionCode 27) – unreleased
 
 - The fork is OmaLauncher++ now, an app of its own (`dev.omalauncher.pp`) that installs
   next to Omalauncher, on its own versions. Settings › backup carries home, the style,
