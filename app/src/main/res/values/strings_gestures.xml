@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home's gestures beyond swiping up and down, their actions, and the accessibility service (ui/GesturesScreen.kt, ui/HomeGestures.kt, GestureAccessibility.kt). -->
+<resources>
+    <string name="gesture_double_tap">double tap</string>
+    <string name="gesture_two_finger_up">two fingers up</string>
+    <string name="gesture_two_finger_down">two fingers down</string>
+    <string name="gesture_pinch_in">pinch in</string>
+    <string name="gesture_pinch_out">pinch out</string>
+    <!-- Home's error banner, while the panel a gesture opens doesn't compile; %1$s is the gesture (pinch in). -->
+    <string name="gesture_opens_nothing">%1$s opens nothing</string>
+
+    <string name="gesture_action_drawer">app drawer</string>
+    <string name="gesture_action_quick_settings">quick settings</string>
+    <string name="gesture_action_pages">pages</string>
+    <string name="gesture_action_lock">lock screen</string>
+    <string name="gesture_action_recents">recent apps</string>
+    <!-- What a gesture does, in its row; %1$s is the command or the prompt. -->
+    <string name="gesture_action_linux_label">run: %1$s</string>
+    <string name="gesture_action_terminal_label">terminal: %1$s</string>
+    <string name="gesture_action_agent_label">ask: %1$s</string>
+
+    <string name="gesture_ask_app">an app…</string>
+    <string name="gesture_ask_linux">a Linux command…</string>
+    <string name="gesture_ask_terminal">a command in a terminal…</string>
+    <string name="gesture_ask_agent">a prompt for the agent…</string>
+    <!-- %1$s is the gesture (double tap). -->
+    <string name="gesture_linux_title">command for %1$s</string>
+    <string name="gesture_linux_hint">runs in Linux without a window of its own; a GUI app it starts opens as usual</string>
+    <string name="gesture_terminal_title">terminal command for %1$s</string>
+    <string name="gesture_terminal_hint">opens in a terminal of its own, which closes when the command ends: add ; exec bash to keep it open</string>
+    <string name="gesture_agent_title">prompt for %1$s</string>
+    <string name="gesture_agent_hint">sent to the default coding agent, as the bar sends one</string>
+    <string name="gesture_save">save</string>
+    <string name="gesture_pick_app_title">app for %1$s</string>
+    <string name="gesture_search_apps">search apps</string>
+    <string name="gesture_app_android">android</string>
+    <string name="gesture_app_linux">linux</string>
+    <string name="gesture_no_apps">no apps match</string>
+    <string name="gesture_hint_more">double tap works on empty space; two-finger swipes and pinches anywhere on home\'s pages. style.toml takes the same under [gestures], for agents too: defaults.toml lists every action</string>
+
+    <!-- Toasts when a gesture can't do what it's set to. -->
+    <string name="gesture_panel_missing">%1$s isn\'t a panel that runs</string>
+    <string name="gesture_app_missing">%1$s isn\'t installed</string>
+    <string name="gesture_needs_accessibility">turn on the accessibility service for this</string>
+
+    <string name="gesture_accessibility_off">lock screen and recent apps need the accessibility service, which is off</string>
+    <string name="gesture_accessibility_turn_on">turn on</string>
+    <string name="gesture_accessibility_title">accessibility service</string>
+    <string name="gesture_accessibility_on">● on: lock screen and recent apps work</string>
+    <string name="gesture_accessibility_is_off">○ off</string>
+    <string name="gesture_accessibility_what">Android lets an app lock the screen or show recent apps only through an accessibility service. OmaLauncher++ has one that does just that: when you make a gesture set to lock the screen or to recent apps, it asks Android to, as the power button or the recents button would.</string>
+    <string name="gesture_accessibility_not">It asks Android for no events and can\'t read what\'s on the screen or what you type. Android will warn that accessibility services can see and control your screen: that\'s what a service could ask for, not what this one does. It stays off until you turn it on, and you can turn it off there any time.</string>
+    <string name="gesture_accessibility_steps">To turn it on, open accessibility settings, find OmaLauncher++ gestures among the installed apps, and switch it on. If Android says it\'s a restricted setting, open app info, tap ⋮, allow restricted settings, and try again.</string>
+    <string name="gesture_accessibility_open">open accessibility settings</string>
+    <string name="gesture_accessibility_app_info">app info</string>
+    <string name="gesture_accessibility_done">done</string>
+    <!-- Android's accessibility settings list the service with these. -->
+    <string name="gesture_accessibility_label">OmaLauncher++ gestures</string>
+    <string name="gesture_accessibility_description">Lets home\'s gestures lock the screen and show recent apps, and nothing else. It reads nothing on the screen and sees nothing you type.</string>
+</resources>

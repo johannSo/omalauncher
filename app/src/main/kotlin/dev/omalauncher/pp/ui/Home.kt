@@ -102,6 +102,7 @@ fun HomeScreen(
     val engine = runtime.widgets
     val linuxState by runtime.bootstrap.state.collectAsState()
     val arrange = remember { Arrange() }
+    val empty = remember { EmptyPresses() }
     // One empty page always waits after the last one, to drop tiles on or pin apps to. Pages only exist
     // while they hold something, so it becomes a real page once used and a new empty one follows.
     // Left of page 1 the same, for faces: like a stock launcher's feed, but the user's own. An empty one waits left of
@@ -324,6 +325,8 @@ fun HomeScreen(
             .fillMaxSize()
             // Swiping up opens the drawer, like stock launchers, or what gesture settings say; not while editing, in a
             // folder or typing in a tile. A long-press drag takes its touches first, and the pager only wants sideways ones.
+            // Double taps on empty space, and two fingers anywhere on the pages, as gesture settings say; the same times.
+            .homeGestures(runtime, state, empty, enabled = !terminals.typing && state.editing == null && arrange.folder == null)
             .homeSwipe(runtime, state, enabled = !terminals.typing && state.editing == null && arrange.folder == null)
             // Typing in a tile (its terminal or a widget's text field): lift the pages so the tile stays above the keyboard,
             // but not under the status bar; a tile too tall for both gives up the rest at its bottom.
@@ -476,6 +479,7 @@ fun HomeScreen(
             side = side,
             per = per,
             onLongPressEmpty = { openMenu(null) },
+            onPressEmpty = empty::pressed,
             feed = { page ->
                 val agent = runtime.agents.default?.name
                 PageInvite(

@@ -207,16 +207,16 @@ class Style(
         val TERMINAL_TEXT = Setting.Number("terminal.text", 12.0, 6.0..32.0, "The terminals' em size in dp, before Android's font size: 10 smaller, 12 default, 14 larger.")
 
         val SWIPE_UP =
-            Setting.Text(
+            GestureSetting(
                 "gestures.swipe-up",
-                "drawer.owl",
-                "The app drawer, which swiping up opens: a panel's file name in ~/.config/omalauncher/widgets, by default drawer.owl; \"none\" leaves only tapping the bar to open drawer.owl. One that's gone or doesn't compile falls back to drawer.owl, then to .stock-drawer.owl, the drawer as it ships.",
+                GestureAction.OpenPanel("drawer.owl"),
+                "What swiping up on home does: by default the app drawer, drawer.owl. Every gesture takes one of these: \"none\"; \"drawer\"; \"notification-shade\"; \"quick-settings\"; \"pages\" (settings › pages); \"lock\" and \"recents\" (they need the launcher's accessibility service, which settings › gestures turns on); \"panel:<file>.owl\", a panel in ~/.config/omalauncher/widgets (a bare file name works too); \"app:<package>\" or \"app:<package>/<activity>\", an Android app; \"linux-app:<desktop id>\", a Linux app (\"linux-app:firefox\"); \"linux:<command>\", run in Linux without a window; \"terminal:<command>\", in a terminal; \"agent:<prompt>\", sent to the default coding agent. Swiping up, a panel is what the drawer shows: one that's gone or doesn't compile falls back to drawer.owl, then to .stock-drawer.owl, the drawer as it ships; with anything but a panel or \"drawer\", tapping the bar still opens drawer.owl.",
             )
         val SWIPE_DOWN =
-            Setting.Text(
+            GestureSetting(
                 "gestures.swipe-down",
-                "none",
-                "What swiping down on home opens: \"none\" nothing, \"notification-shade\" Android's notifications, or a panel's file name in ~/.config/omalauncher/widgets (\"my-panel.owl\"); one that's gone or doesn't compile opens nothing.",
+                GestureAction.None,
+                "What swiping down on home does, nothing by default: an action as gestures.swipe-up takes. A panel comes down from the top under the finger; one that's gone or doesn't compile opens nothing.",
             )
     }
 
@@ -258,7 +258,7 @@ object StyleFile {
         with(Style) {
             listOf(THEME, BACKGROUND, FONT, APP_TILES, RECENT_APPS, EMPTY_PAGE_LEFT, EMPTY_PAGE_RIGHT, COLUMNS, FORCE_SINGLE_PAGE, GAPS_IN, GAPS_OUT, TILE_OPACITY, TILE_FROST, TILE_BORDER_WIDTH, TILE_BORDER, TILE_BORDER_FOCUSED) +
                 listOf(SCREEN_GAPS_OUT, SCREEN_BORDER_WIDTH, KEYBAR_GAPS_OUT, KEYBAR_BORDER_WIDTH, MONOCHROME_ICONS) + ForkStyle.ICONS + listOf(CORNER_SCALE) +
-                listOf(STATUS_BAR_SHOWN) + STATUS_BAR.all + NAVIGATION_BAR.all + listOf(TERMINAL_FONT, TERMINAL_TEXT, SWIPE_UP, SWIPE_DOWN) +
+                listOf(STATUS_BAR_SHOWN) + STATUS_BAR.all + NAVIGATION_BAR.all + listOf(TERMINAL_FONT, TERMINAL_TEXT, SWIPE_UP, SWIPE_DOWN) + GestureStyle.MORE +
                 DesktopStyle.ALL + SearchStyle.ALL + AgentStatusStyle.ALL + TileStyle.ALL
         }
 
