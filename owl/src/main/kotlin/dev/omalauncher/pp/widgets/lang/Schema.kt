@@ -170,7 +170,10 @@ internal val SINCE =
         listOf(HTTP_PIN, "ws", "send", ON_EACH).associateWith { 17 } +
         // Other Android apps (Tasker, Home Assistant, KDE Connect): activities started and broadcasts sent with extras,
         // broadcasts heard, and values they set. Owl 18 once the language level is bumped past 17.
-        listOf("intent", "broadcast", BROADCAST_SOURCE, EXTERNAL).associateWith { 17 }
+        listOf("intent", "broadcast", BROADCAST_SOURCE, EXTERNAL).associateWith { 17 } +
+        // owl 17 (this fork): where the phone is, roughly, and the steps walked today, each behind a permission a tap asks
+        // for; seeking in what's playing.
+        listOf("android.location", "android.steps", "permission", MEDIA_SEEK).associateWith { 17 }
 
 /** `source x = broadcast("…")`, named like this in [SINCE]; `broadcast` alone is the action that sends one. */
 internal const val BROADCAST_SOURCE = "source … = broadcast(…)"
@@ -183,6 +186,9 @@ internal const val STRINGS_DECL = "strings { }"
 
 /** `animate offset: ...`, named like this in [SINCE]. */
 internal const val ANIMATE_OFFSET = "animate offset"
+
+/** media("seek", seconds), named like this in [SINCE]. */
+internal const val MEDIA_SEEK = "media(\"seek\")"
 
 /** volume(level, stream), named like this in [SINCE]. */
 internal const val VOLUME_STREAM = "volume(…, stream)"
@@ -287,7 +293,13 @@ internal val TRIGGER_PARAMS = mapOf("on" to listOf("value", "old"))
 val SPEECH_ANYWHERE = setOf("stop", "cancel")
 
 /** Data from the phone and the launcher; device is fixed, system, network and power are polled, the rest update as they change. */
-internal val ANDROID = setOf("battery", "device", "media", "notifications", "volume", "system", "network", "power", "sim", "alarm", "modes", "apps", "agents", "recent", "drawer", "modifiers", "speech")
+internal val ANDROID = setOf("battery", "device", "media", "notifications", "volume", "system", "network", "power", "sim", "alarm", "modes", "apps", "agents", "recent", "drawer", "modifiers", "speech", "location", "steps")
+
+/**
+ * permission(...)'s words, each an Android permission a source needs: what android.location and android.steps read stays
+ * unavailable until the user allows it, from a tap on a widget that explains why.
+ */
+val PERMISSIONS = setOf("location", "steps")
 
 /**
  * The words an action's first value may be, when it's written out; [numbers] also allows a number. [forms] are the
@@ -305,7 +317,16 @@ internal val SETTINGS_PAGES = setOf("internet", "wifi", "bluetooth", "airplane",
 
 internal val ACTION_WORDS =
     mapOf(
-        "media" to setOf("toggle", "play", "pause", "next", "previous", "open").let { Words(it, "media takes ${it.joinToString()}") },
+        "media" to
+            setOf("toggle", "play", "pause", "next", "previous", "open", "seek").let { words ->
+                Words(
+                    words,
+                    "media takes ${words.joinToString()}",
+                    forms = (words - "seek").associateWith { 1..1 to "media(\"$it\")" } + ("seek" to (2..2 to "media(\"seek\", seconds)")),
+                )
+            },
+        // Asked for from a tap, the system's dialog over the widget; after two refusals, the app's settings instead.
+        "permission" to PERMISSIONS.let { Words(it, "permission takes ${it.joinToString()}") },
         // A number sets the level in percent.
         "volume" to setOf("up", "down", "mute", "unmute", "toggle").let { Words(it, "volume takes a level in percent, or ${it.joinToString()}", numbers = true) },
         // true and false also turn it on and off.

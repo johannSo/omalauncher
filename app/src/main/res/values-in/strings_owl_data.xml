@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toast as the app's settings open after a widget's permission("location") was refused twice, when Android won't ask again. -->
+    <string name="owl_data_allow_location">untuk menampilkan lokasimu, izinkan lokasi di bagian izin</string>
+    <!-- Toast as the app's settings open after a widget's permission("steps") was refused twice, when Android won't ask again. -->
+    <string name="owl_data_allow_steps">untuk menghitung langkahmu, izinkan aktivitas fisik di bagian izin</string>
+</resources>

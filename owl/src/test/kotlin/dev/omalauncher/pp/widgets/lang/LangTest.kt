@@ -1003,6 +1003,37 @@ class LangTest {
         assertTrue(compileError("widget {\n meta { owl: 14 }\n source p = android.power every 2s\n Text { text: 1 } }").contains("android.power needs owl 15"))
     }
 
+    @Test fun androidLocationAndStepsAskFromATap() {
+        val src = "widget {\n meta { owl: 17 }\n source l = android.location\n source s = android.steps\n Text { text: \"\${l.place} \${s.today}\"; onTap: { permission(\"location\"); permission(\"steps\") } } }"
+        val p = Compiler.compile(src)
+        assertEquals(listOf("android.location", "android.steps"), p.globals.map { (it as Global.Source).kind })
+        assertTrue(!p.needsLinux)
+        // The store shows what a widget reads before anyone installs it.
+        assertEquals(listOf("read where the phone is, roughly (a few km), once you allow it", "read the steps you walked, once you allow it"), p.commands)
+        val host = TestHost(p)
+        (p.root.single() as WNode.Element).handlers["onTap"]!!.run(Env.root(host), listOf(Num(0.0), Num(0.0)))
+        assertEquals(listOf("permission location", "permission steps"), host.actions)
+        assertTrue(compileError(src.replace("owl: 17", "owl: 16")).contains("needs owl 17"))
+        assertTrue(compileError(src.replace("\"steps\") }", "\"camera\") }")).contains("permission takes location, steps"))
+        // Android's dialog only for a tap: not as the finger goes down, nor from a timer or a fetched value.
+        for (h in listOf("onPress", "onRelease")) assertTrue(compileError(src.replace("onTap", h)).contains("put it in onTap"))
+        assertTrue(compileError(src.replace("Text {", "every 1m { permission(\"location\") }\n Text {")).contains("not in a trigger"))
+    }
+
+    @Test fun mediaSeeks() {
+        val src = "widget {\n meta { owl: 17 }\n source m = android.media\n Slider { value: m.position; max: m.duration; onChange: media(\"seek\", value) } }"
+        val p = Compiler.compile(src)
+        val host = TestHost(p)
+        (p.root.single() as WNode.Element).handlers["onChange"]!!.run(Env.root(host), listOf(Num(42.0)))
+        assertEquals(listOf("media seek, 42"), host.actions)
+        assertTrue(compileError(src.replace("owl: 17", "owl: 16")).contains("needs owl 17"))
+        // Seek takes where to; the others take nothing more.
+        assertTrue(compileError(src.replace("media(\"seek\", value)", "media(\"seek\")")).contains("media(\"seek\", seconds)"))
+        assertTrue(compileError(src.replace("media(\"seek\", value)", "media(\"next\", value)")).contains("media(\"next\")"))
+        // Still owl 4 without it.
+        Compiler.compile("widget {\n meta { owl: 4 }\n source m = android.media\n Text { text: m.title; onTap: media(\"toggle\") } }")
+    }
+
     @Test fun androidAlarmModesAndPhoneActions() {
         val p = Compiler.compile("widget {\n meta { owl: 7 }\n source a = android.alarm\n source m = android.modes\n Text { text: a.time; onTap: { torch(\"toggle\"); torch(!m.torch); share(\"hi\"); haptic() } } }")
         assertEquals(listOf("android.alarm", "android.modes"), p.globals.map { (it as Global.Source).kind })

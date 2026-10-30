@@ -3,13 +3,14 @@ widget "today" {
   order: 1
   size: 3x3
   minSize: 3x2
-  meta { description: "The date and the weather where you are, by IP or a city you type. Tap it for the next 24 hours, three days, wind, UV, sun and moon. Tap °C or °F to switch"; version: "1.3"; license: "MIT"; category: "world"; owl: 16 }
+  meta { description: "The date and the weather where you are, by the phone's location, IP or a city you type. Tap it for the next 24 hours, three days, wind, UV, sun and moon. Tap °C or °F to switch"; version: "1.4"; license: "MIT"; category: "world"; owl: 17 }
 
   // What it says, in the phone's language where it has a set. wttr names the sky and the moon in English, and
   // its own Indonesian misses newer conditions, so other languages name them from wttr's codes.
   strings {
     en {
       title: "weather"; loading: "weather…"; offline: "weather offline"; city: "city · empty = auto"
+      here: "use my location"; hereOn: "using my location · tap to stop"; hereOff: "location not allowed · tap to allow"
       feels: "feels"; humidity: "humidity"; rainToday: "rain today"; uv: "uv index"; pressure: "pressure"
       visibility: "visibility"; next24: "next 24 hours"; now: "now"; days: "3 days"; today: "today"
       sunrise: "sunrise"; sunset: "sunset"; moon: "moon"; kmh: "km/h"; yr: "open yr.no ↗"
@@ -20,6 +21,7 @@ widget "today" {
     }
     id {
       title: "cuaca"; loading: "cuaca…"; offline: "cuaca offline"; city: "kota · kosong = otomatis"
+      here: "pakai lokasiku"; hereOn: "memakai lokasiku · ketuk untuk berhenti"; hereOff: "lokasi tidak diizinkan · ketuk untuk mengizinkan"
       feels: "terasa"; humidity: "kelembapan"; rainToday: "hujan hari ini"; uv: "indeks uv"; pressure: "tekanan"
       visibility: "jarak pandang"; next24: "24 jam ke depan"; now: "kini"; days: "3 hari"; today: "hari ini"
       sunrise: "terbit"; sunset: "terbenam"; moon: "bulan"; kmh: "km/jam"; yr: "buka yr.no ↗"
@@ -53,6 +55,7 @@ widget "today" {
     }
     es {
       title: "clima"; loading: "clima…"; offline: "clima sin conexión"; city: "ciudad · vacío = auto"
+      here: "usar mi ubicación"; hereOn: "usando mi ubicación · toca para dejar"; hereOff: "ubicación no permitida · toca para permitir"
       feels: "sensación"; humidity: "humedad"; rainToday: "lluvia hoy"; uv: "índice uv"; pressure: "presión"
       visibility: "visibilidad"; next24: "próximas 24 horas"; now: "ahora"; days: "3 días"; today: "hoy"
       sunrise: "amanecer"; sunset: "atardecer"; moon: "luna"; kmh: "km/h"; yr: "abrir yr.no ↗"
@@ -86,6 +89,7 @@ widget "today" {
     }
     pt {
       title: "clima"; loading: "clima…"; offline: "clima offline"; city: "cidade · vazio = auto"
+      here: "usar minha localização"; hereOn: "usando minha localização · toque para parar"; hereOff: "localização não permitida · toque para permitir"
       feels: "sensação"; humidity: "umidade"; rainToday: "chuva hoje"; uv: "índice uv"; pressure: "pressão"
       visibility: "visibilidade"; next24: "próximas 24 horas"; now: "agora"; days: "3 dias"; today: "hoje"
       sunrise: "nascer do sol"; sunset: "pôr do sol"; moon: "lua"; kmh: "km/h"; yr: "abrir yr.no ↗"
@@ -123,13 +127,21 @@ widget "today" {
   state city = "" persist
   // Blank follows the country. A tap on the degree letter stores C or F.
   state unitChoice = "" persist
-  // The city, percent-encoded so "/", "?", "&" or "#" in it can't break the URL. Empty means located by IP.
-  let q = city.replace("%", "%25").replace("+", "%2B").replace("/", "%2F").replace("?", "%3F").replace("#", "%23").replace("&", "%26").replace("'", "%27").replace(" ", "+")
+  // The phone's location, rough (a few km), once "use my location" is on and the user allowed it; else a city, else IP.
+  source loc = android.location
+  state here = false persist
+  let located = here && loc.available == true && loc.lat != null
+  // The city, percent-encoded so "/", "?", "&" or "#" in it can't break the URL. Empty means located by IP. Located, two
+  // decimals of the coordinates (about a km), so the forecast isn't fetched again for every small move.
+  let typed = city.replace("%", "%25").replace("+", "%2B").replace("/", "%2F").replace("?", "%3F").replace("#", "%23").replace("&", "%26").replace("'", "%27").replace(" ", "+")
+  let q = located ? "${round(loc.lat * 100) / 100},${round(loc.lon * 100) / 100}" : typed
   // One request. Icons and °F countries match omarchy's weather panel.
   source wx = http("https://wttr.in/${q}?format=j1") every 30m timeout 10s json
   let cur = wx.current_condition[0]
   let day = wx.weather[0]
   let area = wx.nearest_area[0]
+  // wttr names the nearest weather station's town; the phone's geocoder knows the one it's in.
+  let placeName = located && loc.place != null ? loc.place : area.areaName[0].value
   let autoImperial = contains(["united states", "united states of america", "liberia", "myanmar", "burma"], lower(trim(area.country[0].value)))
   let imperial = unitChoice == "F" ? true : unitChoice == "C" ? false : autoImperial
   let unit = imperial ? "F" : "C"
@@ -210,7 +222,7 @@ widget "today" {
           Text { text: "↑${get(day, "maxtemp" + unit)}° ↓${get(day, "mintemp" + unit)}°"; style: small; color: muted; align: end; maxLines: 1; padding: [0, 0, 0, 5] }
         }
       }
-      Text { text: "${str.feels} ${get(cur, "FeelsLike" + unit)}° · ${lower(area.areaName[0].value)}"; style: small; color: muted; maxLines: 1 }
+      Text { text: "${str.feels} ${get(cur, "FeelsLike" + unit)}° · ${lower(placeName)}"; style: small; color: muted; maxLines: 1 }
       Spacer { weight: 1 }
       Spacer { height: 1; fill: width; background: alpha(muted, 0.25) }
       Spacer { height: 8 }
@@ -256,7 +268,20 @@ widget "today" {
     Input {
       text: city
       placeholder: str.city
-      onSubmit: { city = trim(value); refresh() }
+      onSubmit: { city = trim(value); here = false; refresh() }
+    }
+    // Asks for the location only here, from this tap: the widget works by IP or a city without it.
+    Button {
+      text: !here ? str.here : loc.available == true ? str.hereOn : str.hereOff
+      color: here && loc.available == true ? accent : muted
+      onTap: {
+        if here && loc.available != true {
+          permission("location")
+        } else {
+          here = !here
+          if here { permission("location") }
+        }
+      }
     }
     if cur == null {
       Text { text: wx == null ? str.loading : str.offline; style: body; color: muted }
@@ -283,7 +308,7 @@ widget "today" {
           }
         }
         Text {
-          text: "${str.feels} ${get(cur, "FeelsLike" + unit)}° · ↑${get(day, "maxtemp" + unit)}° ↓${get(day, "mintemp" + unit)}° · ${lower(area.areaName[0].value)}, ${lower(area.country[0].value)}"
+          text: "${str.feels} ${get(cur, "FeelsLike" + unit)}° · ↑${get(day, "maxtemp" + unit)}° ↓${get(day, "mintemp" + unit)}° · ${lower(placeName)}, ${lower(located && loc.country != null ? loc.country : area.country[0].value)}"
           style: small
           color: muted
         }

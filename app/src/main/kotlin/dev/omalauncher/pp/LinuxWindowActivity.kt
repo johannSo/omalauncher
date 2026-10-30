@@ -51,6 +51,7 @@ import dev.omalauncher.pp.ui.Palette
 import dev.omalauncher.pp.ui.linuxWindowInput
 import dev.omalauncher.pp.wayland.WindowRenderer
 import dev.omalauncher.pp.wayland.XdgToplevel
+import dev.omalauncher.pp.widgets.runtime.WidgetPermissions
 import kotlinx.coroutines.flow.first
 
 /**
@@ -96,6 +97,7 @@ class LinuxWindowActivity : InstantActivity() {
         window?.let(runtime.wm::focus)
         runtime.keyboard.imagePicker = imagePicker
         runtime.dictation.askMic = mic::ask
+        WidgetPermissions.ask = mic::ask
     }
 
     override fun onStop() {
@@ -128,6 +130,7 @@ class LinuxWindowActivity : InstantActivity() {
         runtime.keyboard.releaseHeld()
         if (runtime.keyboard.imagePicker === imagePicker) runtime.keyboard.imagePicker = null
         runtime.dictation.askMic = null
+        WidgetPermissions.ask = null
     }
 }
 

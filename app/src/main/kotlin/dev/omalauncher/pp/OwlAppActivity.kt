@@ -16,6 +16,7 @@ import dev.omalauncher.pp.ui.Palette
 import dev.omalauncher.pp.ui.holdsKeys
 import dev.omalauncher.pp.ui.showStatusBar
 import dev.omalauncher.pp.widgets.render.LocalInputFocus
+import dev.omalauncher.pp.widgets.runtime.WidgetPermissions
 
 /**
  * An owl app (`app "name" { }`) as its own task and Recents card, named after it and with its icon,
@@ -63,11 +64,13 @@ class OwlAppActivity : InstantActivity() {
     override fun onResume() {
         super.onResume()
         runtime.dictation.askMic = mic::ask
+        WidgetPermissions.ask = mic::ask
     }
 
     override fun onPause() {
         super.onPause()
         runtime.dictation.askMic = null
+        WidgetPermissions.ask = null
     }
 
     override fun onStop() {

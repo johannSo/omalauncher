@@ -1,0 +1,90 @@
+widget "steps" {
+  page: 3
+  order: 6
+  size: 3x2
+  minSize: 3x2
+  meta { description: "Today's steps from your phone's step counter, against a daily goal, and the last seven days as bars. Tap the goal to change it"; version: "1.0"; license: "MIT"; category: "productivity"; owl: 17 }
+
+  strings {
+    en {
+      title: "steps"; goal: "goal"; noSensor: "this phone has no step counter"
+      ask: "Allow physical activity so the launcher can count your steps. Tap to allow."
+    }
+    es {
+      title: "pasos"; goal: "meta"; noSensor: "este teléfono no tiene contador de pasos"
+      ask: "Permite la actividad física para que el launcher cuente tus pasos. Toca para permitir."
+    }
+    id {
+      title: "langkah"; goal: "target"; noSensor: "ponsel ini tidak punya penghitung langkah"
+      ask: "Izinkan aktivitas fisik agar launcher bisa menghitung langkahmu. Ketuk untuk mengizinkan."
+    }
+    pt {
+      title: "passos"; goal: "meta"; noSensor: "este celular não tem contador de passos"
+      ask: "Permita a atividade física para o launcher contar seus passos. Toque para permitir."
+    }
+  }
+
+  // {available, sensor, today, days}: available stays false until the user allows physical activity, from the tap below.
+  source s = android.steps
+  state goal = 8000 persist
+  let goals = [4000, 6000, 8000, 10000, 12000]
+  let done = num(s.today, 0)
+  let reached = done >= goal
+  let week = s.days ?? []
+  let most = max(max(week.map(d => d.steps ?? 0)), goal)
+
+  // Only asks while it isn't allowed; after two refusals, the app's settings open instead.
+  onTap: if s.sensor == true && s.available != true { permission("steps") }
+
+  if s.sensor == false {
+    Column {
+      justify: center
+      Text { text: str.title; style: muted }
+      Text { text: str.noSensor; style: small; color: muted; maxLines: 3 }
+    }
+  } else {
+    if s.available != true {
+      Column {
+        justify: center
+        gap: 6
+        Text { text: str.title; style: muted }
+        Text { text: str.ask; style: small; maxLines: 4 }
+      }
+    } else {
+      Column {
+        gap: 6
+        Row {
+          gap: 10
+          align: center
+          Box {
+            size: 44
+            Ring { value: min(done / goal, 1); size: 44; thickness: 5; color: reached ? green : accent; track: alpha(muted, 0.2); animate value: spring() }
+          }
+          Column {
+            gap: 0
+            weight: 1
+            Text { text: fmtNum(done); style: title; color: reached ? green : foreground; maxLines: 1 }
+            Box {
+              onTap: goal = goals[(indexOf(goals, goal) + 1) % len(goals)]
+              Text { text: "${str.goal} ${fmtNum(goal)}"; style: label; color: muted; maxLines: 1 }
+            }
+          }
+        }
+        // The week, today last, on one scale with the goal; a day nothing was counted on is a dot.
+        Canvas {
+          weight: 1
+          fill: width
+          let n = max(len(week), 1)
+          let bw = width / n
+          let top = height - 14
+          rect(0, top - top * goal / most, width, 1, fill: alpha(muted, 0.35))
+          for d, i in week {
+            let h = d.steps == null ? 2 : max(top * d.steps / most, 2)
+            rect(i * bw + bw * 0.2, top - h, bw * 0.6, h, radius: 2, fill: i == n - 1 ? accent : d.steps != null && d.steps >= goal ? green : alpha(muted, 0.5))
+            text(lower(fmtTime(parseTime(d.date), "EEEEE")), i * bw + bw / 2, height - 6, size: 10, align: center, color: i == n - 1 ? foreground : muted)
+          }
+        }
+      }
+    }
+  }
+}
