@@ -661,7 +661,7 @@ class Runtime(
         // all share the app_id org.quickshell, so their window title, which is their name, decides.
         wm.appWindows
             .firstOrNull { (it.appId.isNotEmpty() && app.matches(it.appId)) || it.title.equals(app.name, ignoreCase = true) }
-            ?.let { if (desktop.bringToFront(it) || bringToFront(it)) return }
+            ?.let { if (bringToFront(it)) return }
         launch(app.exec)
     }
 
@@ -673,8 +673,9 @@ class Runtime(
         launch(app)
     }
 
-    /** Moves [window]'s Android task to the front; false if it has none (yet). */
+    /** Shows [window]: in the tiling desktop if it's there, else by moving its Android task to the front; false if it has none (yet). */
     fun bringToFront(window: XdgToplevel): Boolean {
+        if (desktop.bringToFront(window)) return true
         val handle = wm.handleOf(window) ?: return false
         val task =
             context.getSystemService(ActivityManager::class.java).appTasks.firstOrNull {
