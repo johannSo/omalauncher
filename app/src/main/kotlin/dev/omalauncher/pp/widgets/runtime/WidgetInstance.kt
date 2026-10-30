@@ -34,6 +34,7 @@ import dev.omalauncher.pp.widgets.lang.Budget
 import dev.omalauncher.pp.widgets.lang.Env
 import dev.omalauncher.pp.widgets.lang.Ev
 import dev.omalauncher.pp.widgets.lang.Global
+import dev.omalauncher.pp.widgets.lang.IntentSpec
 import dev.omalauncher.pp.widgets.lang.Host
 import dev.omalauncher.pp.widgets.lang.KeyNames
 import dev.omalauncher.pp.widgets.lang.Json
@@ -190,6 +191,15 @@ interface Services {
     /** A file inside the guest, for Image { src: "~/pics/x.png" }; null for one out of it. */
     fun guestFile(path: String): java.io.File?
 
+    /** intent(...) or broadcast(...): starts another app's activity or sends a broadcast; [failed] hears why it couldn't. */
+    fun intent(
+        spec: IntentSpec,
+        failed: (String) -> Unit,
+    ) = failed("other apps can't be reached from here")
+
+    /** What a broadcast(...) source hears: every broadcast any app sends with one of [actions], as `{action, data, extras}`. */
+    fun broadcasts(actions: List<String>): Flow<Value> = emptyFlow()
+
     /** A guest file's text now and after every change, for `file(...)`; a missing file reads as "". */
     fun fileUpdates(path: String): Flow<String>
 
@@ -220,6 +230,8 @@ class WidgetInstance(
     private val linux: () -> Boolean = { true },
     /** An app's window or the widget's screen is showing. Snapshot state. */
     private val foreground: () -> Boolean = { false },
+    /** What other apps set for this file, for a `source x = external`; see ExternalValues. */
+    private val external: Flow<Value> = emptyFlow(),
 ) : Host {
     override val budget = Budget()
     val root = Env.root(this)
@@ -748,6 +760,10 @@ class WidgetInstance(
         startTriggers(scope, active)
         program.globals.forEachIndexed { slot, g ->
             if (g !is Global.Source) return@forEachIndexed
+            if (g.kind == "broadcast" || g.kind == "external") {
+                jobs += scope.launch { hear(slot, g) }
+                return@forEachIndexed
+            }
             jobs +=
                 scope.launch {
                     // The command or URL a cmd or http source last ran, and when; whether it must run again now.
@@ -976,6 +992,48 @@ class WidgetInstance(
                 if (System.currentTimeMillis() - began > WS_STEADY_MS) wait = WS_RETRY_MS
                 delay(wait)
                 wait = (wait * 2).coerceAtMost(WS_MAX_RETRY_MS)
+            }
+        }
+    }
+
+    /**
+     * A broadcast(...) source hears its broadcasts, and an `external` one takes what other apps set, for as long as the
+     * widget runs, its page on screen or not: a broadcast missed while the page was away wouldn't come again. Each
+     * broadcast runs the source's `on … each` triggers, in the order they came.
+     */
+    private suspend fun hear(
+        slot: Int,
+        g: Global.Source,
+    ) {
+        if (g.kind == "external") {
+            return external.collect { v ->
+                write(slot, v)
+                sample(g)
+            }
+        }
+        // Nothing heard yet is a value of its own, not one still loading: a preview doesn't wait for it.
+        if (read(slot) == Null) paused[slot] = true
+        val each = program.triggers.withIndex().filter { it.value.each == slot }
+        val actions = (g.arg!!.const as Lst).items.map { it.toString() }
+        services.broadcasts(actions).collect { v ->
+            paused.remove(slot)
+            write(slot, v)
+            sample(g)
+            for ((i, t) in each) fire(i, t, listOf(v, Null))
+        }
+    }
+
+    override fun intent(spec: IntentSpec) {
+        val name = if (spec.broadcast) "broadcast" else "intent"
+        // An app opening on its own, from a timer or a fetched value, over whatever the user is doing: like open(...), a
+        // trigger starts one only while the app or screen is open. A broadcast goes out from anywhere.
+        if (!spec.broadcast && inTrigger && !foreground()) return report("intent(...) in a trigger works only while the app or screen is open")
+        services.intent(spec) { report("$name: $it") }
+        // As after any action: what the other app changed shows. Not after each broadcast from a trigger, which may run often.
+        if (!inTrigger) {
+            scope?.launch {
+                delay(500)
+                refresh()
             }
         }
     }

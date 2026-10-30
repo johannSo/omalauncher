@@ -50,6 +50,8 @@ after it in its block (and blocks inside them), and needs a name not used for a 
 | `notify("title", "text")` | posts an Android notification (if the launcher may post them) |
 | `post("https://...", body, headers)` | sends an HTTP POST from Android: a map or list `body` goes as JSON, text as it is; `headers` is a map like `http(...)`'s. `x = post(...)` puts the answer into the state `x` when it arrives: `{code, ok, out, err}`, with `out` parsed when it's JSON and `err` why it failed (code -1 when no answer came: offline, a timeout, a redirect it didn't follow). `method: "PUT"`, `"PATCH"` or `"DELETE"` sends that instead (owl 12), and `pin:` trusts one certificate of a server of your own (owl 17). Never retried; a null URL sends nothing. When it succeeds, the widget's sources run again. See Sending (owl 8) |
 | `send(x, message)` | sends a message on the `ws(...)` source `x`'s connection: a map or list as JSON, anything else as its text. Dropped, with an error, while it isn't connected. See WebSockets (owl 17) |
+| `intent("android.intent.action.VIEW", {extras}, data: "geo:0,0?q=coffee")` | starts another Android app's activity: an action, a map of extras, and any of `package:`, `component:` (`"org.app/.MainActivity"`), `data:`, `type:` and `category:`. `package:` alone opens that app, `data:` alone opens it as a link. From a trigger only while the app or the widget's screen is open. See Other apps (owl 17) |
+| `broadcast("tasker.LIGHTS", {extras}, package: "org.app")` | sends an Android broadcast with that action and extras: to the app `package:` (or `component:`) names, or without one to every app listening, as Tasker's Intent Received does. See Other apps (owl 17) |
 | `url("https://...")` | opens in the Android browser. Other links open in the app that takes them: `tel:` the dialer, `geo:` maps, `mailto:` email |
 | `share(text)` | opens Android's share sheet with the text (owl 7) |
 | `haptic()` | a short tap of haptic feedback, if the user has touch feedback on (owl 7) |
@@ -220,6 +222,108 @@ to first. With `status`, the source is `{out, open, err}`: `out` the last messag
 reconnects, `open` whether it's connected now, and `err` why it last failed (a refusal, a certificate,
 the server closing it with a code of its own). A secret goes into its headers or `send`'s message,
 and only to a `wss://` server.
+
+## Other apps
+
+Tasker, Home Assistant, KDE Connect and other automation apps talk to each other through Android intents, and a
+widget can join in, from Android, with no Linux needed (owl 17): `intent(...)` starts an app's activity and
+`broadcast(...)` sends a broadcast, a `broadcast(...)` source hears the ones other apps send, and an `external`
+source takes values other apps set.
+
+```owl
+widget "lights" {
+  meta { owl: 17 }
+  state lit = false
+  // Tasker: a profile with Event › System › Intent Received, Action tasker.LIGHTS, runs its task, with %room and %power set.
+  Button { text: lit ? "lights off" : "lights on"; onTap: { lit = !lit; broadcast("tasker.LIGHTS", {room: "hall", power: lit}) } }
+}
+```
+
+### Sending
+
+`intent(action, extras, ...)` and `broadcast(action, extras, ...)` take an action, a map of extras, and named values:
+
+| named | what |
+|---|---|
+| `package: "org.app"` | the app it goes to. A broadcast without one (or a `component:`) goes to every app listening for its action; Android only hands those to apps listening while they run, as Tasker's Intent Received does, so one an app declares for itself needs its package. An `intent` with a package and nothing else opens that app |
+| `component: "org.app/.Receiver"` | the one activity or receiver, by package and class; `.Receiver` is short for a class in that package |
+| `data: "geo:0,0?q=coffee"` | `intent` only: the link it acts on. Data alone opens it in whatever app takes it, as `url(...)` does |
+| `type: "text/plain"` | `intent` only: the MIME type of what it carries |
+| `category: "android.intent.category.DEFAULT"` | `intent` only: a category, or a list of them |
+
+Extras go by their value: text as a string, `true` and `false` as a boolean, a whole number as an int (a long
+past an int's range), any other number as a float, a list as an array of strings and a map as a bundle of its
+own. An app that reads another type gets it by its key's ending: `{"brightness:double": 0.5, "count:long": 3}`.
+The endings are `:string`, `:int`, `:long`, `:float`, `:double`, `:bool`, `:strings` (a `String[]`), `:stringList`
+(an `ArrayList<String>`) and `:bundle`. A null value leaves its extra out, and a value that can't be its type
+(`{"n:int": "abc"}`) sends nothing and goes to `.errors/`, as one an app refuses does.
+
+```owl
+widget "share" {
+  meta { owl: 17 }
+  state note = "milk, eggs"
+  Column {
+    // Home Assistant's companion app, KDE Connect and the like take what Android's share sheet would.
+    Button { text: "send to kde connect"; onTap: intent("android.intent.action.SEND", {"android.intent.extra.TEXT": note}, package: "org.kde.kdeconnect_tp", type: "text/plain") }
+    Button { text: "maps"; onTap: intent(data: "geo:0,0?q=${enc(note)}") }
+    Button { text: "open home assistant"; onTap: intent(package: "io.homeassistant.companion.android") }
+  }
+}
+```
+
+Each is listed for review with the commands, the way the store shows them before anyone installs the widget:
+`start activity android.intent.action.SEND to org.kde.kdeconnect_tp with extras android.intent.extra.TEXT`,
+`send broadcast tasker.LIGHTS to any app with extras room, power`. Write the action, the package and the component
+out; one a value makes shows as `‹value›`, and the store's reviewer is told it can't be shown. A broadcast to any
+app is pointed out too, since every app on the phone can hear it: keep private data out of its extras. A secret
+never goes into one. The launcher's own activities, receivers and actions are out of reach. Like any action, one
+whose action or package hasn't loaded yet sends nothing.
+
+### Hearing other apps
+
+`source x = broadcast("tasker.EVENT")` hears every broadcast any app sends with that action, or with any of a
+list, `broadcast(["a.B", "a.C"])`. Its value is the latest, `{action, data, extras}`, and `on x each { }` runs for
+every one, repeats too, with `value` the broadcast, as for a WebSocket's messages. It hears them for as long as the
+launcher runs, its page on screen or not, so nothing sent while the page was away is lost; until the first
+comes it's null. The actions are written out, and listed for review.
+
+```owl
+widget "kde" {
+  meta { owl: 17 }
+  state calls = []
+  // Tasker: Send Intent, Action tasker.CALL, Extra who:%CNAME, Target Broadcast Receiver.
+  source ring = broadcast("tasker.CALL")
+  on ring each { calls = take([value.extras.who ?? "unknown"] + calls, 5) }
+  Column { for c in calls { Text { text: c } } }
+}
+```
+
+### Values from other apps
+
+Another app can put a value into a widget, which reads it from `source ext = external` as `ext.name`: the
+battery as Tasker sees it, a Home Assistant sensor, a step counter. It sends the broadcast
+`dev.omalauncher.pp.action.SET` to the package `dev.omalauncher.pp`, with the extras `widget` (the widget's file
+name, like `77-tasker.owl`; `.owl` may be left off), `key` (letters, digits and `_`) and `value`; one without a
+`value` removes the key. Text that reads as JSON is JSON, as `owl-send … set` takes it, so `"42"` is a number and
+`"[1, 2]"` a list. Values are kept across restarts, at most 64 per widget, and go with the widget's file.
+
+Since any app may send it, two things guard it. It is off until the user turns on settings › values from other
+apps (no app can wake the launcher with one before that), and a widget without an `external` source takes
+nothing. `on ext.battery { }` runs when a value changes, as for any source.
+
+In Tasker that's a Send Intent action:
+
+| field | value |
+|---|---|
+| Action | `dev.omalauncher.pp.action.SET` |
+| Extra | `widget:77-tasker.owl` |
+| Extra | `key:battery` |
+| Extra | `value:%BATT` |
+| Package | `dev.omalauncher.pp` |
+| Target | Broadcast Receiver |
+
+and from a shell with adb, `am broadcast -a dev.omalauncher.pp.action.SET -p dev.omalauncher.pp --es widget 77-tasker.owl --es key battery --es value 80`.
+`examples/77-tasker` is a whole widget that talks to Tasker all three ways.
 
 ## Sounds
 

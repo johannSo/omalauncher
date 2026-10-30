@@ -71,6 +71,7 @@ import dev.omalauncher.pp.widgets.lang.Obj
 import dev.omalauncher.pp.widgets.lang.Pins
 import dev.omalauncher.pp.widgets.lang.Str
 import dev.omalauncher.pp.widgets.lang.Value
+import dev.omalauncher.pp.widgets.lang.IntentSpec
 import dev.omalauncher.pp.widgets.lang.WidgetError
 import dev.omalauncher.pp.widgets.lang.bool
 import dev.omalauncher.pp.androidAppKey
@@ -93,6 +94,7 @@ import dev.omalauncher.pp.ui.appIconOf
 import dev.omalauncher.pp.ui.open
 import dev.omalauncher.pp.ui.recentApps
 import dev.omalauncher.pp.widgets.runtime.Alarm
+import dev.omalauncher.pp.widgets.runtime.AppIntents
 import dev.omalauncher.pp.widgets.runtime.Media
 import dev.omalauncher.pp.widgets.runtime.Modes
 import dev.omalauncher.pp.widgets.runtime.Notifications
@@ -276,6 +278,20 @@ class WidgetServices(
         }
 
     override fun androidImage(src: String) = media.art(src)
+
+    private val intents = AppIntents(context)
+
+    override fun intent(
+        spec: IntentSpec,
+        failed: (String) -> Unit,
+    ) {
+        intents.send(spec)?.let(failed)
+    }
+
+    /** One receiver per set of actions, however many widgets hear it. */
+    private val heard = HashMap<List<String>, Flow<Value>>()
+
+    override fun broadcasts(actions: List<String>): Flow<Value> = heard.getOrPut(actions) { intents.broadcasts(actions).shareIn(scope, SharingStarted.WhileSubscribed(0, 0)) }
 
     override fun speechUpdates(owner: Any) = runtime.dictation.updates(owner)
 

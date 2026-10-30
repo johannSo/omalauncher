@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- settings › values from other apps (ui/OtherAppsRow.kt, widgets/ExternalValues.kt). -->
+<resources>
+    <string name="owl_intents_setting">nilai dari aplikasi lain</string>
+    <string name="owl_intents_setting_off">mati: tidak ada aplikasi yang bisa mengubah isi widget</string>
+    <string name="owl_intents_setting_on">nyala: tasker dan aplikasi lain bisa mengisi nilai di widget yang menerimanya</string>
+    <string name="owl_intents_allow">izinkan</string>
+    <string name="owl_intents_deny">mati</string>
+</resources>

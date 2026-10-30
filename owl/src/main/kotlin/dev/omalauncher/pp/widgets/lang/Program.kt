@@ -67,6 +67,9 @@ interface Host {
         message: Value,
     ) {}
 
+    /** `intent(...)` or `broadcast(...)`: starts another app's activity or sends a broadcast, as [spec] says. */
+    fun intent(spec: IntentSpec) {}
+
     val budget: Budget
 
     /** A problem at run time, shown to the widget's author; never thrown. */
@@ -340,7 +343,8 @@ class Trigger(
     val dictation: Boolean = false,
     /**
      * `on feed each { }`: the slot of the ws(...) source whose every message runs it, in the order they came,
-     * repeats too, with `value` the message; it watches nothing else (see WidgetInstance).
+     * repeats too, with `value` the message; it watches nothing else (see WidgetInstance). For a broadcast(...)
+     * source, every broadcast it hears.
      */
     val each: Int? = null,
 )

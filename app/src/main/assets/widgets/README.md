@@ -73,6 +73,9 @@ A file holds declarations, then the nodes it shows:
 - Handlers, like `onTap: count = count + 1`, set state and run actions: `terminal("btop")`, `run("cmd")`,
   `url("https://...")`, `notify("title", "text")`, `post(url, body)`. An API key or a token is a
   `state key = null secret`, typed in on the phone.
+- Other Android apps (Tasker, Home Assistant, KDE Connect): `broadcast("tasker.LIGHTS", {room: "hall"})` and
+  `intent(...)` send to them, `source t = broadcast("tasker.EVENT")` hears them, and `source ext = external` takes values
+  they set, once the user allows it (see Other apps in docs/handlers.md).
 - Text interpolates (`"${round(pct)}%"`). What's missing is `null`, never an error, and shows as `…`; `a ?? b` is b
   while a is null. Lists have `map`, `filter`, `sortBy` and the rest. Colors are the theme's names (`accent`,
   `foreground`, `muted`, `red`, ...), so widgets follow theme changes.
@@ -89,11 +92,11 @@ declarations.md, nodes.md, expressions.md and handlers.md; a face, an app, a pan
 
 | read | for |
 |---|---|
-| docs/declarations.md | sources (`cmd`, `http`, `ws`, `stream`, `file`, `clock`), state, lets, triggers (`every`, `at`, `when`, `on`, `on … each`), putting values into commands and URLs, `requires` and working without Linux |
+| docs/declarations.md | sources (`cmd`, `http`, `ws`, `stream`, `file`, `broadcast`, `external`, `clock`), state, lets, triggers (`every`, `at`, `when`, `on`, `on … each`), putting values into commands and URLs, `requires` and working without Linux |
 | docs/android.md | the phone's data: battery, media, notifications, volume, the next alarm, modes, apps, the drawer, agents, the private space |
 | docs/expressions.md | operators and every function, dates and times, numbers, changing lists and maps, chance |
 | docs/nodes.md | every node and its properties, the tile's size, text in pieces, fonts, gradients, frosted glass, images from the web, components, Terminal |
-| docs/handlers.md | handlers, every action, sending to web APIs with `post`, tokens and passwords, sounds |
+| docs/handlers.md | handlers, every action, sending to web APIs with `post`, tokens and passwords, other Android apps (Tasker) with `intent` and `broadcast`, sounds |
 | docs/drawing.md | Canvas and Shader |
 | docs/screens.md | a widget's full-screen view behind its tile |
 | docs/faces.md | faces: a whole home page |
@@ -141,6 +144,7 @@ docs say what's current.
 | panels and the prompt bar | `drawer.owl` (lazy lists, search with rank, Popup), `examples/65-ai-bar` (android.agents, ask, open) |
 | the terminal key bar | `keybar.owl`, `examples/keybar-layers` (latch, layers), `examples/keybar-vim`, `examples/keybar-gamepad`, `examples/keybar-commands` (typeText) |
 | a live terminal | `45-terminal` |
+| other Android apps | `examples/77-tasker` (Tasker both ways: `broadcast`, a broadcast source, `external`, `intent`) |
 | an app that sends | `examples/ntfy` (two views with `back`, a source whose URL takes a state, `post` with a JSON body, and what it answers shown at once), `examples/github-inbox` (a token kept as a `secret`, `post` with `method: "PATCH"`) |
 
 ## Limits

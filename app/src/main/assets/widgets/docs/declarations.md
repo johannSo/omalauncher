@@ -10,6 +10,8 @@ Part of the widget docs: README.md, one folder up, comes first, and paths here a
 | `source x = stream("...")` | a long-running command; every line it prints becomes the new value. Add `json` for JSON lines. At most 4 different streams run at once |
 | `source x = http("https://...") every 10m` | an HTTP GET from Android, no curl or shell needed. Takes `json`, `timeout` and `status` like cmd (with `status`, `code` is the HTTP status and `ok` means 2xx), and optionally headers: `http(url, {Accept: "application/json"})`, and `pin:` for a server with a certificate of its own (owl 17, see Sending). A response over 1 MB fails (`the response is over 1 MB`), and the interval is 5 s or more. Prefer it over `cmd("curl ...")`. A URL can hold values, through `enc()` (see Values in URLs); it's fetched again as soon as it changes, and a `null` URL pauses the source, keeping its last value: `http(tab == "news" ? "https://..." : null)` fetches only while that tab shows. A failed fetch (offline, an error status, a rate limit) is tried again after 30 s |
 | `source x = ws("wss://...")` | a WebSocket from Android (owl 17): every message the server sends becomes the new value. Takes `json`, headers and `pin:` like `http`, and `status` for `{out, open, err}`: the last message, whether it's connected, and why it last failed. Connected while its page shows, again when its URL changes, and again after it drops; a `null` URL keeps it closed. `send(x, message)` talks back, and `on x each { }` runs for every message. See WebSockets in docs/handlers.md |
+| `source x = broadcast("tasker.EVENT")` | broadcasts other Android apps send (Tasker, Home Assistant, KDE Connect) with that action, or any of a list: the latest, `{action, data, extras}`, null until the first. Heard while the launcher runs, its page on screen or not; `on x each { }` runs for every one. See Other apps in docs/handlers.md (owl 17) |
+| `source ext = external` | values other apps set for this widget, a map: `ext.battery`. Only once the user allows it in settings › values from other apps. See Other apps in docs/handlers.md (owl 17) |
 | `source x = file("~/.cache/x.json")` | a file in this system, read again whenever it changes (no polling, no shell). Add `json` to parse it. A missing file reads as `""`; at most 1 MB is read. Prefer it over `cmd("cat ...") every 5s` (owl 4) |
 | `source now = clock every 1s` | Unix time in seconds, with no shell involved. Use `fmtTime(now, "HH:mm")` |
 | `source bat = android.battery` | the phone's own data, from Android: the battery, what's playing, notifications, volume, the next alarm, modes, apps, the drawer, coding agents. See docs/android.md |
@@ -98,7 +100,7 @@ Statements that run on their own, written like handlers, at the top of the widge
 | `every 10s { ... }` | every 10 seconds while the page is live (on screen or next to it), like a source. At least 1 s |
 | `at endsAt { ... }` | when the clock reaches `endsAt`, a Unix time in seconds, even while the page is off screen. Again for each new time; 0 or null means none. A time that passed while the launcher wasn't running runs at the next start, so set it to 0 in the statements. While the phone sleeps it can run a little late, when it wakes |
 | `when cond { ... }` | each time `cond` turns true, including when it's already true as the widget starts |
-| `on x { ... }` | each time `x` changes, with `value` (the new one) and `old`. Not for its first value, and null (loading) doesn't count as a change. `on x first { ... }` runs for the first value too, with `old` null: for saving what a source fetched, from the first fetch on (owl 9). `on x each { ... }`, for a `ws(...)` source `x`, runs for every message, in the order they came and repeats too, with `value` the message (owl 17); see WebSockets in docs/handlers.md |
+| `on x { ... }` | each time `x` changes, with `value` (the new one) and `old`. Not for its first value, and null (loading) doesn't count as a change. `on x first { ... }` runs for the first value too, with `old` null: for saving what a source fetched, from the first fetch on (owl 9). `on x each { ... }`, for a `ws(...)` source `x`, runs for every message, in the order they came and repeats too, with `value` the message (owl 17); see WebSockets in docs/handlers.md. For a `broadcast(...)` source, for every broadcast it hears, with `value` the broadcast (owl 17) |
 
 ```owl
 widget "focus" {
@@ -146,7 +148,7 @@ widget "grok" {
 
 Linux (this Arch system) is an optional download in the launcher. A widget that runs commands,
 declares packages or has a `Terminal` needs it: without Linux its tile offers to install Linux
-instead of running. Widgets with only `http`, `clock` and `android.*` sources work on any phone.
+instead of running. Widgets with only `http`, `ws`, `broadcast`, `external`, `clock` and `android.*` sources work on any phone.
 Tapping `terminal(...)` or `app(...)` without Linux opens the install sheet, so those don't
 make a widget need it.
 
