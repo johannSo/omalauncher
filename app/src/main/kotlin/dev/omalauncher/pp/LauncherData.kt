@@ -41,6 +41,8 @@ object LauncherData {
     fun appsDir(context: Context) = File(context.filesDir, "apps")
     /** focus.toml, focus mode's profiles and the app timers; see [dev.omalauncher.pp.focus.Focus]. The guest sees ~/.config/omalauncher/focus. */
     fun focusDir(context: Context) = File(context.filesDir, "focus")
+    /** Scheduled agent jobs: jobs.toml and each job's results; see [dev.omalauncher.pp.jobs.Jobs]. The guest sees ~/.config/omalauncher/jobs. */
+    fun jobsDir(context: Context) = File(context.filesDir, "jobs")
 
     /** Settings that belong to no one store: setup, gestures, the GPU, the home role. Keys carry their owner's prefix. */
     fun prefs(context: Context): SharedPreferences = context.getSharedPreferences("launcher", Context.MODE_PRIVATE)

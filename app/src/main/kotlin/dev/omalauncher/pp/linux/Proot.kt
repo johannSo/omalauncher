@@ -50,6 +50,7 @@ class Proot(
             "$GUEST_HOME/.config/omalauncher/home" to LauncherData.homeDir(context),
             "$GUEST_HOME/.config/omalauncher/apps" to LauncherData.appsDir(context),
             "$GUEST_HOME/.config/omalauncher/focus" to LauncherData.focusDir(context),
+            "$GUEST_HOME/.config/omalauncher/jobs" to LauncherData.jobsDir(context),
             "$GUEST_HOME/.config/omarchy/themes" to LauncherData.userThemesDir(context),
             "$GUEST_HOME/.config/omarchy/backgrounds" to LauncherData.userBackgroundsDir(context),
         )

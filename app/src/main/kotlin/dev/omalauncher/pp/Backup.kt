@@ -23,8 +23,8 @@ import kotlin.system.exitProcess
 /**
  * Settings › backup: the launcher's own data as one zip, to bring it back on a new phone or this one. Home (its
  * pages, apps, folders and tiles), the style, the owl widgets, faces and apps with what they keep, the store's
- * records of them, and the user's themes and backgrounds. Not Linux, being gigabytes, nor Omarchy's release, which
- * downloads again. Widgets' secrets are sealed with this phone's key, so they stay on it. Android widgets are bound
+ * records of them, the user's themes and backgrounds, and the scheduled jobs with their last results. Not Linux,
+ * being gigabytes, nor Omarchy's release, which downloads again. Widgets' secrets are sealed with this phone's key, so they stay on it. Android widgets are bound
  * to this phone: on another one they come back as tiles that add them again on a tap.
  */
 object Backup {
@@ -37,7 +37,7 @@ object Backup {
     private const val FORMAT = 1
 
     /** Directories in filesDir, taken whole and put back whole: one missing from a backup comes back empty. */
-    internal val DIRS = listOf("style", "widgets", "widget-state", "themes", "backgrounds", "apps", "focus")
+    internal val DIRS = listOf("style", "widgets", "widget-state", "themes", "backgrounds", "apps", "focus", "jobs")
 
     /** Single files in filesDir: the record of which defaults are still as the launcher wrote them. */
     internal val SINGLE_FILES = listOf(LauncherData.LAUNCHER_MANIFEST)

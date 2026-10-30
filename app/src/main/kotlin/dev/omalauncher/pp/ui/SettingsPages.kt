@@ -59,6 +59,8 @@ enum class SettingsPage {
     Focus,
     /** Snapshots of Linux to roll back to, from settings › linux. */
     Snapshots,
+    /** Scheduled agent jobs, from the agents screen. */
+    Jobs,
 }
 
 /** Opens [page] over the ones in [stack]; one that's already open comes back to the top, closing what's over it. */
@@ -172,6 +174,7 @@ private fun SettingsPage(
                 AgentsScreen(
                     runtime,
                     onDismiss = close,
+                    onJobs = { stack.push(SettingsPage.Jobs) },
                     onOpen = { agent ->
                         close()
                         runtime.terminal(agent.command, agent.name, agent)
@@ -191,5 +194,6 @@ private fun SettingsPage(
         SettingsPage.QuickTiles -> QuickTilesScreen(runtime, onDismiss = close)
         SettingsPage.Focus -> dev.omalauncher.pp.focus.FocusScreen(runtime, onDismiss = close)
         SettingsPage.Snapshots -> SnapshotsScreen(runtime, onDismiss = close)
+        SettingsPage.Jobs -> JobsScreen(runtime, onDismiss = close)
     }
 }

@@ -27,6 +27,8 @@ import dev.omalauncher.pp.theme.GestureAction
 import dev.omalauncher.pp.theme.GestureStyle
 import dev.omalauncher.pp.theme.panel
 import dev.omalauncher.pp.theme.Style
+import dev.omalauncher.pp.jobs.Jobs
+import dev.omalauncher.pp.jobs.JobsFile
 import dev.omalauncher.pp.theme.StyleStore
 import dev.omalauncher.pp.ui.LauncherStyle
 import dev.omalauncher.pp.upgrade.Managed
@@ -1122,6 +1124,9 @@ class WidgetEngine(
                 "Crush and Cursor's configs), with tools that check a change before applying it: get_home_layout, " +
                 "set_home_layout and list_pages; list_widgets, read_widget, write_widget and check_owl; list_themes, get_theme " +
                 "and set_theme; get_style and set_style_value; list_apps and open_app; show_toast. Prefer them to editing " +
-                "the files when they're available.\n"
+                "the files when they're available.\n" +
+                "Scheduled agent jobs (a prompt run by a coding agent, headless, daily at 07:00 or on any schedule) are " +
+                "~/${Jobs.GUEST_DIR}/${JobsFile.NAME}; README.md next to it explains the file, the permissions a job runs " +
+                "with, and where each job's output and status go (status.json there is what widgets read).\n"
     }
 }
