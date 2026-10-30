@@ -22,6 +22,7 @@ import kotlinx.coroutines.withContext
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import dev.omalauncher.pp.theme.ForkStyle
+import dev.omalauncher.pp.tiles.QuickTiles
 import dev.omalauncher.pp.ui.ImagePicker
 import dev.omalauncher.pp.ui.MicPermission
 import dev.omalauncher.pp.ui.Palette
@@ -131,6 +132,8 @@ class MainActivity : ComponentActivity() {
         runtime.wm.focus(null)
         runtime.keyboard.imagePicker = imagePicker
         runtime.dictation.askMic = mic::ask
+        // A quick settings tile opened home for a terminal or a prompt.
+        QuickTiles.onHomeResumed(this, runtime, state)
         removeStaleWindowTasks()
         // Made the default home app (or no longer it) while away: only then does Android show us pinned shortcuts.
         runtime.androidApps.checkShortcutAccess()

@@ -259,7 +259,7 @@ object StyleFile {
             listOf(THEME, BACKGROUND, FONT, APP_TILES, RECENT_APPS, EMPTY_PAGE_LEFT, EMPTY_PAGE_RIGHT, COLUMNS, FORCE_SINGLE_PAGE, GAPS_IN, GAPS_OUT, TILE_OPACITY, TILE_FROST, TILE_BORDER_WIDTH, TILE_BORDER, TILE_BORDER_FOCUSED) +
                 listOf(SCREEN_GAPS_OUT, SCREEN_BORDER_WIDTH, KEYBAR_GAPS_OUT, KEYBAR_BORDER_WIDTH, MONOCHROME_ICONS) + ForkStyle.ICONS + listOf(CORNER_SCALE) +
                 listOf(STATUS_BAR_SHOWN) + STATUS_BAR.all + NAVIGATION_BAR.all + listOf(TERMINAL_FONT, TERMINAL_TEXT, SWIPE_UP, SWIPE_DOWN) +
-                DesktopStyle.ALL + SearchStyle.ALL + AgentStatusStyle.ALL
+                DesktopStyle.ALL + SearchStyle.ALL + AgentStatusStyle.ALL + TileStyle.ALL
         }
 
     private val byKey = ALL.associateBy { it.key }

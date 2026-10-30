@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="qs_tiles_linux">Linux</string>
+    <string name="qs_tiles_terminal">Terminal</string>
+    <string name="qs_tiles_ask">Preguntar al agente</string>
+    <string name="qs_tiles_not_installed">no instalado</string>
+    <string name="qs_tiles_installing">instalando…</string>
+    <string name="qs_tiles_failed">la instalación falló</string>
+    <string name="qs_tiles_removing">eliminando…</string>
+    <string name="qs_tiles_off">apagado</string>
+    <string name="qs_tiles_starting">iniciando…</string>
+    <string name="qs_tiles_running">en ejecución</string>
+    <string name="qs_tiles_stopping">apagando…</string>
+    <string name="qs_tiles_starts_linux">inicia Linux</string>
+    <string name="qs_tiles_needs_linux">instala Linux</string>
+    <string name="qs_tiles_starting_linux">Iniciando Linux…</string>
+    <string name="qs_tiles_shut_down_title">¿apagar linux?</string>
+    <string name="qs_tiles_shut_down_body">Cierra las apps y terminales de Linux y detiene los agentes que trabajan en ellas; los archivos y paquetes se quedan. Sigue apagado, también tras reiniciar, hasta que lo vuelvas a iniciar.</string>
+    <string name="qs_tiles_title">accesos de ajustes rápidos</string>
+    <string name="qs_tiles_subtitle">linux, terminal y preguntar al agente en los ajustes rápidos de android</string>
+    <string name="qs_tiles_linux_about">Muestra si Linux está en ejecución. Un toque lo inicia o lo apaga; una pulsación larga abre configuración › linux.</string>
+    <string name="qs_tiles_terminal_about">Abre una terminal, iniciando Linux antes si está apagado.</string>
+    <string name="qs_tiles_ask_about">Abre el inicio con la barra lista para una petición a tu agente.</string>
+    <string name="qs_tiles_add">añadir</string>
+    <string name="qs_tiles_added">añadido a los ajustes rápidos</string>
+    <string name="qs_tiles_already_added">ya está en los ajustes rápidos</string>
+    <string name="qs_tiles_add_failed">android no lo añadió; añádelo desde el modo de edición del panel</string>
+    <string name="qs_tiles_ask_opens">preguntar al agente abre</string>
+    <string name="qs_tiles_ask_type">teclado</string>
+    <string name="qs_tiles_ask_voice">voz</string>
+    <string name="qs_tiles_ask_no_mic">el micrófono no está permitido, así que abre el teclado</string>
+    <string name="qs_tiles_hint">O baja el panel del todo, toca el lápiz y arrastra los accesos.</string>
+</resources>

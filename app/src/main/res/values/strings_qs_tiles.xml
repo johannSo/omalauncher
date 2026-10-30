@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The quick settings tiles (tiles/) and their page in settings. Tile names are capitalized like Android's own tiles. -->
+<resources>
+    <string name="qs_tiles_linux">Linux</string>
+    <string name="qs_tiles_terminal">Terminal</string>
+    <string name="qs_tiles_ask">Ask agent</string>
+    <string name="qs_tiles_not_installed">not installed</string>
+    <string name="qs_tiles_installing">installing…</string>
+    <string name="qs_tiles_failed">setup failed</string>
+    <string name="qs_tiles_removing">removing…</string>
+    <string name="qs_tiles_off">off</string>
+    <string name="qs_tiles_starting">starting…</string>
+    <string name="qs_tiles_running">running</string>
+    <string name="qs_tiles_stopping">shutting down…</string>
+    <string name="qs_tiles_starts_linux">starts Linux</string>
+    <string name="qs_tiles_needs_linux">set up Linux</string>
+    <string name="qs_tiles_starting_linux">Starting Linux…</string>
+    <string name="qs_tiles_shut_down_title">shut down linux?</string>
+    <string name="qs_tiles_shut_down_body">Closes Linux apps and terminals and stops agents working in them; files and packages stay. It stays off, also after a restart, until you start it again.</string>
+    <string name="qs_tiles_title">quick settings tiles</string>
+    <string name="qs_tiles_subtitle">linux, terminal and ask agent in android\'s quick settings</string>
+    <string name="qs_tiles_linux_about">Shows whether Linux is running. A tap starts it or shuts it down; a long press opens settings › linux.</string>
+    <string name="qs_tiles_terminal_about">Opens a terminal, starting Linux first if it\'s off.</string>
+    <string name="qs_tiles_ask_about">Opens home with the bar ready for a prompt to your agent.</string>
+    <string name="qs_tiles_add">add</string>
+    <string name="qs_tiles_added">added to quick settings</string>
+    <string name="qs_tiles_already_added">already in quick settings</string>
+    <string name="qs_tiles_add_failed">android didn\'t add it; add it from the shade\'s edit mode</string>
+    <string name="qs_tiles_ask_opens">ask agent opens</string>
+    <string name="qs_tiles_ask_type">keyboard</string>
+    <string name="qs_tiles_ask_voice">voice</string>
+    <string name="qs_tiles_ask_no_mic">the microphone isn\'t allowed, so it opens the keyboard</string>
+    <string name="qs_tiles_hint">Or pull the shade all the way down, tap the pencil and drag the tiles in.</string>
+</resources>

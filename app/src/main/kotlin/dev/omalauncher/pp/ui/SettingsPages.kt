@@ -53,6 +53,8 @@ enum class SettingsPage {
     Search,
     /** Apps hidden and renamed (apps.toml). */
     HiddenApps,
+    /** The quick settings tiles, to add; a long press on the terminal or ask tile opens it too. */
+    QuickTiles,
 }
 
 /** Opens [page] over the ones in [stack]; one that's already open comes back to the top, closing what's over it. */
@@ -129,6 +131,7 @@ private fun SettingsPage(
                 onDesktop = { stack.push(SettingsPage.Desktop) },
                 onSearch = { stack.push(SettingsPage.Search) },
                 onHiddenApps = { stack.push(SettingsPage.HiddenApps) },
+                onQuickTiles = { stack.push(SettingsPage.QuickTiles) },
             )
         SettingsPage.Style -> StyleScreen(runtime, onDismiss = close, onBrowse = { stack.push(SettingsPage.Themes) }, onAgent = ::agent)
         SettingsPage.Pages -> {
@@ -180,5 +183,6 @@ private fun SettingsPage(
         SettingsPage.Desktop -> DesktopSettingsScreen(runtime, onDismiss = close)
         SettingsPage.Search -> SearchScreen(runtime, onDismiss = close)
         SettingsPage.HiddenApps -> HiddenAppsScreen(runtime, onDismiss = close)
+        SettingsPage.QuickTiles -> QuickTilesScreen(runtime, onDismiss = close)
     }
 }

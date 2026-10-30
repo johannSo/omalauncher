@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="qs_tiles_linux">Linux</string>
+    <string name="qs_tiles_terminal">Terminal</string>
+    <string name="qs_tiles_ask">Perguntar ao agente</string>
+    <string name="qs_tiles_not_installed">não instalado</string>
+    <string name="qs_tiles_installing">instalando…</string>
+    <string name="qs_tiles_failed">a instalação falhou</string>
+    <string name="qs_tiles_removing">removendo…</string>
+    <string name="qs_tiles_off">desligado</string>
+    <string name="qs_tiles_starting">iniciando…</string>
+    <string name="qs_tiles_running">em execução</string>
+    <string name="qs_tiles_stopping">desligando…</string>
+    <string name="qs_tiles_starts_linux">inicia o Linux</string>
+    <string name="qs_tiles_needs_linux">instale o Linux</string>
+    <string name="qs_tiles_starting_linux">Iniciando o Linux…</string>
+    <string name="qs_tiles_shut_down_title">desligar o linux?</string>
+    <string name="qs_tiles_shut_down_body">Fecha os apps e terminais do Linux e para os agentes que trabalham neles; arquivos e pacotes ficam. Ele continua desligado, também depois de reiniciar, até você iniciá-lo de novo.</string>
+    <string name="qs_tiles_title">blocos de configurações rápidas</string>
+    <string name="qs_tiles_subtitle">linux, terminal e perguntar ao agente nas configurações rápidas do android</string>
+    <string name="qs_tiles_linux_about">Mostra se o Linux está em execução. Um toque o inicia ou desliga; um toque longo abre configurações › linux.</string>
+    <string name="qs_tiles_terminal_about">Abre um terminal, iniciando o Linux antes se estiver desligado.</string>
+    <string name="qs_tiles_ask_about">Abre a tela inicial com a barra pronta para um pedido ao seu agente.</string>
+    <string name="qs_tiles_add">adicionar</string>
+    <string name="qs_tiles_added">adicionado às configurações rápidas</string>
+    <string name="qs_tiles_already_added">já está nas configurações rápidas</string>
+    <string name="qs_tiles_add_failed">o android não o adicionou; adicione pelo modo de edição do painel</string>
+    <string name="qs_tiles_ask_opens">perguntar ao agente abre</string>
+    <string name="qs_tiles_ask_type">teclado</string>
+    <string name="qs_tiles_ask_voice">voz</string>
+    <string name="qs_tiles_ask_no_mic">o microfone não está permitido, então abre o teclado</string>
+    <string name="qs_tiles_hint">Ou puxe o painel até embaixo, toque no lápis e arraste os blocos para dentro.</string>
+</resources>

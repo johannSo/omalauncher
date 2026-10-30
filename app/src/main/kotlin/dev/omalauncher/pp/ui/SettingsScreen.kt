@@ -66,6 +66,7 @@ fun SettingsScreen(
     onDesktop: () -> Unit,
     onSearch: () -> Unit,
     onHiddenApps: () -> Unit = {},
+    onQuickTiles: () -> Unit,
 ) {
     val context = LocalContext.current
     val linux by runtime.bootstrap.state.collectAsState()
@@ -107,6 +108,7 @@ fun SettingsScreen(
                 ),
                 SettingsRow(R.string.settings_search, stringResource(R.string.settings_search_subtitle), onSearch),
                 SettingsRow(R.string.app_tweaks_settings, hiddenAppsSubtitle(runtime), onHiddenApps),
+                SettingsRow(R.string.qs_tiles_title, stringResource(R.string.qs_tiles_subtitle), onQuickTiles),
                 languageRow(),
                 otherAppsRow(),
                 backupRow(runtime),
